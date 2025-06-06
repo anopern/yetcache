@@ -19,6 +19,7 @@ import org.springframework.core.ResolvableTypeProvider;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -26,6 +27,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @since 2025/5/23
  */
 public abstract class AbstractCacheAgent<E> implements ICacheAgent, HotDataReloadable, ResolvableTypeProvider {
+    // 应用启动时生成唯一ID
+    public static final String INSTANCE_ID = UUID.randomUUID().toString();
+
     // 查询source的分布式锁防止数据源重复请求
     protected static final String QUERY_SOURCE_LOCK_KEY_PRE = "common:cache:agent:source";
 
@@ -166,5 +170,9 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, HotDataReloa
         } catch (Exception e) {
             throw new RuntimeException("创建空对象失败: " + clazz, e);
         }
+    }
+
+    protected boolean isEventFromCurrentInstance(CacheEvent<?> event) {
+        return null != event && INSTANCE_ID.equalsIgnoreCase(event.getInstanceId());
     }
 }

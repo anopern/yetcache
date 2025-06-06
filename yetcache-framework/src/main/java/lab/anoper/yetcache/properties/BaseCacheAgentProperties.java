@@ -13,13 +13,13 @@ public abstract class BaseCacheAgentProperties {
     public static final String COMMON_CACHE_PREFIX = "common.cache-agent.";
 
     // Redis相关配置，单位秒，默认7天
-    private Integer redisExpireSecs = 3600 * 24 * 7;
+    private Integer redisExpireSecs = 3600 * 2;
 
     // Caffeine相关配置，单位秒，默认1天
-    private Integer caffeineExpireSecs = 3600 * 24;
+    private Integer caffeineExpireSecs = 60 * 5;
 
     // 空对象过期时间，防止缓存穿透，默认5分钟
-    private Integer emptyObjExpireSecs = 60 * 5;
+    private Integer emptyObjExpireSecs = 60;
 
     // MQ相关配置
     private String mqExchange = "commonCacheAgentCommonExchange";
@@ -63,4 +63,6 @@ public abstract class BaseCacheAgentProperties {
     // 热键缓存最大数量
     private Integer hotkeyJvmMaxSize = 10000;
 
+    // 消息最大延迟秒数
+    private Integer messageMaxDelaySecs = 10;
 }

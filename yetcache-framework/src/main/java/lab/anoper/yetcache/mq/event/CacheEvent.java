@@ -1,5 +1,7 @@
 package lab.anoper.yetcache.mq.event;
 
+import com.alibaba.fastjson2.annotation.JSONType;
+import lab.anoper.yetcache.agent.impl.AbstractCacheAgent;
 import lab.anoper.yetcache.enums.CacheEventType;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +18,10 @@ import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
+@JSONType(ignores = {"resolvableType"})
 public class CacheEvent<E> implements ResolvableTypeProvider {
+    protected String instanceId = AbstractCacheAgent.INSTANCE_ID;
+
     // 要通知的Agent的ID
     protected String agentId;
 
@@ -31,6 +36,9 @@ public class CacheEvent<E> implements ResolvableTypeProvider {
 
     // 具体要更新的数据，针对更新操作时候
     protected E data;
+
+    // 创建时间，毫秒时间戳
+    protected Long createdTime = System.currentTimeMillis();
 
     @Override
     public ResolvableType getResolvableType() {
@@ -56,16 +64,19 @@ public class CacheEvent<E> implements ResolvableTypeProvider {
 
     public static <E> CacheEvent<E> buildKVUpdateEvent(@NotNull String agentId,
                                                        @Nullable Long tenantId,
+                                                       @NotNull String bizKey,
                                                        @NotNull E data) {
         CacheEvent<E> event = new CacheEvent<>();
         event.setAgentId(agentId);
         event.setTenantId(tenantId);
+        event.setBizKey(new BizKey(bizKey));
         event.setEventType(CacheEventType.UPDATE);
         event.setData(data);
         return event;
     }
 
-    public static <E> CacheEvent<E> buildKVInvalidateEvent(@NotNull String agentId, @Nullable Long tenantId,
+    public static <E> CacheEvent<E> buildKVInvalidateEvent(@NotNull String agentId,
+                                                           @Nullable Long tenantId,
                                                            @NotNull String bizKey) {
         CacheEvent<E> event = new CacheEvent<>();
         event.setAgentId(agentId);

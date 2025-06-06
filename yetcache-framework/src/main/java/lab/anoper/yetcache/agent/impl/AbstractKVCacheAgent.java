@@ -13,7 +13,6 @@ import lab.anoper.yetcache.source.IKVCacheSourceService;
 import lab.anoper.yetcache.utils.CacheRetryUtils;
 import lab.anoper.yetcache.utils.LockUtils;
 import lab.anoper.yetcache.utils.RedisSafeUtils;
-import lab.anoper.yetcache.utils.SpringContextProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -84,7 +83,7 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
                 e = getFromRedis(tenantId, bizKey);
                 if (null != e) {
                     cache.put(key, e);
-                    publishEvent(CacheEvent.buildKVUpdateEvent(getId(), tenantId, e));
+                    publishEvent(CacheEvent.buildKVUpdateEvent(getId(), tenantId, bizKey, e));
                 }
                 e = getFromSource(tenantId, bizKey);
                 if (e != null) {
@@ -162,7 +161,7 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
                 // 3. 更新本地缓存
                 cache.put(key, e);
                 // 4. 发送消息，让其他实例也更新
-                CacheEvent<?> event = CacheEvent.buildKVUpdateEvent(properties.getId(), tenantId, e);
+                CacheEvent<?> event = CacheEvent.buildKVUpdateEvent(properties.getId(), tenantId, bizKey, e);
                 publishEvent(event);
             }
         } catch (Exception e) {
@@ -261,6 +260,16 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
      */
     public void handleMessage(String message) {
         CacheEvent<?> event = parseRawCacheEvent(message);
+        // 如果是本机发出的消息，直接不处理
+        if (isEventFromCurrentInstance(event)) {
+            return;
+        }
+        // 如果创建时间是10s之前，直接丢弃
+        long messageDelaySecs = (System.currentTimeMillis() - event.getCreatedTime()) / 1000;
+        if (messageDelaySecs > properties.getMessageMaxDelaySecs()) {
+            cache.invalidate(getKeyFromBizKeyWithTenant(event.getTenantId(), event.getBizKey().getBizKey()));
+            return;
+        }
         if (Objects.equals(CacheEventType.UPDATE, event.getEventType())) {
             handleUpdateOneEvent(message);
         } else if (Objects.equals(CacheEventType.INVALIDATE, event.getEventType())) {
