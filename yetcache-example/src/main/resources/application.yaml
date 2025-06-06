@@ -33,5 +33,5 @@ common:
       id: 'USER_CACHE_AGENT'
       key-prefix: 'yc:exam:user'
       tenant-check-level: 'NONE'
-      redis-cache-enabled: false
+      redis-cache-enabled: true
       caffeine-expire-secs: 3
