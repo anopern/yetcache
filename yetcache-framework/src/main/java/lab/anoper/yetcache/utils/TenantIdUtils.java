@@ -1,6 +1,8 @@
 package lab.anoper.yetcache.utils;
 
 import lab.anoper.yetcache.enums.TenantCheckLevel;
+import lab.anoper.yetcache.tenant.TenantRequestContextHolder;
+import lab.anoper.yetcache.constant.TenantConstants;
 
 /**
  * @author walter.yan
@@ -20,7 +22,7 @@ public class TenantIdUtils {
      */
     public static Long getCurTenantId(TenantCheckLevel tenantCheckLevel) {
         // 尝试获取当前请求的租户ID
-        Long tenantId = TenantRequestContextHolder.getTenantId();
+        Long tenantId = TenantRequestContextHolder.getCurTenantId();
 
         // 根据当前缓存类型的租户检查级别处理租户ID
         if (tenantCheckLevel == TenantCheckLevel.MUST) {

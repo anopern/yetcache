@@ -1,6 +1,6 @@
-package com.yxzq.common.cache.mq;
+package lab.anoper.yetcache.mq;
 
-import com.yxzq.common.cache.properties.BaseCacheAgentProperties;
+import lab.anoper.yetcache.properties.BaseCacheAgentProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,14 +39,14 @@ public class CacheAgentMQQueueConfig {
             String exchange = props.getMqExchange();
 
             FanoutExchange fanoutExchange = new FanoutExchange(exchange, true, false);
-            Queue q = new AnonymousQueue();
+            Queue queue = new AnonymousQueue();
 
             amqpAdmin.declareExchange(fanoutExchange);
-            amqpAdmin.declareQueue(q);
-            amqpAdmin.declareBinding(BindingBuilder.bind(q).to(fanoutExchange));
+            amqpAdmin.declareQueue(queue);
+            amqpAdmin.declareBinding(BindingBuilder.bind(queue).to(fanoutExchange));
 
-            queueMap.put(exchange, q);
-            log.info("已绑定匿名队列 [{}] 到广播交换机 [{}]", q.getName(), exchange);
+            queueMap.put(exchange, queue);
+            log.info("已绑定匿名队列 [{}] 到广播交换机 [{}]", queue.getName(), exchange);
         }
 
         return queueMap;

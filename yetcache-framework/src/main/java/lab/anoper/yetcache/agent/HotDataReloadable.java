@@ -10,13 +10,13 @@ public interface HotDataReloadable {
      */
     Integer getOrder();
 
-    /**
-     * 从 Redis 加载热点数据到本地（一般用于已有缓存的快速预热）
-     */
-    void loadFromRedis();
-
-    /**
-     * 从 Source 加载热点数据到 Redis 和本地（一般用于首次加载或强制刷新）
-     */
-    void loadFromSource();
+//    /**
+//     * 从 Redis 加载热点数据到本地（一般用于已有缓存的快速预热）
+//     */
+//    void loadFromRedis();
+//
+//    /**
+//     * 从 Source 加载热点数据到 Redis 和本地（一般用于首次加载或强制刷新）
+//     */
+//    void loadFromSource();
 }

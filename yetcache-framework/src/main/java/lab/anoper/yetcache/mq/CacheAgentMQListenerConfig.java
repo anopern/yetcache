@@ -1,8 +1,8 @@
-package com.yxzq.common.cache.mq;
+package lab.anoper.yetcache.mq;
 
 import cn.hutool.core.collection.CollUtil;
-import com.yxzq.common.cache.properties.BaseCacheAgentProperties;
-import com.yxzq.common.cache.utils.CacheAgentMessageProcessor;
+import lab.anoper.yetcache.properties.BaseCacheAgentProperties;
+import lab.anoper.yetcache.utils.CacheAgentMessageProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;

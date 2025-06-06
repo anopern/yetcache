@@ -1,6 +1,5 @@
 package lab.anoper.yetcache.agent.impl;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.alibaba.fastjson2.JSON;
@@ -14,28 +13,19 @@ import lab.anoper.yetcache.source.IKVCacheSourceService;
 import lab.anoper.yetcache.utils.CacheRetryUtils;
 import lab.anoper.yetcache.utils.LockUtils;
 import lab.anoper.yetcache.utils.RedisSafeUtils;
-import lab.anoper.yetcache.utils.SpringContextUtils;
+import lab.anoper.yetcache.utils.SpringContextProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
-import org.springframework.dao.TransientDataAccessException;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.lang.Nullable;
-import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 
@@ -135,7 +125,7 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
     public void evictCache(@Nullable Long tenantId, @NotNull String bizKey) {
         checkTenantScoped(tenantId);
         String key = getKeyFromBizKeyWithTenant(tenantId, bizKey);
-        RedisSafeUtils.safeDelete(key, (k) -> getValueOperations().de(k));
+        RedisSafeUtils.safeDelete(key, k -> redisTemplate.delete(k));
         cache.invalidate(key);
         publishEvent(CacheEvent.buildKVInvalidateEvent(getId(), tenantId, bizKey));
     }
@@ -172,22 +162,13 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
                 // 3. 更新本地缓存
                 cache.put(key, e);
                 // 4. 发送消息，让其他实例也更新
-                CacheEvent<?> event = CacheEvent.buildUpdateOneEvent(properties.getId(), tenantId, e);
+                CacheEvent<?> event = CacheEvent.buildKVUpdateEvent(properties.getId(), tenantId, e);
                 publishEvent(event);
             }
         } catch (Exception e) {
             log.error("刷新缓存失败，bizKey: {}", bizKey, e);
             // 可选：发生异常时可选择驱逐旧缓存，强制下次 get 时回源
             evictCache(tenantId, bizKey);
-        }
-    }
-
-    @Override
-    public void updateCache(E data) {
-        if (isTenantScoped()) {
-            updateCache(getCurTenantId(), data);
-        } else {
-            updateCache(null, data);
         }
     }
 
@@ -199,7 +180,7 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
             RedisTemplate<String, E> redisTemplate = new RedisTemplate<>();
             redisTemplate.setKeySerializer(new StringRedisSerializer());
             redisTemplate.setValueSerializer(new FastJsonRedisSerializer<>(clazz));
-            RedisConnectionFactory redisConnectionFactory = SpringContextUtils.getBean(RedisConnectionFactory.class);
+            RedisConnectionFactory redisConnectionFactory = springContextProvider.getBean(RedisConnectionFactory.class);
             redisTemplate.setConnectionFactory(redisConnectionFactory);
             redisTemplate.afterPropertiesSet();
             this.redisTemplate = redisTemplate;
@@ -229,7 +210,7 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
         RLock lock = redissonClient.getLock(lockKey);
         try {
             String key = getKeyFromBizKeyWithTenant(tenantId, bizKey);
-            if (force) {
+            if (force || !properties.isRedisCacheEnabled()) {
                 return sourceService.querySingle(tenantId, bizKey);
             } else {
                 // 最多等 100ms 尝试拿锁。拿到锁后持有 5s，防止死锁
@@ -302,125 +283,126 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
     }
 
     private void handleDeleteOneEvent(String message) {
-        lab.anoper.yetcache.event.CacheEvent<E> event = parseCacheEvent(message);
+        CacheEvent<E> event = parseCacheEvent(message);
         log.info("[JVM缓存]处理单个的JVM缓存[DELETE_ONE]事件：{}", message);
-        if (StrUtil.isBlank(event.getBizKey())) {
+        CacheEvent.BizKey bizKey = event.getBizKey();
+        if (null == bizKey || StrUtil.isBlank(bizKey.getBizKey())) {
             throw new IllegalArgumentException("处理删除缓存事件失败，bizKey不能为空，事件："
                     + JSON.toJSONString(event));
         }
-        cache.invalidate(getKeyFromBizKeyWithTenant(event.getTenantId(), event.getBizKey()));
+        cache.invalidate(getKeyFromBizKeyWithTenant(event.getTenantId(), bizKey.getBizKey()));
     }
 
-    /**
-     * 从 Redis 中加载所有热点业务数据到本地（JVM）缓存。
-     * <p>
-     * 热点数据的 bizKey 列表由 {@link IHotKeyProvider#listAllBizKeys(Long)} ()} 提供，
-     * 遍历每个 key，通过统一的 {@link #get(Long, String)} 方法触发本地缓存加载逻辑，
-     * 该方法默认走：本地缓存 → Redis → 数据源 的三级加载链。
-     * </p>
-     * <p>
-     * 如果热点 key 列表为空，仅记录日志并跳过加载流程。
-     * </p>
-     */
-    public void loadFromRedis() {
-        if (null == hotKeyProvider) {
-            log.warn("未配置热点数据键值提供者，跳过从Redis加载热点数据到本地缓存");
-            return;
-        }
-        if (isTenantScoped()) {
-            for (Long tenantId : tenantIdProvider.listAllTenantIds()) {
-                loadFromRedis(tenantId);
-            }
-        } else {
-            loadFromRedis(null);
-        }
-    }
+//    /**
+//     * 从 Redis 中加载所有热点业务数据到本地（JVM）缓存。
+//     * <p>
+//     * 热点数据的 bizKey 列表由 {@link IHotKeyProvider#listAllBizKeys(Long)} ()} 提供，
+//     * 遍历每个 key，通过统一的 {@link #get(Long, String)} 方法触发本地缓存加载逻辑，
+//     * 该方法默认走：本地缓存 → Redis → 数据源 的三级加载链。
+//     * </p>
+//     * <p>
+//     * 如果热点 key 列表为空，仅记录日志并跳过加载流程。
+//     * </p>
+//     */
+//    public void loadFromRedis() {
+//        if (null == hotKeyProvider) {
+//            log.warn("未配置热点数据键值提供者，跳过从Redis加载热点数据到本地缓存");
+//            return;
+//        }
+//        if (isTenantScoped()) {
+//            for (Long tenantId : tenantIdProvider.listAllTenantIds()) {
+//                loadFromRedis(tenantId);
+//            }
+//        } else {
+//            loadFromRedis(null);
+//        }
+//    }
 
-    public void loadFromRedis(Long tenantId) {
-        if (null == hotKeyProvider) {
-            log.warn("未配置热点数据键值提供者，跳过从Redis加载热点数据到本地缓存");
-            return;
-        }
-        Set<String> hotBizKeys = hotKeyProvider.listAllBizKeys(tenantId);
-        if (CollUtil.isEmpty(hotBizKeys)) {
-            log.warn("热点业务键值列表为空，不从Redis加载所有热点数据到本地缓存，请检查热点数据键值维护模块工作是否正常！");
-            return;
-        }
-        for (String bizKey : hotBizKeys) {
-            try {
-                get(tenantId, bizKey);
-            } catch (Exception e) {
-                log.error("从Redis加载热点业务Key到本地缓存失败，bizKey: {}", bizKey, e);
-            }
-        }
-    }
+//    public void loadFromRedis(Long tenantId) {
+//        if (null == hotKeyProvider) {
+//            log.warn("未配置热点数据键值提供者，跳过从Redis加载热点数据到本地缓存");
+//            return;
+//        }
+//        Set<String> hotBizKeys = hotKeyProvider.listAllBizKeys(tenantId);
+//        if (CollUtil.isEmpty(hotBizKeys)) {
+//            log.warn("热点业务键值列表为空，不从Redis加载所有热点数据到本地缓存，请检查热点数据键值维护模块工作是否正常！");
+//            return;
+//        }
+//        for (String bizKey : hotBizKeys) {
+//            try {
+//                get(tenantId, bizKey);
+//            } catch (Exception e) {
+//                log.error("从Redis加载热点业务Key到本地缓存失败，bizKey: {}", bizKey, e);
+//            }
+//        }
+//    }
 
-    /**
-     * 重新加载所有热点业务数据到 Redis 和本地缓存。
-     *
-     * <p>流程说明：
-     * 1. 从热点key提供者获取所有热点业务key列表。
-     * 2. 按照每批100个key分批查询数据源。
-     * 3. 对每批查询结果：
-     * - 如果返回空，说明对应业务数据已删除，执行缓存清理。
-     * - 如果有数据，更新缓存。
-     * 4. 对每批查询过程捕获异常，避免单批异常影响整体。
-     *
-     * <p>注意：
-     * - 确保热点key维护模块正常工作。
-     * - 缓存清理可防止缓存脏数据和缓存穿透。
-     */
-    @Override
-    public void loadFromSource() {
-        if (null == hotKeyProvider) {
-            log.warn("未配置热点数据键值提供者，跳过从Source加载热点数据到Redis和本地缓存");
-            return;
-        }
-        if (isTenantScoped()) {
-            for (Long tenantId : tenantIdProvider.listAllTenantIds()) {
-                loadFromSource(tenantId);
-            }
-        } else {
-            loadFromSource(null);
-        }
-    }
-
-    @Retryable(value = {TransientDataAccessException.class, IOException.class}, backoff = @Backoff(delay = 2000))
-    public void loadFromSource(Long tenantId) {
-        if (null == hotKeyProvider) {
-            log.warn("未配置热点数据键值提供者，跳过从Source加载热点数据到Redis和本地缓存");
-            return;
-        }
-        if (!loadingFromSource.compareAndSet(false, true)) {
-            log.warn("loadFromSource 已在执行，忽略调用");
-            return;
-        }
-        try {
-            Set<String> hotBizKeys = hotKeyProvider.listAllBizKeys(tenantId);
-            if (CollUtil.isEmpty(hotBizKeys)) {
-                log.warn("热点业务键值列表为空，不从Source加载所有热点数据到Redis和本地缓存，请检查热点数据键值维护模块工作是否正常！");
-                return;
-            }
-            List<List<String>> bizKeyBatches = Lists.partition(new ArrayList<>(hotBizKeys), 100);
-            for (List<String> bizKeyBatch : bizKeyBatches) {
-                List<E> data = sourceService.queryList(tenantId, bizKeyBatch);
-                if (CollUtil.isEmpty(data)) {
-                    log.warn("从数据源查询列表以重新加载Redis和JVM热点数据，返回列表为空，跳过本批数据加载，bizKeys: {}",
-                            JSON.toJSONString(bizKeyBatch));
-                    // 执行删除缓存，保持缓存与数据源同步
-                    for (String bizKey : bizKeyBatch) {
-                        evictCache(tenantId, bizKey);
-                    }
-                    continue;
-                }
-                for (E e : data) {
-                    updateCache(tenantId, e);
-                }
-            }
-        } finally {
-            loadingFromSource.set(false);
-        }
-    }
+//    /**
+//     * 重新加载所有热点业务数据到 Redis 和本地缓存。
+//     *
+//     * <p>流程说明：
+//     * 1. 从热点key提供者获取所有热点业务key列表。
+//     * 2. 按照每批100个key分批查询数据源。
+//     * 3. 对每批查询结果：
+//     * - 如果返回空，说明对应业务数据已删除，执行缓存清理。
+//     * - 如果有数据，更新缓存。
+//     * 4. 对每批查询过程捕获异常，避免单批异常影响整体。
+//     *
+//     * <p>注意：
+//     * - 确保热点key维护模块正常工作。
+//     * - 缓存清理可防止缓存脏数据和缓存穿透。
+//     */
+//    @Override
+//    public void loadFromSource() {
+//        if (null == hotKeyProvider) {
+//            log.warn("未配置热点数据键值提供者，跳过从Source加载热点数据到Redis和本地缓存");
+//            return;
+//        }
+//        if (isTenantScoped()) {
+//            for (Long tenantId : tenantIdProvider.listAllTenantIds()) {
+//                loadFromSource(tenantId);
+//            }
+//        } else {
+//            loadFromSource(null);
+//        }
+//    }
+//
+//    @Retryable(value = {TransientDataAccessException.class, IOException.class}, backoff = @Backoff(delay = 2000))
+//    public void loadFromSource(Long tenantId) {
+//        if (null == hotKeyProvider) {
+//            log.warn("未配置热点数据键值提供者，跳过从Source加载热点数据到Redis和本地缓存");
+//            return;
+//        }
+//        if (!loadingFromSource.compareAndSet(false, true)) {
+//            log.warn("loadFromSource 已在执行，忽略调用");
+//            return;
+//        }
+//        try {
+//            Set<String> hotBizKeys = hotKeyProvider.listAllBizKeys(tenantId);
+//            if (CollUtil.isEmpty(hotBizKeys)) {
+//                log.warn("热点业务键值列表为空，不从Source加载所有热点数据到Redis和本地缓存，请检查热点数据键值维护模块工作是否正常！");
+//                return;
+//            }
+//            List<List<String>> bizKeyBatches = Lists.partition(new ArrayList<>(hotBizKeys), 100);
+//            for (List<String> bizKeyBatch : bizKeyBatches) {
+//                List<E> data = sourceService.queryList(tenantId, bizKeyBatch);
+//                if (CollUtil.isEmpty(data)) {
+//                    log.warn("从数据源查询列表以重新加载Redis和JVM热点数据，返回列表为空，跳过本批数据加载，bizKeys: {}",
+//                            JSON.toJSONString(bizKeyBatch));
+//                    // 执行删除缓存，保持缓存与数据源同步
+//                    for (String bizKey : bizKeyBatch) {
+//                        evictCache(tenantId, bizKey);
+//                    }
+//                    continue;
+//                }
+//                for (E e : data) {
+//                    updateCache(tenantId, e);
+//                }
+//            }
+//        } finally {
+//            loadingFromSource.set(false);
+//        }
+//    }
 
     @Recover
     public void recover(Exception e) {

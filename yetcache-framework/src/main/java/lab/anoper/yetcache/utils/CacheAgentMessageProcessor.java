@@ -3,6 +3,7 @@ package lab.anoper.yetcache.utils;
 import com.alibaba.fastjson2.JSON;
 import io.micrometer.core.instrument.util.StringUtils;
 import lab.anoper.yetcache.agent.impl.AbstractCacheAgent;
+import lab.anoper.yetcache.bootstrap.CacheAgentRegistry;
 import lab.anoper.yetcache.mq.event.CacheEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -30,7 +31,7 @@ public class CacheAgentMessageProcessor {
 
         try {
             CacheEvent<?> rwaEvent = JSON.parseObject(json, CacheEvent.class);
-            AbstractCacheAgent<?> agent = cacheAgentRegistry.getByName(rwaEvent.getJvmCacheType());
+            AbstractCacheAgent<?> agent = cacheAgentRegistry.getById(rwaEvent.getAgentId());
             agent.handleMessage(json);
         } catch (Exception e) {
             log.error("处理缓存Agent广播消息出现异常，消息：{}", JSON.toJSONString(message), e);

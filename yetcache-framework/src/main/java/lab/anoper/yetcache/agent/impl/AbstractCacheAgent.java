@@ -7,8 +7,8 @@ import lab.anoper.yetcache.agent.HotDataReloadable;
 import lab.anoper.yetcache.agent.ICacheAgent;
 import lab.anoper.yetcache.mq.event.CacheEvent;
 import lab.anoper.yetcache.properties.BaseCacheAgentProperties;
-import lab.anoper.yetcache.tenant.ITenantIdProvider;
 import lab.anoper.yetcache.utils.RabbitMQUtils;
+import lab.anoper.yetcache.utils.SpringContextProvider;
 import lab.anoper.yetcache.utils.TenantIdUtils;
 import lombok.Getter;
 import org.redisson.api.RedissonClient;
@@ -37,7 +37,7 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, HotDataReloa
     @Autowired
     protected RedissonClient redissonClient;
     @Autowired
-    protected ITenantIdProvider tenantIdProvider;
+    protected SpringContextProvider springContextProvider;
     @Getter
     protected BaseCacheAgentProperties properties;
 

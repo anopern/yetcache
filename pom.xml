@@ -11,6 +11,7 @@
     <modules>
         <module>yetcache-framework</module>
         <module>yetcache-example</module>
+        <module>yetcache-example-base</module>
     </modules>
 
     <properties>
