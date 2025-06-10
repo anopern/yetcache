@@ -10,6 +10,7 @@ import org.springframework.core.ResolvableTypeProvider;
 import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotNull;
+import java.util.Map;
 
 /**
  * @author walter.yan
@@ -83,6 +84,44 @@ public class CacheEvent<E> implements ResolvableTypeProvider {
         event.setTenantId(tenantId);
         event.setEventType(CacheEventType.INVALIDATE);
         event.setBizKey(new CacheEvent.BizKey(bizKey));
+        return event;
+    }
+
+    public static <E> CacheEvent<Map<String, E>> buildHashUpdateHashEvent(@NotNull String agentId,
+                                                                          @Nullable Long tenantId,
+                                                                          @NotNull String bizKey,
+                                                                          @NotNull Map<String, E> dataMap) {
+        CacheEvent<Map<String, E>> event = new CacheEvent<>();
+        event.setAgentId(agentId);
+        event.setTenantId(tenantId);
+        event.setEventType(CacheEventType.UPDATE_ALL_FIELDS);
+        event.setBizKey(new CacheEvent.BizKey(bizKey));
+        event.setData(dataMap);
+        return event;
+    }
+
+    public static <E> CacheEvent<Map<String, E>> buildHashInvalidateAllFieldsEvent(@NotNull String agentId,
+                                                                                   @Nullable Long tenantId,
+                                                                                   @NotNull String bizKey) {
+        CacheEvent<Map<String, E>> event = new CacheEvent<>();
+        event.setAgentId(agentId);
+        event.setTenantId(tenantId);
+        event.setEventType(CacheEventType.INVALIDATE_ALL_FIELDS);
+        event.setBizKey(new CacheEvent.BizKey(bizKey));
+        return event;
+    }
+
+    public static <E> CacheEvent<E> buildHashUpdateEntryEvent(@NotNull String agentId,
+                                                                           @Nullable Long tenantId,
+                                                                           @NotNull String bizKey,
+                                                                           @NotNull String bizField,
+                                                                           @NotNull E e) {
+        CacheEvent<E> event = new CacheEvent<>();
+        event.setAgentId(agentId);
+        event.setTenantId(tenantId);
+        event.setEventType(CacheEventType.UPDATE_ENTRY);
+        event.setBizKey(new CacheEvent.BizKey(bizKey, bizField));
+        event.setData(e);
         return event;
     }
 }

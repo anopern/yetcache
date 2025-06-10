@@ -2,8 +2,8 @@ package lab.anoper.yetcache.agent.impl;
 
 
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.alibaba.fastjson2.JSON;
-import lab.anoper.yetcache.agent.HotDataReloadable;
 import lab.anoper.yetcache.agent.ICacheAgent;
 import lab.anoper.yetcache.mq.event.CacheEvent;
 import lab.anoper.yetcache.properties.BaseCacheAgentProperties;
@@ -15,6 +15,9 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.ResolvableTypeProvider;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.ParameterizedType;
@@ -26,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author walter.yan
  * @since 2025/5/23
  */
-public abstract class AbstractCacheAgent<E> implements ICacheAgent, HotDataReloadable, ResolvableTypeProvider {
+public abstract class AbstractCacheAgent<E> implements ICacheAgent, ResolvableTypeProvider {
     // 应用启动时生成唯一ID
     public static final String INSTANCE_ID = UUID.randomUUID().toString();
 
@@ -37,6 +40,8 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, HotDataReloa
     protected final static String EMPTY_OBJ_HASH_KEY = "EMPTY";
 
     protected final AtomicBoolean loadingFromSource = new AtomicBoolean(false);
+
+    protected RedisTemplate<String, E> redisTemplate;
 
     @Autowired
     protected RedissonClient redissonClient;
@@ -51,6 +56,11 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, HotDataReloa
         if (!properties.isLocalCacheEnabled() && !properties.isRedisCacheEnabled()) {
             throw new IllegalArgumentException("缓存Agent初始化失败，本地缓存和Redis缓存，至少要开启一中种！");
         }
+    }
+
+    void init()  throws Exception{
+        checkProperties();
+        initRedisTemplate();
     }
 
     protected abstract String getBizKey(@NotNull E e);
@@ -86,6 +96,20 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, HotDataReloa
         };
     }
 
+    protected void initRedisTemplate() {
+        Class<E> clazz = (Class<E>) getResolvableType().getGeneric(0).resolve();
+        // clone一个新的 RedisTemplate 并设置序列化器（避免污染全局模板）
+        RedisTemplate<String, E> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new FastJsonRedisSerializer<>(clazz));
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(new FastJsonRedisSerializer<>(clazz));
+        RedisConnectionFactory redisConnectionFactory = springContextProvider.getBean(RedisConnectionFactory.class);
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        redisTemplate.afterPropertiesSet();
+        this.redisTemplate = redisTemplate;
+    }
+
     protected Class<?> resolveGenericTypeArgument() {
         ResolvableType type = ResolvableType.forClass(this.getClass()).as(AbstractCacheAgent.class);
         return type.getGeneric(0).resolve();
@@ -115,11 +139,6 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, HotDataReloa
     @Override
     public String getId() {
         return properties.getId();
-    }
-
-    @Override
-    public Integer getOrder() {
-        return properties.getOrder();
     }
 
     protected void checkProperties() {

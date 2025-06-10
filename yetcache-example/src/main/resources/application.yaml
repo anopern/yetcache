@@ -35,3 +35,9 @@ common:
       tenant-check-level: 'NONE'
       redis-cache-enabled: true
       caffeine-expire-secs: 3
+    stock-hold-info:
+      id: 'STOCK_HOLD_INFO_CACHE_AGENT'
+      key-prefix: 'yc:exam:stock-hold-info'
+      tenant-check-level: 'NONE'
+      redis-cache-enabled: true
+      caffeine-expire-secs: 3

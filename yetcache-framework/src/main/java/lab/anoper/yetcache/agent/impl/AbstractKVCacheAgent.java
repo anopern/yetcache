@@ -1,7 +1,6 @@
 package lab.anoper.yetcache.agent.impl;
 
 import cn.hutool.core.util.StrUtil;
-import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.alibaba.fastjson2.JSON;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -15,10 +14,7 @@ import lab.anoper.yetcache.utils.LockUtils;
 import lab.anoper.yetcache.utils.RedisSafeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.lang.Nullable;
 import org.springframework.retry.annotation.Recover;
 
@@ -37,7 +33,6 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
 
     // agent方法初始化
     protected Cache<String, E> cache;
-    protected RedisTemplate<String, E> redisTemplate;
     protected ValueOperations<String, E> valueOperations;
 
     // 构造方法传入，@Autowired("xxx")方式传入
@@ -51,7 +46,8 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
 
     @PostConstruct
     public void init() throws Exception {
-        checkProperties();
+        super.init();
+        this.valueOperations = this.redisTemplate.opsForValue();
         if (properties.isLocalCacheEnabled()) {
             this.cache = initCaffeineCache();
         }
@@ -171,26 +167,9 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public ValueOperations<String, E> getValueOperations() {
-        if (valueOperations == null) {
-            Class<E> clazz = (Class<E>) getResolvableType().getGeneric(0).resolve();
-            // clone一个新的 RedisTemplate 并设置序列化器（避免污染全局模板）
-            RedisTemplate<String, E> redisTemplate = new RedisTemplate<>();
-            redisTemplate.setKeySerializer(new StringRedisSerializer());
-            redisTemplate.setValueSerializer(new FastJsonRedisSerializer<>(clazz));
-            RedisConnectionFactory redisConnectionFactory = springContextProvider.getBean(RedisConnectionFactory.class);
-            redisTemplate.setConnectionFactory(redisConnectionFactory);
-            redisTemplate.afterPropertiesSet();
-            this.redisTemplate = redisTemplate;
-            this.valueOperations = redisTemplate.opsForValue();
-        }
-        return valueOperations;
-    }
-
     protected E getFromRedis(Long tenantId, String bizKey) {
         String key = getKeyFromBizKeyWithTenant(tenantId, bizKey);
-        return RedisSafeUtils.safeGet(key, k -> getValueOperations().get(key));
+        return RedisSafeUtils.safeGet(key, k -> valueOperations.get(key));
     }
 
     protected E getFromSource(Long tenantId, String bizKey) {
@@ -223,7 +202,7 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
                     return sourceService.querySingle(tenantId, bizKey);
                 } else {
                     log.warn("未获取到分布式锁，bizKey: {}, 正在等待其他线程回源填充缓存", bizKey);
-                    CacheRetryUtils.retryRedisGet(() -> getValueOperations().get(key), 3, 50);
+                    CacheRetryUtils.retryRedisGet(() -> valueOperations.get(key), 3, 50);
                     return null;
                 }
             }
@@ -441,11 +420,11 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
 
     private void safeRedisSet(String key, E e) {
         RedisSafeUtils.safeSet(key, e, (k, v)
-                -> getValueOperations().set(k, v, properties.getRedisExpireSecs(), TimeUnit.SECONDS));
+                -> valueOperations.set(k, v, properties.getRedisExpireSecs(), TimeUnit.SECONDS));
     }
 
     private E safeRedisGet(String key) {
-        return RedisSafeUtils.safeGet(key, k -> getValueOperations().get(k));
+        return RedisSafeUtils.safeGet(key, k -> valueOperations.get(k));
     }
 
     /**
@@ -456,6 +435,6 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
     protected void preventCachePenetration(String key) {
         E emptyObject = getEmptyObject();
         RedisSafeUtils.safeSet(key, emptyObject, (k, v)
-                -> getValueOperations().set(k, v, properties.getEmptyObjExpireSecs(), TimeUnit.SECONDS));
+                -> valueOperations.set(k, v, properties.getEmptyObjExpireSecs(), TimeUnit.SECONDS));
     }
 }
