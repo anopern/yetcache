@@ -1,2 +1,154 @@
 # yetcache
 
+# ✅ 缓存如何与数据库增改删连接 —— 最佳实践总结
+
+---
+
+## 🔧 1. 所有的增、改、删操作必须在 `xxxService` 中完成
+
+这是整个缓存一致性机制的**基础保障**。必须杜绝直接通过 DAO / Mapper 操作数据库的情况。所有的写操作都应统一封装在对应的 Service 中，例如：
+
+```java
+public class UserService {
+    public void updateUser(User user) {
+        userMapper.updateById(user);
+        // 缓存刷新、事件发布等附加逻辑都集中在这
+    }
+}
+```
+
+### ✅ 优势：
+- **保证副作用一致性**：缓存刷新、MQ 同步、审计日志等副作用操作可控；
+- **统一入口，便于扩展**：可统一封装 AOP 切面、注解处理等机制；
+- **提升系统稳定性与可维护性**：结构清晰，避免隐式写库导致数据与缓存不一致；
+- **增强可观察性**：便于接入监控、埋点、异常分析等平台；
+- **便于团队协作与规范落地**：避免因多人操作导致写路径混乱、缓存遗漏。
+
+---
+
+## 📤 2. 写操作后通过事件发布机制，通知其他系统做缓存刷新等副作用
+
+在 Service 中执行完数据库操作后，不应立即操作缓存，而是发布事件，交给监听器进行处理。
+
+推荐通过 **事务提交后再发布事件** 的方式，防止事务回滚导致“缓存先删，数据库没改”的数据错乱。
+
+```java
+@Service
+@Slf4j
+public class AccAccountInfoServiceImpl extends ServiceImpl<AccAccountInfoMapper, AccAccountInfo>
+        implements IAccAccountInfoService {
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    @Transactional
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public boolean updateById(AccAccountInfo entity) {
+        super.updateById(entity);
+        eventPublisher.publishEvent(entity);
+        return true;
+    }
+}
+
+```
+
+其中 `TransactionalEventUtils` 可统一封装如下：
+
+```java
+public class TransactionalEventUtils {
+    public static void publishAfterCommit(ApplicationEventPublisher publisher, Object event) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+            @Override
+            public void afterCommit() {
+                publisher.publishEvent(event);
+            }
+        });
+    }
+}
+```
+
+---
+
+## 🔁 3. 将业务实体（Entity）直接作为事件对象使用，实现“Entity 即事件”
+
+无需单独为每个更新动作声明一堆冗余事件类，而是直接将更新的 DO（如 `User`、`Account` 等）作为事件发布出去：
+
+```java
+eventPublisher.publishEvent(accountInfo);
+```
+
+这样不仅减少心智负担，还可通过统一监听入口进行缓存处理。
+
+---
+
+## 👂 4. 各缓存模块按需监听事件，完成缓存刷新、清理、预热等逻辑
+
+使用 `@EventListener` 监听发布的实体对象，并按需处理对应的缓存清理。
+
+```java
+@Component
+@Slf4j
+public class AccAccountUpdateEventHandler {
+    @Autowired
+    private AccAccountInfoIdKeyCacheAgent accAccountInfoIdKeyCacheAgent;
+    @Autowired
+    private AccAccountInfoUuidKeyCacheAgent accAccountInfoUuidKeyCacheAgent;
+    @Autowired
+    private AccAccountInfoFundAccountKeyCacheAgent accAccountInfoFundAccountKeyCacheAgent;
+
+    @EventListener
+    public void onUpdateEvent(AccAccountInfo acc) {
+        // 所有需要的操作
+    }
+
+    private void refreshAccAccountInfoCacheAgents(AccAccountInfo acc) {
+        if (null == acc.getId()) {
+            log.error("刷新AccAccountInfo的以Id为key的缓存失败，原因：事件中Id为空，请检查缓存一致性！event: {}", JSON.toJSON(acc));
+        } else {
+            accAccountInfoIdKeyCacheAgent.refreshCache(String.valueOf(acc.getId()));
+        }
+        if (StrUtil.isBlank(acc.getUuid())) {
+            log.error("刷新AccAccountInfo的以Uuid为key的缓存失败，原因：事件中Uuid为空，请检查缓存一致性！event: {}", JSON.toJSON(acc));
+        } else {
+            accAccountInfoUuidKeyCacheAgent.refreshCache(acc.getUuid());
+        }
+        if (CollUtil.isEmpty(acc.getFundAccounts())) {
+            log.error("刷新AccAccountInfo的以FundAccount为key的缓存失败，原因：事件中FundAccount为空，请检查缓存一致性！event: {}", JSON.toJSON(acc));
+        } else {
+            acc.getFundAccounts().forEach(fundAccount -> accAccountInfoFundAccountKeyCacheAgent.refreshCache(fundAccount));
+        }
+    }
+}
+```
+
+### ✅ 优势：
+- 实现缓存刷新逻辑与业务逻辑的彻底解耦；
+- 方便后期扩展监听器，如：MQ 推送、索引重建、日志记录等；
+- 每个模块只处理自己关注的缓存，无需修改业务 Service。
+
+---
+
+## ✅ 最佳实践总结（图示）
+
+```text
+[ Controller ]
+     ↓
+[ xxxService ] ——→ [ DB 更新 ]
+     ↓
+[ 发布 Entity 事件（如 User） ]
+     ↓
+[ @EventListener on User ]
+     ↓
+[ 缓存刷新 / MQ 通知 / 日志记录 ]
+```
+
+---
+
+## 💡 核心思想：Entity 即事件，解耦业务与缓存刷新逻辑
+
+你说得非常正确：
+
+> “Entity 即事件，业务方只需要 publish 一下，然后谁有监听需求，谁去 onXxxUpdateEvent(Xxx) 方法中自己添加”
+
+这是一种低心智负担、高解耦性、具备可维护性与扩展性的现代化事件驱动缓存刷新模式。
+
+---
