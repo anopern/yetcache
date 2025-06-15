@@ -33,11 +33,11 @@ public class CacheAgentRegistry {
     public void init() {
         if (cacheAgents != null) {
             registry.putAll(cacheAgents.stream()
-                    .collect(Collectors.toMap(AbstractCacheAgent::getId, Function.identity())));
+                    .collect(Collectors.toMap(AbstractCacheAgent::getAgentId, Function.identity())));
         }
         if (kvCacheAgents != null) {
             kvCacheAgentRegistry.putAll(kvCacheAgents.stream()
-                    .collect(Collectors.toMap(AbstractCacheAgent::getId, Function.identity())));
+                    .collect(Collectors.toMap(AbstractCacheAgent::getAgentId, Function.identity())));
         }
 //        if (hashCacheAgents != null) {
 //            hashCacheAgentRegistry.putAll(hashCacheAgents.stream()
@@ -78,11 +78,11 @@ public class CacheAgentRegistry {
      * 动态注册一个 CacheAgent
      */
     public void registerCacheAgent(AbstractCacheAgent<?> agent) {
-        if (agent == null || agent.getId() == null) {
+        if (agent == null || agent.getAgentId() == null) {
             throw new IllegalArgumentException("agent or agent.name cannot be null");
         }
-        registry.put(agent.getId(), agent);
-        log.info("Registered cacheAgent: {}", agent.getId());
+        registry.put(agent.getAgentId(), agent);
+        log.info("Registered cacheAgent: {}", agent.getAgentId());
     }
 
     /**

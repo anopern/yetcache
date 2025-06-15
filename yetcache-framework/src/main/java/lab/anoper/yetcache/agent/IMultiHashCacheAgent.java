@@ -9,7 +9,7 @@ import java.util.List;
  * @author walter.yan
  * @since 2025/5/21
  */
-public interface IHashCacheAgent<E> extends ICacheAgent {
+public interface IMultiHashCacheAgent<E> extends ICacheAgent {
 
     /**
      * 获取整个 hash key 对应的所有数据（通常对应一个业务 ID）

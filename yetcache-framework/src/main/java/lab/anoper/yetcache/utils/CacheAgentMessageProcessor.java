@@ -4,7 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import io.micrometer.core.instrument.util.StringUtils;
 import lab.anoper.yetcache.agent.impl.AbstractCacheAgent;
 import lab.anoper.yetcache.bootstrap.CacheAgentRegistry;
-import lab.anoper.yetcache.mq.event.CacheEvent;
+import lab.anoper.yetcache.event.CacheEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;

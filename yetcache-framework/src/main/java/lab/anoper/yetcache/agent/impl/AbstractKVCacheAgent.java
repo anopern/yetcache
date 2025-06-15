@@ -5,8 +5,9 @@ import com.alibaba.fastjson2.JSON;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lab.anoper.yetcache.agent.IKVCacheAgent;
-import lab.anoper.yetcache.enums.CacheEventType;
-import lab.anoper.yetcache.mq.event.CacheEvent;
+import lab.anoper.yetcache.enums.KVCacheEventType;
+import lab.anoper.yetcache.event.CacheEvent;
+import lab.anoper.yetcache.event.KVCacheEvent;
 import lab.anoper.yetcache.properties.BaseCacheAgentProperties;
 import lab.anoper.yetcache.source.IKVCacheSourceService;
 import lab.anoper.yetcache.utils.CacheRetryUtils;
@@ -20,6 +21,7 @@ import org.springframework.retry.annotation.Recover;
 
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
+import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -79,7 +81,7 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
                 e = getFromRedis(tenantId, bizKey);
                 if (null != e) {
                     cache.put(key, e);
-                    publishEvent(CacheEvent.buildKVUpdateEvent(getId(), tenantId, bizKey, e));
+                    publishEvent(KVCacheEvent.buildUpdateEvent(getAgentId(), tenantId, bizKey, e));
                 }
                 e = getFromSource(tenantId, bizKey);
                 if (e != null) {
@@ -122,7 +124,7 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
         String key = getKeyFromBizKeyWithTenant(tenantId, bizKey);
         RedisSafeUtils.safeDelete(key, k -> redisTemplate.delete(k));
         cache.invalidate(key);
-        publishEvent(CacheEvent.buildKVInvalidateEvent(getId(), tenantId, bizKey));
+        publishEvent(KVCacheEvent.buildInvalidateEvent(getAgentId(), tenantId, bizKey));
     }
 
     @Override
@@ -157,7 +159,7 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
                 // 3. 更新本地缓存
                 cache.put(key, e);
                 // 4. 发送消息，让其他实例也更新
-                CacheEvent<?> event = CacheEvent.buildKVUpdateEvent(properties.getId(), tenantId, bizKey, e);
+                CacheEvent<?> event = KVCacheEvent.buildUpdateEvent(properties.getAgentId(), tenantId, bizKey, e);
                 publishEvent(event);
             }
         } catch (Exception e) {
@@ -219,7 +221,7 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
      */
     protected Cache<String, E> initCaffeineCache() {
         return Caffeine.newBuilder()
-                .expireAfterWrite(properties.getCaffeineExpireSecs(), TimeUnit.SECONDS)
+                .expireAfterWrite(properties.getLocalExpireSecs(), TimeUnit.SECONDS)
                 .build();
     }
 
@@ -238,47 +240,56 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
      * @throws IllegalArgumentException 如果事件类型不被支持，或数据为 null
      */
     public void handleMessage(String message) {
-        CacheEvent<?> event = parseRawCacheEvent(message);
+        KVCacheEvent<?> event = parseRawCacheEvent(message);
         // 如果是本机发出的消息，直接不处理
         if (isEventFromCurrentInstance(event)) {
             return;
         }
+        String bizKey = getBizKeyFromEvent(event);
+        String key = getKeyFromBizKeyWithTenant(event.getTenantId(), bizKey);
         // 如果创建时间是10s之前，直接丢弃
         long messageDelaySecs = (System.currentTimeMillis() - event.getCreatedTime()) / 1000;
         if (messageDelaySecs > properties.getMessageMaxDelaySecs()) {
-            cache.invalidate(getKeyFromBizKeyWithTenant(event.getTenantId(), event.getBizKey().getBizKey()));
+            cache.invalidate(key);
             return;
         }
-        if (Objects.equals(CacheEventType.UPDATE, event.getEventType())) {
-            handleUpdateOneEvent(message);
-        } else if (Objects.equals(CacheEventType.INVALIDATE, event.getEventType())) {
-            handleDeleteOneEvent(message);
+
+        if (Objects.equals(KVCacheEventType.UPDATE, event.getEventType())) {
+            handleUpdateEvent(message);
+        } else if (Objects.equals(KVCacheEventType.INVALIDATE, event.getEventType())) {
+            handleInvalidateEvent(message);
         } else {
             throw new IllegalArgumentException("暂不支持的事件类型，事件类型：" + event.getEventType());
         }
     }
 
-    private void handleUpdateOneEvent(String message) {
-        CacheEvent<E> event = parseCacheEvent(message);
+    private void handleUpdateEvent(String message) {
+        KVCacheEvent<E> event = parseCacheEvent(message);
         log.info("[JVM缓存]处理单个的JVM缓存[UPDATE_ONE]事件：{}", message);
         E e = event.getData();
         if (e == null) {
             throw new IllegalArgumentException("处理单个的 JVM 缓存事件失败，事件中数据不能为空，事件："
                     + JSON.toJSONString(event));
         }
-        String key = getKeyFromBizKeyWithTenant(event.getTenantId(), getBizKey(e));
+        String bizKey = getBizKeyFromEvent(event);
+        String key = getKeyFromBizKeyWithTenant(event.getTenantId(), bizKey);
         cache.put(key, e);
     }
 
-    private void handleDeleteOneEvent(String message) {
-        CacheEvent<E> event = parseCacheEvent(message);
-        log.info("[JVM缓存]处理单个的JVM缓存[DELETE_ONE]事件：{}", message);
-        CacheEvent.BizKey bizKey = event.getBizKey();
-        if (null == bizKey || StrUtil.isBlank(bizKey.getBizKey())) {
-            throw new IllegalArgumentException("处理删除缓存事件失败，bizKey不能为空，事件："
+    private void handleInvalidateEvent(String message) {
+        KVCacheEvent<E> event = parseCacheEvent(message);
+        String bizKey = getBizKeyFromEvent(event);
+        String key = getKeyFromBizKeyWithTenant(event.getTenantId(), bizKey);
+        cache.invalidate(key);
+    }
+
+    private String getBizKeyFromEvent(KVCacheEvent<?> event) {
+        String bizKey = event.getBizKey();
+        if (StrUtil.isBlank(bizKey)) {
+            throw new IllegalArgumentException("处理删除缓存事件失败，bizKey 不能为空，事件："
                     + JSON.toJSONString(event));
         }
-        cache.invalidate(getKeyFromBizKeyWithTenant(event.getTenantId(), bizKey.getBizKey()));
+        return bizKey;
     }
 
 //    /**
@@ -398,29 +409,9 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
         // 发送告警、记录告警等
     }
 
-//    /**
-//     * 在事务提交后更新缓存
-//     *
-//     * @param data 更新的缓存数据
-//     * @throws IllegalArgumentException 如果当前方法不是在事务中调用会抛出异常
-//     */
-//    public void updateCacheAfterCommit(@Nullable Long tenantId, E data) {
-//        if (TransactionSynchronizationManager.isActualTransactionActive()) {
-//            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-//                @Override
-//                public void afterCommit() {
-//                    log.debug("Transaction committed, updating cache for: {}", data);
-//                    updateCache(tenantId, data);
-//                }
-//            });
-//        } else {
-//            throw new IllegalArgumentException("updateCacheAfterCommit 需要在事务中调用！");
-//        }
-//    }
-
     private void safeRedisSet(String key, E e) {
         RedisSafeUtils.safeSet(key, e, (k, v)
-                -> valueOperations.set(k, v, properties.getRedisExpireSecs(), TimeUnit.SECONDS));
+                -> valueOperations.set(k, v, properties.getRemoteExpireSecs(), TimeUnit.SECONDS));
     }
 
     private E safeRedisGet(String key) {
@@ -435,6 +426,15 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> impl
     protected void preventCachePenetration(String key) {
         E emptyObject = getEmptyObject();
         RedisSafeUtils.safeSet(key, emptyObject, (k, v)
-                -> valueOperations.set(k, v, properties.getEmptyObjExpireSecs(), TimeUnit.SECONDS));
+                -> valueOperations.set(k, v, properties.getPenetrationProtectTtlSecs(), TimeUnit.SECONDS));
+    }
+
+    protected KVCacheEvent<?> parseRawCacheEvent(String message) {
+        return JSON.parseObject(message, KVCacheEvent.class);
+    }
+
+    protected KVCacheEvent<E> parseCacheEvent(String message) {
+        Type type = getCacheEventObjectType();
+        return JSON.parseObject(message, type);
     }
 }

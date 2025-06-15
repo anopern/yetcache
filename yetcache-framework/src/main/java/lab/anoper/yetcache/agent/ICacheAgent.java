@@ -5,6 +5,6 @@ package lab.anoper.yetcache.agent;
  * @since 2025/5/24
  */
 public interface ICacheAgent {
-    String getId();
+    String getAgentId();
     boolean isTenantScoped();
 }

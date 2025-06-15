@@ -5,7 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.alibaba.fastjson2.JSON;
 import lab.anoper.yetcache.agent.ICacheAgent;
-import lab.anoper.yetcache.mq.event.CacheEvent;
+import lab.anoper.yetcache.event.CacheEvent;
 import lab.anoper.yetcache.properties.BaseCacheAgentProperties;
 import lab.anoper.yetcache.utils.RabbitMQUtils;
 import lab.anoper.yetcache.utils.SpringContextProvider;
@@ -23,7 +23,6 @@ import javax.validation.constraints.NotNull;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author walter.yan
@@ -39,14 +38,14 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, ResolvableTy
     // 空对象缓存的key
     protected final static String EMPTY_OBJ_HASH_KEY = "EMPTY";
 
-    protected final AtomicBoolean loadingFromSource = new AtomicBoolean(false);
-
     protected RedisTemplate<String, E> redisTemplate;
 
     @Autowired
     protected RedissonClient redissonClient;
+
     @Autowired
     protected SpringContextProvider springContextProvider;
+
     @Getter
     protected BaseCacheAgentProperties properties;
 
@@ -116,7 +115,7 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, ResolvableTy
     }
 
     protected String getQuerySourceDistLockKey(Long tenantId, String bizKey) {
-        return String.format("%s:%s:%d:%s", QUERY_SOURCE_LOCK_KEY_PRE, getId(), tenantId, bizKey);
+        return String.format("%s:%s:%d:%s", QUERY_SOURCE_LOCK_KEY_PRE, getAgentId(), tenantId, bizKey);
     }
 
     /**
@@ -137,21 +136,21 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, ResolvableTy
     }
 
     @Override
-    public String getId() {
-        return properties.getId();
+    public String getAgentId() {
+        return properties.getAgentId();
     }
 
     protected void checkProperties() {
         if (!properties.isLocalCacheEnabled() && !properties.isRedisCacheEnabled()) {
             throw new IllegalArgumentException("本地缓存和Redis缓存至少要启用一个！");
         }
-        if (StrUtil.isBlank(properties.getKeyPrefix())) {
+        if (StrUtil.isBlank(properties.getCacheKey())) {
             throw new IllegalArgumentException("keyPrefix不能为空！");
         }
         if (StrUtil.isBlank(properties.getMqExchange())) {
             throw new IllegalArgumentException("mqExchange不能为空！");
         }
-        if (StrUtil.isBlank(properties.getId())) {
+        if (StrUtil.isBlank(properties.getAgentId())) {
             throw new IllegalArgumentException("name不能为空！");
         }
     }
@@ -162,9 +161,9 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, ResolvableTy
 
     protected String getKeyFromBizKeyWithTenant(Long tenantId, String bizKey) {
         if (null == tenantId) {
-            return String.format("%s:%s", properties.getKeyPrefix(), bizKey);
+            return String.format("%s:%s", properties.getCacheKey(), bizKey);
         }
-        return String.format("%s:%d:%s", properties.getKeyPrefix(), tenantId, bizKey);
+        return String.format("%s:%d:%s", properties.getCacheKey(), tenantId, bizKey);
     }
 
     protected void checkTenantScoped(Long tenantId) {

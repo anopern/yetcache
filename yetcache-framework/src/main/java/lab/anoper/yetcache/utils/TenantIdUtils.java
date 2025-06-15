@@ -25,7 +25,7 @@ public class TenantIdUtils {
         Long tenantId = TenantRequestContextHolder.getCurTenantId();
 
         // 根据当前缓存类型的租户检查级别处理租户ID
-        if (tenantCheckLevel == TenantCheckLevel.MUST) {
+        if (tenantCheckLevel == TenantCheckLevel.REQUIRED) {
             // 如果租户检查级别为MUST且未提供租户ID，则抛出异常
             if (null == tenantId) {
                 throw new IllegalArgumentException("当前上下文租户ID为空，但是");

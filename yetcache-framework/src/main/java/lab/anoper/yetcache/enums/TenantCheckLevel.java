@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum TenantCheckLevel {
-    MUST("必须校验租户"),
+    REQUIRED("必须校验租户"),
     OPTIONAL( "可选校验租户"),
     NONE("不校验租户");
 

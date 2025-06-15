@@ -8,13 +8,14 @@ import lombok.Getter;
  */
 @Getter
 public enum CacheType {
-    JVM_CACHE("JVM Cache"),
-    REDIS_CACHE("Redis Cache"),
+    LOCAL_CACHE("Local Cache"),
+    REMOTE_CACHE("Remote Cache"),
+    BOTH("Both local and remote Cache"),
     ;
 
-    private final String label;
+    private final String desc;
 
-    CacheType(String label) {
-        this.label = label;
+    CacheType(String desc) {
+        this.desc = desc;
     }
 }

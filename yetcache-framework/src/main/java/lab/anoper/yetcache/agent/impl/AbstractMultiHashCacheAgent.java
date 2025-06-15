@@ -7,9 +7,10 @@ import com.alibaba.fastjson2.annotation.JSONType;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.util.concurrent.Striped;
-import lab.anoper.yetcache.agent.IHashCacheAgent;
-import lab.anoper.yetcache.enums.CacheEventType;
-import lab.anoper.yetcache.mq.event.CacheEvent;
+import lab.anoper.yetcache.agent.IMultiHashCacheAgent;
+import lab.anoper.yetcache.enums.MultiHashCacheEventType;
+import lab.anoper.yetcache.event.CacheEvent;
+import lab.anoper.yetcache.event.MultiHashCacheEvent;
 import lab.anoper.yetcache.properties.BaseCacheAgentProperties;
 import lab.anoper.yetcache.source.IHashCacheSourceService;
 import lab.anoper.yetcache.utils.CacheRetryUtils;
@@ -21,8 +22,6 @@ import org.springframework.core.ResolvableType;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.lang.Nullable;
 import org.springframework.retry.annotation.Recover;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
@@ -37,14 +36,14 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @JSONType(ignores = {"resolvableType"})
-public abstract class AbstractHashCacheAgent<E> extends AbstractCacheAgent<E>
-        implements IHashCacheAgent<E> {
+public abstract class AbstractMultiHashCacheAgent<E> extends AbstractCacheAgent<E>
+        implements IMultiHashCacheAgent<E> {
     protected Cache<String, Map<String, E>> cache;
     protected HashOperations<String, String, E> hashOperations;
     protected IHashCacheSourceService<E> sourceService;
 
-    public AbstractHashCacheAgent(BaseCacheAgentProperties properties,
-                                  IHashCacheSourceService<E> sourceService) {
+    public AbstractMultiHashCacheAgent(BaseCacheAgentProperties properties,
+                                       IHashCacheSourceService<E> sourceService) {
         super(properties);
         this.sourceService = sourceService;
     }
@@ -95,7 +94,8 @@ public abstract class AbstractHashCacheAgent<E> extends AbstractCacheAgent<E>
                 if (CollUtil.isNotEmpty(dataMap)) {
                     safeBatchPutRedisHash(key, dataMap);
                     safeReplaceJvmCache(key, dataMap);
-                    CacheEvent<?> event = CacheEvent.buildHashUpdateHashEvent(getId(), tenantId, bizKey, dataMap);
+
+                    CacheEvent<?> event = MultiHashCacheEvent.buildReplaceAllEvent(getAgentId(), tenantId, bizKey, dataMap);
                     publishEvent(event);
                     return new ArrayList<>(dataMap.values());
                 }
@@ -106,7 +106,7 @@ public abstract class AbstractHashCacheAgent<E> extends AbstractCacheAgent<E>
             dataMap = listFromSource(tenantId, bizKey);
             if (CollUtil.isNotEmpty(dataMap)) {
                 safeReplaceJvmCache(key, dataMap);
-                CacheEvent<?> event = CacheEvent.buildHashUpdateHashEvent(getId(), tenantId, bizKey, dataMap);
+                CacheEvent<?> event = MultiHashCacheEvent.buildReplaceAllEvent(getAgentId(), tenantId, bizKey, dataMap);
                 publishEvent(event);
                 return new ArrayList<>(dataMap.values());
             }
@@ -150,21 +150,16 @@ public abstract class AbstractHashCacheAgent<E> extends AbstractCacheAgent<E>
         }
         if (properties.isLocalCacheEnabled()) {
             cache.invalidate(key);
-            CacheEvent<?> event = CacheEvent.buildHashInvalidateAllFieldsEvent(getId(), tenantId, bizKey);
+            CacheEvent<?> event = MultiHashCacheEvent.buildInvalidateHashEvent(getAgentId(), tenantId, bizKey);
             publishEvent(event);
         }
     }
 
     private void safeBatchPutRedisHash(String key, Map<String, E> entries) {
-        RedisSafeUtils.safeBatchPutHash(key, entries, Math.toIntExact(properties.getRedisExpireSecs()),
+        RedisSafeUtils.safeBatchPutHash(key, entries, Math.toIntExact(properties.getRemoteExpireSecs()),
                 100, (k, dm, es, bs)
                         -> hashOperations.putAll(k, dm));
-        redisTemplate.expire(key, properties.getRedisExpireSecs(), TimeUnit.SECONDS);
-    }
-
-    private Map<String, E> safeBatchGetRedisHash(String key) {
-        return RedisSafeUtils.safeBatchGetHash(key, 100,
-                (k, bs) -> hashOperations.entries(k));
+        redisTemplate.expire(key, properties.getRemoteExpireSecs(), TimeUnit.SECONDS);
     }
 
     @Override
@@ -199,7 +194,7 @@ public abstract class AbstractHashCacheAgent<E> extends AbstractCacheAgent<E>
                 // 3. 更新本地缓存
                 cache.put(key, entries);
                 // 4. 发送消息，让其他实例也更新
-                CacheEvent<?> event = CacheEvent.buildHashUpdateHashEvent(getId(), tenantId, bizKey, entries);
+                CacheEvent<?> event = MultiHashCacheEvent.buildReplaceAllEvent(getAgentId(), tenantId, bizKey, entries);
                 publishEvent(event);
             }
         } catch (Exception e) {
@@ -284,7 +279,7 @@ public abstract class AbstractHashCacheAgent<E> extends AbstractCacheAgent<E>
     protected Cache<String, Map<String, E>> initCaffeineCache() {
         return Caffeine.newBuilder()
                 .maximumSize(properties.getJvmMaxSize())
-                .expireAfterWrite(properties.getCaffeineExpireSecs(), TimeUnit.SECONDS)
+                .expireAfterWrite(properties.getLocalExpireSecs(), TimeUnit.SECONDS)
                 .build();
     }
 
@@ -296,25 +291,25 @@ public abstract class AbstractHashCacheAgent<E> extends AbstractCacheAgent<E>
             return;
         }
         // 解析出不包含泛型的事件对象
-        CacheEvent<?> rwaEvent = parseRawCacheEvent(message);
-        if (Objects.equals(CacheEventType.UPDATE_ENTRY, rwaEvent.getEventType())) {
-            log.info("开始处理UPDATE_FIELD事件，消息：{}", message);
-            handleUpdateField(message);
-        } else if (Objects.equals(CacheEventType.INVALIDATE_FIELD, rwaEvent.getEventType())) {
-            log.info("开始处理INVALIDATE_FIELD事件，消息：{}", message);
-            handleInvalidateField(message);
-        } else if (Objects.equals(CacheEventType.UPDATE_ALL_FIELDS, rwaEvent.getEventType())) {
-            log.info("开始处理UPDATE_ALL_FIELDS事件，消息：{}", message);
-            handleUpdateAllFields(message);
-        } else if (Objects.equals(CacheEventType.INVALIDATE_ALL_FIELDS, rwaEvent.getEventType())) {
-            log.info("开始处理INVALIDATE_ALL_FIELDS事件，消息：{}", message);
-            handleInvalidateAllFields(message);
+        MultiHashCacheEvent<?> rwaEvent = parseRawCacheEvent(message);
+        if (Objects.equals(MultiHashCacheEventType.UPDATE_ENTRY, rwaEvent.getEventType())) {
+            log.info("开始处理UPDATE_ENTRY事件，消息：{}", message);
+            handleUpdateEntry(message);
+        } else if (Objects.equals(MultiHashCacheEventType.INVALIDATE_ENTRY, rwaEvent.getEventType())) {
+            log.info("开始处理INVALIDATE_ENTRY事件，消息：{}", message);
+            handleInvalidateEntry(message);
+        } else if (Objects.equals(MultiHashCacheEventType.UPDATE_HASH, rwaEvent.getEventType())) {
+            log.info("开始处理UPDATE_HASH事件，消息：{}", message);
+            handleReplaceAll(message);
+        } else if (Objects.equals(MultiHashCacheEventType.INVALIDATE_HASH, rwaEvent.getEventType())) {
+            log.info("开始处理INVALIDATE_HASH事件，消息：{}", message);
+            handleInvalidateHash(message);
         } else {
             throw new IllegalArgumentException("暂不支持的事件类型，事件类型：" + rwaEvent.getEventType());
         }
     }
 
-    private void handleUpdateField(String message) {
+    private void handleUpdateEntry(String message) {
         CacheEvent<E> event = parseCacheEvent(message);
         E e = event.getData();
         if (e == null) {
@@ -325,37 +320,47 @@ public abstract class AbstractHashCacheAgent<E> extends AbstractCacheAgent<E>
         safePutJvmCache(key, hashKey, e);
     }
 
-    private void handleInvalidateField(String message) {
-        CacheEvent<E> event = parseCacheEvent(message);
-        CacheEvent.BizKey bizKey = event.getBizKey();
-        String key = getKeyFromBizKeyWithTenant(event.getTenantId(), bizKey.getBizKey());
-        removeFromJvmCache(key, bizKey.getBizField());
-    }
-
-    private void handleUpdateAllFields(String message) {
-        CacheEvent<Map<String, E>> event = parseCacheEventWithMapPayload(message);
-        Map<String, E> dataMap = event.getData();
-        CacheEvent.BizKey bizKey = event.getBizKey();
-        String key = getKeyFromBizKeyWithTenant(event.getTenantId(), bizKey.getBizKey());
-        if (CollUtil.isEmpty(dataMap)) {
-            dataMap = listFromRedis(event.getTenantId(), bizKey.getBizKey());
+    private void handleInvalidateEntry(String message) {
+        MultiHashCacheEvent<E> event = parseCacheEvent(message);
+        String bizKey = getBizKeyFromEvent(event);
+        String bizHashKey = event.getBizHashKey();
+        if (StrUtil.isBlank(bizHashKey)) {
+            throw new IllegalArgumentException("处理删除缓存事件失败，bizHashKey不能为空，事件："
+                    + JSON.toJSONString(event));
         }
-        safePutAllJvmCache(key, dataMap);
+        String key = getKeyFromBizKeyWithTenant(event.getTenantId(), bizKey);
+        removeFromJvmCache(key, bizHashKey);
     }
 
-    private void handleInvalidateAllFields(String message) {
-        CacheEvent<Map<String, E>> event = parseCacheEventWithMapPayload(message);
-        CacheEvent.BizKey bizKey = event.getBizKey();
-        String key = getKeyFromBizKeyWithTenant(event.getTenantId(), bizKey.getBizKey());
+    private void handleReplaceAll(String message) {
+        MultiHashCacheEvent<Map<String, E>> event = parseCacheEventWithMapPayload(message);
+        Map<String, E> dataMap = event.getData();
+        String bizKey = getBizKeyFromEvent(event);
+        String key = getKeyFromBizKeyWithTenant(event.getTenantId(), bizKey);
+        if (CollUtil.isEmpty(dataMap)) {
+            dataMap = listFromRedis(event.getTenantId(), bizKey);
+        }
+        if (CollUtil.isNotEmpty(dataMap)) {
+            cache.put(key, new ConcurrentHashMap<>(dataMap));
+        } else {
+            cache.invalidate(key);
+        }
+    }
+
+    private void handleInvalidateHash(String message) {
+        MultiHashCacheEvent<Map<String, E>> event = parseCacheEventWithMapPayload(message);
+        String bizKey = getBizKeyFromEvent(event);
+        String key = getKeyFromBizKeyWithTenant(event.getTenantId(), bizKey);
         cache.invalidate(key);
     }
 
-    private void handleUpdateBatch(String message) {
-        CacheEvent<Map<String, E>> event = parseCacheEventWithMapPayload(message);
-        Map<String, E> dataMap = event.getData();
-        CacheEvent.BizKey bizKey = event.getBizKey();
-        String key = getKeyFromBizKeyWithTenant(event.getTenantId(), bizKey.getBizKey());
-        safePutAllJvmCache(key, dataMap);
+    private String getBizKeyFromEvent(MultiHashCacheEvent<?> event) {
+        String bizKey = event.getBizKey();
+        if (StrUtil.isBlank(bizKey)) {
+            throw new IllegalArgumentException("处理删除缓存事件失败，bizKey 不能为空，事件："
+                    + JSON.toJSONString(event));
+        }
+        return bizKey;
     }
 
     protected void safePutJvmCache(String key, String hashKey, E e) {
@@ -376,14 +381,6 @@ public abstract class AbstractHashCacheAgent<E> extends AbstractCacheAgent<E>
         }
     }
 
-    public void safePutAllJvmCache(String key, Map<String, E> newData) {
-        cache.asMap().compute(key, (k, existing) -> {
-            if (existing == null) return new ConcurrentHashMap<>(newData);
-            existing.putAll(newData);
-            return existing;
-        });
-    }
-
     protected void removeFromJvmCache(String key, String hashKey) {
         Map<String, E> dataMap = cache.getIfPresent(key);
         if (dataMap != null) {
@@ -394,31 +391,7 @@ public abstract class AbstractHashCacheAgent<E> extends AbstractCacheAgent<E>
         }
     }
 
-    public void updateCacheAfterCommit(@NotNull E data) {
-        updateCacheAfterCommit(getCurTenantId(), data);
-    }
-
-    /**
-     * 在事务提交后更新缓存
-     *
-     * @param data 更新的缓存数据
-     * @throws IllegalArgumentException 如果当前方法不是在事务中调用会抛出异常
-     */
-    public void updateCacheAfterCommit(@Nullable Long tenantId, @NotNull E data) {
-        if (TransactionSynchronizationManager.isActualTransactionActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    log.debug("Transaction committed, updating cache for: {}", data);
-                    updateCache(tenantId, data);
-                }
-            });
-        } else {
-            throw new IllegalArgumentException("updateCacheAfterCommit 需要在事务中调用！");
-        }
-    }
-
-    protected CacheEvent<Map<String, E>> parseCacheEventWithMapPayload(String message) {
+    protected MultiHashCacheEvent<Map<String, E>> parseCacheEventWithMapPayload(String message) {
         return JSON.parseObject(message, getCacheEventMapType());
     }
 
@@ -458,7 +431,7 @@ public abstract class AbstractHashCacheAgent<E> extends AbstractCacheAgent<E>
             if (properties.isRedisCacheEnabled()) {
                 // 写入 Redis（推荐用工具封装的 safe 方法带异常保护）
                 RedisSafeUtils.safeHashSet(key, hashKey, e, (k, hk, v) -> hashOperations.put(k, hk, v));
-                redisTemplate.expire(key, properties.getRedisExpireSecs(), TimeUnit.SECONDS);
+                redisTemplate.expire(key, properties.getRemoteExpireSecs(), TimeUnit.SECONDS);
             }
             if (properties.isLocalCacheEnabled()) {
                 // 写入 JVM 缓存
@@ -466,7 +439,8 @@ public abstract class AbstractHashCacheAgent<E> extends AbstractCacheAgent<E>
                 // 发送消息，让其他实例也更新
                 String bizKey = getBizKey(e);
                 String bizHashField = getHashKey(e);
-                CacheEvent<E> event = CacheEvent.buildHashUpdateEntryEvent(getId(), tenantId, bizKey, bizHashField, e);
+                CacheEvent<E> event = MultiHashCacheEvent.buildUpdateEntryEvent(getAgentId(), tenantId, bizKey,
+                        bizHashField, e);
                 publishEvent(event);
             }
         } catch (Exception ex) {
@@ -478,8 +452,18 @@ public abstract class AbstractHashCacheAgent<E> extends AbstractCacheAgent<E>
     protected void preventCachePenetration(String key) {
         Map<String, E> emptyEntries = new HashMap<>();
         emptyEntries.put(EMPTY_OBJ_HASH_KEY, getEmptyObject());
-        RedisSafeUtils.safeBatchPutHash(key, emptyEntries, properties.getEmptyObjExpireSecs(), 100,
+        RedisSafeUtils.safeBatchPutHash(key, emptyEntries, properties.getPenetrationProtectTtlSecs(), 100,
                 (k, dm, es, bs) -> hashOperations.putAll(k, dm));
-        redisTemplate.expire(key, properties.getEmptyObjExpireSecs(), TimeUnit.SECONDS);
+        redisTemplate.expire(key, properties.getPenetrationProtectTtlSecs(), TimeUnit.SECONDS);
     }
+
+    protected MultiHashCacheEvent<?> parseRawCacheEvent(String message) {
+        return JSON.parseObject(message, MultiHashCacheEvent.class);
+    }
+
+    protected MultiHashCacheEvent<E> parseCacheEvent(String message) {
+        Type type = getCacheEventObjectType();
+        return JSON.parseObject(message, type);
+    }
+
 }

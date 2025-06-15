@@ -1,6 +1,6 @@
 package lab.anoper.yetcache.example.controller;
 
-import lab.anoper.yetcache.example.base.common.cache.agent.StockHoldInfoAgent;
+import lab.anoper.yetcache.example.base.common.cache.agent.StockHoldInfoAgentMulti;
 import lab.anoper.yetcache.example.base.common.cache.dto.StockHoldInfoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/api/stockHoldInfos")
 public class StockHoldInfoController {
     @Autowired
-    private StockHoldInfoAgent agent;
+    private StockHoldInfoAgentMulti agent;
 
     @RequestMapping("/listByFundAccount")
     public List<StockHoldInfoDTO> listByFundAccount(@RequestParam String fundAccount) {

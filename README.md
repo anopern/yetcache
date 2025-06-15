@@ -1,12 +1,21 @@
 # yetcache
 
+# ✅ 核心组件列表
+
+| 组件                   | 表头2 | 表头3 |
+|----------------------|-----|-----|
+| SingleHashCacheAgent | 内容2 | 内容3 |
+| MultiHashCacheAgent  | 内容4 | 内容5 |         
+| KVCacheAgent         | 内容4 | 内容5 |         
+
 # ✅ 缓存如何与数据库增改删连接 —— 最佳实践总结
 
 ---
 
 ## 🔧 1. 所有的增、改、删操作必须在 `xxxService` 中完成
 
-这是整个缓存一致性机制的**基础保障**。必须杜绝直接通过 DAO / Mapper 操作数据库的情况。所有的写操作都应统一封装在对应的 Service 中，例如：
+这是整个缓存一致性机制的**基础保障**。必须杜绝直接通过 DAO / Mapper 操作数据库的情况。所有的写操作都应统一封装在对应的
+Service 中，例如：
 
 ```java
 public class UserService {
@@ -18,6 +27,7 @@ public class UserService {
 ```
 
 ### ✅ 优势：
+
 - **保证副作用一致性**：缓存刷新、MQ 同步、审计日志等副作用操作可控；
 - **统一入口，便于扩展**：可统一封装 AOP 切面、注解处理等机制；
 - **提升系统稳定性与可维护性**：结构清晰，避免隐式写库导致数据与缓存不一致；
@@ -33,6 +43,7 @@ public class UserService {
 推荐通过 **事务提交后再发布事件** 的方式，防止事务回滚导致“缓存先删，数据库没改”的数据错乱。
 
 ```java
+
 @Service
 @Slf4j
 public class AccAccountInfoServiceImpl extends ServiceImpl<AccAccountInfoMapper, AccAccountInfo>
@@ -54,6 +65,7 @@ public class AccAccountInfoServiceImpl extends ServiceImpl<AccAccountInfoMapper,
 其中 `TransactionalEventUtils` 可统一封装如下：
 
 ```java
+
 @Component
 public class TransactionalEventUtils {
     @Autowired
@@ -90,6 +102,7 @@ eventPublisher.publishEvent(accountInfo);
 使用 `@EventListener` 监听发布的实体对象，并按需处理对应的缓存清理。
 
 ```java
+
 @Component
 @Slf4j
 public class AccAccountUpdateEventHandler {
@@ -126,6 +139,7 @@ public class AccAccountUpdateEventHandler {
 ```
 
 ### ✅ 优势：
+
 - 实现缓存刷新逻辑与业务逻辑的彻底解耦；
 - 方便后期扩展监听器，如：MQ 推送、索引重建、日志记录等；
 - 每个模块只处理自己关注的缓存，无需修改业务 Service。
