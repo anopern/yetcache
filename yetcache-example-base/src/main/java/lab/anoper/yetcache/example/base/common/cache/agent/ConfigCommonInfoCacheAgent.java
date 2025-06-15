@@ -13,10 +13,10 @@ import org.springframework.stereotype.Component;
  * @since 2025/6/15
  */
 @Component
-public class ConfigCommonInfoAgent extends AbstractSingleHashCacheAgent<ConfigCommonInfoDTO> {
+public class ConfigCommonInfoCacheAgent extends AbstractSingleHashCacheAgent<ConfigCommonInfoDTO> {
 
-    public ConfigCommonInfoAgent(@Qualifier("configCommonInfoCacheAgentProperties") @Autowired BaseCacheAgentProperties properties,
-                                 @Qualifier("configCommonInfoSourceService") @Autowired ISingleHashCacheSourceService<ConfigCommonInfoDTO> sourceService) {
+    public ConfigCommonInfoCacheAgent(@Qualifier("configCommonInfoCacheAgentProperties") @Autowired BaseCacheAgentProperties properties,
+                                      @Qualifier("configCommonInfoSourceService") @Autowired ISingleHashCacheSourceService<ConfigCommonInfoDTO> sourceService) {
         super(properties, sourceService);
     }
 

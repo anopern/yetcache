@@ -2,6 +2,8 @@ package lab.anoper.yetcache.utils;
 
 import cn.hutool.core.collection.CollUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -242,18 +244,24 @@ public class RedisSafeUtils {
     }
 
     /**
-     * 安全地将多个 Hash entries 写入 Redis，失败时记录错误日志
+     * 安全地替换整个 Redis Hash（删除原 Hash 后重新写入），适合配置等场景。
      *
-     * @param key      Redis Hash Key
-     * @param entries  要写入的字段和值
-     * @param putFunc  写入函数，如： (k, vMap) -> hashOperations.putAll(k, vMap)
+     * @param key            Redis Hash key
+     * @param newEntries     新的 field-value 映射
+     * @param hashOperations Spring 的 Hash 操作
+     * @param redisTemplate  RedisTemplate
      */
-    public static <T> void safePutHashEntries(String key, Map<String, T> entries,
-                                              BiConsumer<String, Map<String, T>> putFunc) {
+    public static <T> void safeReplaceHash(String key,
+                                           Map<String, T> newEntries,
+                                           HashOperations<String, String, T> hashOperations,
+                                           RedisTemplate<String, T> redisTemplate) {
         try {
-            putFunc.accept(key, entries);
+            redisTemplate.delete(key); // 删除整个旧 hash
+            if (CollUtil.isNotEmpty(newEntries)) {
+                hashOperations.putAll(key, newEntries); // 写入新内容
+            }
         } catch (Exception e) {
-            log.error("写入 Redis Hash 缓存失败，key: {}, entries.size={}", key, entries.size(), e);
+            log.error("替换 Redis Hash 失败，key: {}, newSize: {}", key, newEntries.size(), e);
         }
     }
 }

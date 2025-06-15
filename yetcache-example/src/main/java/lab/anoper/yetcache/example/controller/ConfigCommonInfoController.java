@@ -1,7 +1,9 @@
 package lab.anoper.yetcache.example.controller;
 
-import lab.anoper.yetcache.example.base.common.cache.agent.ConfigCommonInfoAgent;
+import cn.hutool.core.util.StrUtil;
+import lab.anoper.yetcache.example.base.common.cache.agent.ConfigCommonInfoCacheAgent;
 import lab.anoper.yetcache.example.base.common.cache.dto.ConfigCommonInfoDTO;
+import lab.anoper.yetcache.example.service.IConfigCommonInfoService;
 import lab.anoper.yetcache.tenant.TenantRequestContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,18 +20,39 @@ import java.util.List;
 @RequestMapping("/api/configCommonInfos")
 public class ConfigCommonInfoController {
     @Autowired
-    private ConfigCommonInfoAgent configCommonInfoAgent;
+    private ConfigCommonInfoCacheAgent configCommonInfoCacheAgent;
+    @Autowired
+    private IConfigCommonInfoService configCommonInfoService;
 
     @PostMapping("/listAll")
     public List<ConfigCommonInfoDTO> listAll() {
         TenantRequestContextHolder.setCurTenantId(1002L);
-        return configCommonInfoAgent.listAll();
+        return configCommonInfoCacheAgent.listAll();
     }
 
     @PostMapping("/get")
     public ConfigCommonInfoDTO get(@RequestBody ConfigCommonInfoDTO dto) {
         TenantRequestContextHolder.setCurTenantId(1002L);
-        return configCommonInfoAgent.get(dto.getTenantId(), dto.getCode());
+        return configCommonInfoCacheAgent.get(dto.getTenantId(), dto.getCode());
+    }
+
+    @PostMapping("/updateOrCreate")
+    public String updateOrCreate(@RequestBody ConfigCommonInfoDTO dto) {
+        if (dto.getTenantId() == null || StrUtil.isBlank(dto.getCode()) ||
+                StrUtil.isBlank(dto.getValue())) {
+            return "参数错误";
+        }
+        configCommonInfoService.updateOrCreate(dto);
+        return "";
+    }
+
+    @PostMapping("/refreshAllCache")
+    public String refreshAllCache(@RequestBody ConfigCommonInfoDTO dto) {
+        if (dto.getTenantId() == null) {
+            return "参数错误";
+        }
+        configCommonInfoCacheAgent.refreshAllCache(dto.getTenantId());
+        return "";
     }
 
 }

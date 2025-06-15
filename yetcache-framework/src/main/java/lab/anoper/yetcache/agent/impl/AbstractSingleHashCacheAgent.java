@@ -147,18 +147,18 @@ public abstract class AbstractSingleHashCacheAgent<E> extends AbstractCacheAgent
         }
         if (CacheType.REMOTE_CACHE == properties.getCacheType()) {
             if (CollUtil.isNotEmpty(list)) {
-                RedisSafeUtils.safePutHashEntries(key, dataMap, (k, v) -> hashOperations.putAll(k, v));
+                RedisSafeUtils.safeReplaceHash(key, dataMap, hashOperations, redisTemplate);
             } else {
                 RedisSafeUtils.safeDelete(key, (k) -> hashOperations.delete(k));
             }
         }
         if (CacheType.BOTH == properties.getCacheType()) {
             if (CollUtil.isNotEmpty(list)) {
+                RedisSafeUtils.safeReplaceHash(key, dataMap, hashOperations, redisTemplate);
                 cache.put(key, dataMap);
-                RedisSafeUtils.safePutHashEntries(key, dataMap, (k, v) -> hashOperations.putAll(k, v));
             } else {
                 cache.invalidate(key);
-                RedisSafeUtils.safeDelete(key, (k) -> hashOperations.delete(k));
+                RedisSafeUtils.safeDelete(key, (k) -> redisTemplate.delete(k));
             }
         }
     }
