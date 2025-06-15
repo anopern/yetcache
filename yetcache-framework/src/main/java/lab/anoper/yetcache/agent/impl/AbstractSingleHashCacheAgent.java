@@ -128,37 +128,44 @@ public abstract class AbstractSingleHashCacheAgent<E> extends AbstractCacheAgent
 
     @Override
     public void refreshAllCache(Long tenantId) {
-        List<E> list = listFromSource(tenantId, true);
-        Map<String, E> dataMap = null;
-        if (CollUtil.isNotEmpty(list)) {
-            dataMap = list.stream().collect(Collectors.toMap(
-                    this::getBizHashKey,
-                    Function.identity(),
-                    (v1, v2) -> v1,
-                    ConcurrentHashMap::new));
-        }
         String key = getKeyWithTenant(tenantId);
-        if (CacheType.LOCAL_CACHE == properties.getCacheType()) {
+        CacheType type = properties.getCacheType();
+
+        boolean localEnabled = type == CacheType.LOCAL_CACHE || type == CacheType.BOTH;
+        boolean remoteEnabled = type == CacheType.REMOTE_CACHE || type == CacheType.BOTH;
+
+        try {
+            List<E> list = listFromSource(tenantId, true);
+            Map<String, E> dataMap;
+
             if (CollUtil.isNotEmpty(list)) {
-                cache.put(key, dataMap);
+                dataMap = list.stream().collect(Collectors.toMap(
+                        this::getBizHashKey,
+                        Function.identity(),
+                        (v1, v2) -> v1,
+                        ConcurrentHashMap::new));
+
+                if (remoteEnabled) {
+                    RedisSafeUtils.safeReplaceHash(key, dataMap, hashOperations, redisTemplate);
+                }
+                if (localEnabled) {
+                    cache.put(key, dataMap);
+                }
             } else {
-                cache.invalidate(key);
+                if (remoteEnabled) {
+                    RedisSafeUtils.safeDelete(key, k -> redisTemplate.delete(k));
+                }
+                if (localEnabled) {
+                    cache.invalidate(key);
+                }
             }
-        }
-        if (CacheType.REMOTE_CACHE == properties.getCacheType()) {
-            if (CollUtil.isNotEmpty(list)) {
-                RedisSafeUtils.safeReplaceHash(key, dataMap, hashOperations, redisTemplate);
-            } else {
-                RedisSafeUtils.safeDelete(key, (k) -> hashOperations.delete(k));
+        } catch (Exception e) {
+            log.error("刷新缓存失败，key: {}", key, e);
+            if (remoteEnabled) {
+                RedisSafeUtils.safeDelete(key, k -> redisTemplate.delete(k));
             }
-        }
-        if (CacheType.BOTH == properties.getCacheType()) {
-            if (CollUtil.isNotEmpty(list)) {
-                RedisSafeUtils.safeReplaceHash(key, dataMap, hashOperations, redisTemplate);
-                cache.put(key, dataMap);
-            } else {
+            if (localEnabled) {
                 cache.invalidate(key);
-                RedisSafeUtils.safeDelete(key, (k) -> redisTemplate.delete(k));
             }
         }
     }
@@ -178,6 +185,7 @@ public abstract class AbstractSingleHashCacheAgent<E> extends AbstractCacheAgent
     }
 
     private List<E> listFromSource(Long tenantId, boolean force) {
+        String key = getKeyWithTenant(tenantId);
         String lockKey = getQuerySourceDistLockKey(tenantId);
         RLock lock = redissonClient.getLock(lockKey);
         try {
@@ -187,7 +195,7 @@ public abstract class AbstractSingleHashCacheAgent<E> extends AbstractCacheAgent
             // 最多等 100ms 尝试拿锁。拿到锁后持有 5s，防止死锁
             if (lock.tryLock(100, 5, TimeUnit.SECONDS)) {
                 // 加锁后再检查一次 Redis，防止缓存已被其他线程更新
-                Map<String, E> dataMap = hashOperations.entries(properties.getCacheKey());
+                Map<String, E> dataMap = hashOperations.entries(key);
                 if (CollUtil.isNotEmpty(dataMap)) {
                     return new ArrayList<>(dataMap.values());
                 }
@@ -197,7 +205,7 @@ public abstract class AbstractSingleHashCacheAgent<E> extends AbstractCacheAgent
             } else {
                 log.warn("未获取到分布式锁，lockKey: {}, 正在等待其他线程回源填充缓存", lockKey);
                 Map<String, E> dataMap = CacheRetryUtils.retryRedisHashEntries(
-                        () -> hashOperations.entries(properties.getCacheKey()), 3, 50);
+                        () -> hashOperations.entries(key), 3, 50);
                 if (CollUtil.isNotEmpty(dataMap)) {
                     return new ArrayList<>(dataMap.values());
                 }
