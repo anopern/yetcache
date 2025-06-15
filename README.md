@@ -148,7 +148,7 @@ public class AccAccountUpdateEventHandler {
 
 ---
 
-## 💡 核心思想：Entity 即事件，解耦业务与缓存刷新逻辑
+## 💡 核心思想：Entity 即事件，删除也是刷新，解耦业务与缓存刷新逻辑
 
 你说得非常正确：
 
