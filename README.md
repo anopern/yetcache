@@ -54,8 +54,12 @@ public class AccAccountInfoServiceImpl extends ServiceImpl<AccAccountInfoMapper,
 其中 `TransactionalEventUtils` 可统一封装如下：
 
 ```java
+@Component
 public class TransactionalEventUtils {
-    public static void publishAfterCommit(ApplicationEventPublisher publisher, Object event) {
+    @Autowired
+    private ApplicationEventPublisher publisher;
+
+    public void publishAfterCommit(Object event) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
             @Override
             public void afterCommit() {
@@ -64,6 +68,7 @@ public class TransactionalEventUtils {
         });
     }
 }
+
 ```
 
 ---
