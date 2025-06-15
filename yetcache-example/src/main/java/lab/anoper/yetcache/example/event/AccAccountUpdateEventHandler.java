@@ -5,13 +5,17 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import lab.anoper.yetcache.example.domain.entity.AccAccountInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
 public class AccAccountUpdateEventHandler {
+    private static final Logger log = LoggerFactory.getLogger(AccAccountUpdateEventHandler.class);
+
+
     @Autowired
     private AccAccountInfoIdKeyCacheAgent accAccountInfoIdKeyCacheAgent;
     @Autowired

@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * @author walter.yan
@@ -222,4 +224,36 @@ public class RedisSafeUtils {
         }
     }
 
+    /**
+     * 安全地从 Redis 获取整个 Hash 的所有键值对，自动捕获异常并记录日志
+     *
+     * @param key     Redis 的 Hash Key
+     * @param getFunc 获取操作的函数式接口（通常是 RedisTemplate 的 entries 方法）
+     * @param <T>     值类型
+     * @return Hash 中的所有键值对，失败时返回空 Map
+     */
+    public static <T> Map<String, T> safeGetHashEntries(String key, Function<String, Map<String, T>> getFunc) {
+        try {
+            return getFunc.apply(key);
+        } catch (Exception e) {
+            log.error("读取 Redis Hash 缓存失败，key: {}", key, e);
+            return Collections.emptyMap();
+        }
+    }
+
+    /**
+     * 安全地将多个 Hash entries 写入 Redis，失败时记录错误日志
+     *
+     * @param key      Redis Hash Key
+     * @param entries  要写入的字段和值
+     * @param putFunc  写入函数，如： (k, vMap) -> hashOperations.putAll(k, vMap)
+     */
+    public static <T> void safePutHashEntries(String key, Map<String, T> entries,
+                                              BiConsumer<String, Map<String, T>> putFunc) {
+        try {
+            putFunc.accept(key, entries);
+        } catch (Exception e) {
+            log.error("写入 Redis Hash 缓存失败，key: {}, entries.size={}", key, entries.size(), e);
+        }
+    }
 }

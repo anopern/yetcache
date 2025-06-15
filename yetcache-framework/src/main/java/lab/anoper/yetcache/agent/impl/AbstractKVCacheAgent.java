@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  * @since 2025/5/21
  */
 @Slf4j
-public abstract class AbstractKVCacheAgent<E> extends AbstractCacheAgent<E> implements IKVCacheAgent<E> {
+public abstract class AbstractKVCacheAgent<E> extends AbstractMultiKeyCacheAgent<E> implements IKVCacheAgent<E> {
 
     // agent方法初始化
     protected Cache<String, E> cache;

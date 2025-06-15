@@ -11,6 +11,7 @@ import lab.anoper.yetcache.utils.RabbitMQUtils;
 import lab.anoper.yetcache.utils.SpringContextProvider;
 import lab.anoper.yetcache.utils.TenantIdUtils;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ResolvableType;
@@ -28,6 +29,7 @@ import java.util.UUID;
  * @author walter.yan
  * @since 2025/5/23
  */
+@Slf4j
 public abstract class AbstractCacheAgent<E> implements ICacheAgent, ResolvableTypeProvider {
     // 应用启动时生成唯一ID
     public static final String INSTANCE_ID = UUID.randomUUID().toString();
@@ -57,12 +59,10 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, ResolvableTy
         }
     }
 
-    void init()  throws Exception{
+    void init() throws Exception {
         checkProperties();
         initRedisTemplate();
     }
-
-    protected abstract String getBizKey(@NotNull E e);
 
     public abstract void handleMessage(String message);
 
@@ -114,10 +114,6 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, ResolvableTy
         return type.getGeneric(0).resolve();
     }
 
-    protected String getQuerySourceDistLockKey(Long tenantId, String bizKey) {
-        return String.format("%s:%s:%d:%s", QUERY_SOURCE_LOCK_KEY_PRE, getAgentId(), tenantId, bizKey);
-    }
-
     /**
      * 暴露当前实例的 ResolvableType，
      * 让调用方可以拿到 T、E 这两个泛型的真实类型
@@ -145,25 +141,18 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, ResolvableTy
             throw new IllegalArgumentException("本地缓存和Redis缓存至少要启用一个！");
         }
         if (StrUtil.isBlank(properties.getCacheKey())) {
-            throw new IllegalArgumentException("keyPrefix不能为空！");
+            throw new IllegalArgumentException("cacheKey不能为空！");
         }
         if (StrUtil.isBlank(properties.getMqExchange())) {
             throw new IllegalArgumentException("mqExchange不能为空！");
         }
         if (StrUtil.isBlank(properties.getAgentId())) {
-            throw new IllegalArgumentException("name不能为空！");
+            throw new IllegalArgumentException("agentId不能为空！");
         }
     }
 
     protected Long getCurTenantId() {
         return TenantIdUtils.getCurTenantId(properties.getTenantCheckLevel());
-    }
-
-    protected String getKeyFromBizKeyWithTenant(Long tenantId, String bizKey) {
-        if (null == tenantId) {
-            return String.format("%s:%s", properties.getCacheKey(), bizKey);
-        }
-        return String.format("%s:%d:%s", properties.getCacheKey(), tenantId, bizKey);
     }
 
     protected void checkTenantScoped(Long tenantId) {

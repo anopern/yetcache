@@ -1,5 +1,6 @@
 package lab.anoper.yetcache.properties;
 
+import lab.anoper.yetcache.enums.CacheType;
 import lab.anoper.yetcache.enums.TenantCheckLevel;
 import lombok.Data;
 
@@ -32,6 +33,9 @@ public abstract class BaseCacheAgentProperties {
 
     // 是否启用Redis缓存
     private boolean redisCacheEnabled = true;
+
+    // 缓存类型
+    private CacheType cacheType = CacheType.BOTH;
 
     // 本地缓存最大数量
     private Integer jvmMaxSize = 1000;

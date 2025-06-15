@@ -11,7 +11,6 @@ import java.util.List;
  * @since 2025/4/27
  */
 public interface IKVCacheSourceService<E> {
-    List<E> queryAll(@Nullable Long tenantId);
 
     List<E> queryPage(@Nullable Long tenantId, @NotNull Integer pageNo, @NotNull Integer pageSize);
 

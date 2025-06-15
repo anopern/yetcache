@@ -10,5 +10,27 @@ public class AccAccountInfo {
     private String uuid;
     private List<String> fundAccounts;
 
-    //其他字段
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public List<String> getFundAccounts() {
+        return fundAccounts;
+    }
+
+    public void setFundAccounts(List<String> fundAccounts) {
+        this.fundAccounts = fundAccounts;
+    }
 }

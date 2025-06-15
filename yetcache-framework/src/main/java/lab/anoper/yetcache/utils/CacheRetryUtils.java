@@ -1,5 +1,8 @@
 package lab.anoper.yetcache.utils;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -35,4 +38,26 @@ public class CacheRetryUtils {
         }
         return null;
     }
+
+    public static <K, V> Map<K, V> retryRedisHashEntries(Supplier<Map<K, V>> supplier, int maxAttempts, long sleepMillis) {
+        for (int i = 0; i < maxAttempts; i++) {
+            try {
+                Map<K, V> result = supplier.get();
+                if (result != null && !result.isEmpty()) {
+                    return result;
+                }
+                if (i < maxAttempts - 1) {
+                    Thread.sleep(sleepMillis);
+                }
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Redis HGETALL 重试被中断", ie);
+            } catch (Exception e) {
+                // 可以选择记录日志或忽略
+            }
+        }
+        return Collections.emptyMap();
+    }
+
+
 }

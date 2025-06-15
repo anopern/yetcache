@@ -28,7 +28,7 @@ public class TenantIdUtils {
         if (tenantCheckLevel == TenantCheckLevel.REQUIRED) {
             // 如果租户检查级别为MUST且未提供租户ID，则抛出异常
             if (null == tenantId) {
-                throw new IllegalArgumentException("当前上下文租户ID为空，但是");
+                throw new IllegalArgumentException("当前上下文租户ID为空");
             }
         } else if (tenantCheckLevel == TenantCheckLevel.OPTIONAL) {
             // 如果租户检查级别为OPTIONAL且未提供租户ID，则使用默认租户ID

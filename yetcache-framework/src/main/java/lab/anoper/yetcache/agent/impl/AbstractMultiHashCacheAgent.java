@@ -12,7 +12,7 @@ import lab.anoper.yetcache.enums.MultiHashCacheEventType;
 import lab.anoper.yetcache.event.CacheEvent;
 import lab.anoper.yetcache.event.MultiHashCacheEvent;
 import lab.anoper.yetcache.properties.BaseCacheAgentProperties;
-import lab.anoper.yetcache.source.IHashCacheSourceService;
+import lab.anoper.yetcache.source.IMultiHashCacheSourceService;
 import lab.anoper.yetcache.utils.CacheRetryUtils;
 import lab.anoper.yetcache.utils.LockUtils;
 import lab.anoper.yetcache.utils.RedisSafeUtils;
@@ -36,14 +36,14 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @JSONType(ignores = {"resolvableType"})
-public abstract class AbstractMultiHashCacheAgent<E> extends AbstractCacheAgent<E>
+public abstract class AbstractMultiHashCacheAgent<E> extends AbstractMultiKeyCacheAgent<E>
         implements IMultiHashCacheAgent<E> {
     protected Cache<String, Map<String, E>> cache;
     protected HashOperations<String, String, E> hashOperations;
-    protected IHashCacheSourceService<E> sourceService;
+    protected IMultiHashCacheSourceService<E> sourceService;
 
     public AbstractMultiHashCacheAgent(BaseCacheAgentProperties properties,
-                                       IHashCacheSourceService<E> sourceService) {
+                                       IMultiHashCacheSourceService<E> sourceService) {
         super(properties);
         this.sourceService = sourceService;
     }
@@ -52,7 +52,6 @@ public abstract class AbstractMultiHashCacheAgent<E> extends AbstractCacheAgent<
     public void init() throws Exception {
         super.init();
         this.hashOperations = redisTemplate.opsForHash();
-        redisTemplate.opsForHash();
         if (properties.isLocalCacheEnabled()) {
             this.cache = initCaffeineCache();
         }

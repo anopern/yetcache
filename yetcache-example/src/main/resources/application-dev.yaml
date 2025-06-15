@@ -15,7 +15,7 @@ spring:
       idle-timeout: 30000
       connection-timeout: 20000
 
-  rabbitmq:  # 如果使用 RabbitMQ
+  rabbitmq: # 如果使用 RabbitMQ
     host: localhost
     port: 5672
     username: guest
@@ -27,11 +27,22 @@ spring:
         max-concurrency: 10
         acknowledge-mode: auto
 
-common:
-  cache-agent:
+yetcache:
+  agent:
     user:
-      id: 'USER_CACHE_AGENT'
-      key-prefix: 'yc:exam:user'
+      agent-id: 'USER_CACHE_AGENT'
+      cache-key: 'yc:exam:user'
       tenant-check-level: 'NONE'
       redis-cache-enabled: true
       caffeine-expire-secs: 3
+    stock-hold-info:
+      agent-id: 'STOCK_HOLD_INFO_CACHE_AGENT'
+      cache-key: 'yc:exam:stock-hold-info'
+      tenant-check-level: 'NONE'
+      redis-cache-enabled: true
+      caffeine-expire-secs: 3
+    config-common-info:
+      agent-id: 'CONFIG_COMMON_INFO_CACHE_AGENT'
+      cache-key: 'yc:exam:config-common-info'
+      tenant-check-level: 'REQUIRED'
+      cache-type: 'BOTH'

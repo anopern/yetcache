@@ -14,11 +14,6 @@ import java.util.List;
 public class AbstractKVCacheSourceService<S> implements IKVCacheSourceService<S> {
 
     @Override
-    public List<S> queryAll(Long tenantId) {
-        return new ArrayList<>();
-    }
-
-    @Override
     public List<S> queryPage(Long tenantId, Integer pageNo, Integer pageSize) {
         return new ArrayList<>();
     }

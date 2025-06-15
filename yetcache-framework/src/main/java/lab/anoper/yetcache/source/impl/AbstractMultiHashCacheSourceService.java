@@ -1,6 +1,6 @@
 package lab.anoper.yetcache.source.impl;
 
-import lab.anoper.yetcache.source.IHashCacheSourceService;
+import lab.anoper.yetcache.source.IMultiHashCacheSourceService;
 
 import java.util.Collections;
 import java.util.List;
@@ -10,11 +10,7 @@ import java.util.Map;
  * @author walter.yan
  * @since 2025/4/27
  */
-public abstract class AbstractHashCacheSourceService<E> implements IHashCacheSourceService<E> {
-    @Override
-    public List<E> queryAll(Long tenantId) {
-        return null;
-    }
+public abstract class AbstractMultiHashCacheSourceService<E> implements IMultiHashCacheSourceService<E> {
 
     @Override
     public List<E> queryPage(Long tenantId, Integer pageNo, Integer pageSize) {

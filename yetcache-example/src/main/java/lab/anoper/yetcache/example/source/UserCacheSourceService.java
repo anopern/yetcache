@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component("userSourceService")
-public class UserSourceService extends AbstractKVCacheSourceService<UserDTO> {
+public class UserCacheSourceService extends AbstractKVCacheSourceService<UserDTO> {
     @Autowired
     private IUserService userService;
 

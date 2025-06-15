@@ -12,8 +12,7 @@ import java.util.Map;
  * @author walter.yan
  * @since 2025/4/27
  */
-public interface IHashCacheSourceService<E> {
-    List<E> queryAll(@Nullable Long tenantId);
+public interface IMultiHashCacheSourceService<E> {
 
     List<E> queryPage(@Nullable Long tenantId, @NotNull Integer pageNo, @NotNull Integer pageSize);
 
