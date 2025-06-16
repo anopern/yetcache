@@ -450,7 +450,7 @@ public abstract class AbstractMultiHashCacheAgent<E> extends AbstractMultiKeyCac
 
     protected void preventCachePenetration(String key) {
         Map<String, E> emptyEntries = new HashMap<>();
-        emptyEntries.put(EMPTY_OBJ_HASH_KEY, getEmptyObject());
+        emptyEntries.put(EMPTY_OBJ_HASH_KEY, getEmptyPlaceholder());
         RedisSafeUtils.safeBatchPutHash(key, emptyEntries, properties.getPenetrationProtectTtlSecs(), 100,
                 (k, dm, es, bs) -> hashOperations.putAll(k, dm));
         redisTemplate.expire(key, properties.getPenetrationProtectTtlSecs(), TimeUnit.SECONDS);

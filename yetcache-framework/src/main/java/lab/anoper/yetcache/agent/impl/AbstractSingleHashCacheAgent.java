@@ -110,7 +110,7 @@ public abstract class AbstractSingleHashCacheAgent<E> extends AbstractCacheAgent
         List<E> list = listAll(tenantId);
         if (CollUtil.isNotEmpty(list)) {
             return list.stream()
-                    .filter(e -> StrUtil.equals(bizHashKey, getBizHashKey(e)))
+                    .filter(e -> StrUtil.equals(bizHashKey, getHashKey(e)))
                     .findFirst()
                     .orElse(null);
         }
@@ -140,7 +140,7 @@ public abstract class AbstractSingleHashCacheAgent<E> extends AbstractCacheAgent
 
             if (CollUtil.isNotEmpty(list)) {
                 dataMap = list.stream().collect(Collectors.toMap(
-                        this::getBizHashKey,
+                        this::getHashKey,
                         Function.identity(),
                         (v1, v2) -> v1,
                         ConcurrentHashMap::new));
@@ -226,14 +226,30 @@ public abstract class AbstractSingleHashCacheAgent<E> extends AbstractCacheAgent
         return String.format("%s:%d", properties.getCacheKey(), tenantId);
     }
 
+    /**
+     * 构造查询数据源的分布式锁 Key。
+     * <p>用于控制缓存穿透或首次加载时的并发访问，避免多实例或多线程同时回源。</p>
+     *
+     * 锁 Key 格式：
+     * - 全局：{prefix}:{agentId}
+     * - 多租户：{prefix}:{agentId}:{tenantId}
+     *
+     * @param tenantId 租户 ID，可为空
+     * @return 构造后的分布式锁 Key
+     */
     protected String getQuerySourceDistLockKey(Long tenantId) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("%s:%s", QUERY_SOURCE_LOCK_KEY_PRE, getAgentId()));
         if (tenantId != null) {
-            sb.append(String.format(":%s", tenantId));
+            return String.format("%s:%s:%s", QUERY_SOURCE_LOCK_KEY_PRE, getAgentId(), tenantId);
         }
-        return sb.toString();
+        return String.format("%s:%s", QUERY_SOURCE_LOCK_KEY_PRE, getAgentId());
     }
 
-    protected abstract String getBizHashKey(@NotNull E e);
+    /**
+     * 获取 Redis Hash 结构中的字段名（HashKey）
+     * <p>设计上不依赖外部前缀拼接，直接由实体对象唯一标识生成。</p>
+     *
+     * @param e 实体对象，不能为空
+     * @return 用于 Redis Hash 的 HashKey
+     */
+    protected abstract String getHashKey(@NotNull E e);
 }

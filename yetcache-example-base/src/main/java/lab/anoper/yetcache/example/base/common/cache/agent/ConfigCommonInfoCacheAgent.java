@@ -26,7 +26,7 @@ public class ConfigCommonInfoCacheAgent extends AbstractSingleHashCacheAgent<Con
     }
 
     @Override
-    protected String getBizHashKey(ConfigCommonInfoDTO dto) {
+    protected String getHashKey(ConfigCommonInfoDTO dto) {
         return dto.getCode();
     }
 }

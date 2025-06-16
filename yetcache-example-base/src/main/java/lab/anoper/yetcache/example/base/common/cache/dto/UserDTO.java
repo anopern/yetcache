@@ -1,13 +1,13 @@
 package lab.anoper.yetcache.example.base.common.cache.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
+import lab.anoper.yetcache.entity.dto.BaseCacheDTO;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-public class UserDTO {
+@Data
+public class UserDTO extends BaseCacheDTO {
     private Long id;
 
     private String username;

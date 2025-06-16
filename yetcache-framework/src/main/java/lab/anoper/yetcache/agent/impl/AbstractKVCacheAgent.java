@@ -5,6 +5,8 @@ import com.alibaba.fastjson2.JSON;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lab.anoper.yetcache.agent.IKVCacheAgent;
+import lab.anoper.yetcache.entity.dto.BaseCacheDTO;
+import lab.anoper.yetcache.enums.CacheType;
 import lab.anoper.yetcache.enums.KVCacheEventType;
 import lab.anoper.yetcache.event.CacheEvent;
 import lab.anoper.yetcache.event.KVCacheEvent;
@@ -31,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  * @since 2025/5/21
  */
 @Slf4j
-public abstract class AbstractKVCacheAgent<E> extends AbstractMultiKeyCacheAgent<E> implements IKVCacheAgent<E> {
+public abstract class AbstractKVCacheAgent<E extends BaseCacheDTO> extends AbstractMultiKeyCacheAgent<E> implements IKVCacheAgent<E> {
 
     // agent方法初始化
     protected Cache<String, E> cache;
@@ -50,7 +52,7 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractMultiKeyCacheAgent
     public void init() throws Exception {
         super.init();
         this.valueOperations = this.redisTemplate.opsForValue();
-        if (properties.isLocalCacheEnabled()) {
+        if (isLocalCacheEnabled()) {
             this.cache = initCaffeineCache();
         }
     }
@@ -72,46 +74,51 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractMultiKeyCacheAgent
         }
         checkTenantScoped(tenantId);
         String key = getKeyFromBizKeyWithTenant(tenantId, bizKey);
-        if (properties.isLocalCacheEnabled()) {
+        if (CacheType.LOCAL_CACHE == properties.getCacheType()) {
             E e = cache.getIfPresent(key);
             if (null != e) {
                 return e;
             }
-            if (properties.isRedisCacheEnabled()) {
-                e = getFromRedis(tenantId, bizKey);
-                if (null != e) {
-                    cache.put(key, e);
-                    publishEvent(KVCacheEvent.buildUpdateEvent(getAgentId(), tenantId, bizKey, e));
-                }
-                e = getFromSource(tenantId, bizKey);
-                if (e != null) {
-                    safeRedisSet(key, e);
-                    cache.put(key, e);
-                    return e;
-                }
-                preventCachePenetration(key);
-                return null;
-            }
-            e = getFromSource(tenantId, bizKey);
+            e = getFromSource(tenantId, false, bizKey);
             if (e != null) {
                 cache.put(key, e);
                 return e;
             }
-            preventCachePenetration(key);
+            preventLocalCachePenetration(key);
             return null;
-        } else if (properties.isRedisCacheEnabled()) {
-            E e = getFromSource(tenantId, bizKey);
+        } else if (CacheType.REMOTE_CACHE == properties.getCacheType()) {
+            E e = getFromRedis(tenantId, bizKey);
+            if (null != e) {
+                return e;
+            }
+            e = getFromSource(tenantId, false, bizKey);
+            if (e != null) {
+                safeRedisSet(key, e);
+                return e;
+            }
+            preventRemoteCachePenetration(key);
+            return null;
+        } else if (CacheType.BOTH == properties.getCacheType()) {
+            E e = cache.getIfPresent(key);
+            if (null != e) {
+                return e;
+            }
+            e = getFromRedis(tenantId, bizKey);
+            if (null != e) {
+                cache.put(key, e);
+                return e;
+            }
+            e = getFromSource(tenantId, false, bizKey);
             if (e != null) {
                 safeRedisSet(key, e);
                 cache.put(key, e);
                 return e;
             }
-            preventCachePenetration(key);
-            return null;
-        } else {
-            log.error("本地缓存和Redis缓存都没有开启，请求到达，请检查配置，请求bizKey：{}", bizKey);
+            preventRemoteCachePenetration(key);
+            preventLocalCachePenetration(key);
             return null;
         }
+        throw new IllegalArgumentException("不支持的缓存类型");
     }
 
     public void evictCache(@NotNull String bizKey) {
@@ -190,15 +197,19 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractMultiKeyCacheAgent
         RLock lock = redissonClient.getLock(lockKey);
         try {
             String key = getKeyFromBizKeyWithTenant(tenantId, bizKey);
-            if (force || !properties.isRedisCacheEnabled()) {
+            if (force) {
                 return sourceService.querySingle(tenantId, bizKey);
             } else {
+                boolean remoteCacheEnabled = CacheType.REMOTE_CACHE == properties.getCacheType()
+                        || CacheType.BOTH == properties.getCacheType();
                 // 最多等 100ms 尝试拿锁。拿到锁后持有 5s，防止死锁
                 if (lock.tryLock(100, 5, TimeUnit.SECONDS)) {
                     // 加锁后再检查一次 Redis，防止缓存已被其他线程更新
-                    E e = safeRedisGet(key);
-                    if (null != e) {
-                        return e;
+                    if (remoteCacheEnabled) {
+                        E e = safeRedisGet(key);
+                        if (null != e) {
+                            return e;
+                        }
                     }
                     // 从数据源加载
                     return sourceService.querySingle(tenantId, bizKey);
@@ -247,19 +258,31 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractMultiKeyCacheAgent
         }
         String bizKey = getBizKeyFromEvent(event);
         String key = getKeyFromBizKeyWithTenant(event.getTenantId(), bizKey);
+
+        // 检查是否是旧数据
+        E e = cache.getIfPresent(key);
+        if (e != null && e.getVersion() > event.getVersion()) {
+            log.warn("[JVM缓存]忽略旧数据：{}", message);
+            return;
+        }
+
         // 如果创建时间是10s之前，直接丢弃
-        long messageDelaySecs = (System.currentTimeMillis() - event.getCreatedTime()) / 1000;
+        long messageDelaySecs = (System.currentTimeMillis() - event.getVersion()) / 1000;
         if (messageDelaySecs > properties.getMessageMaxDelaySecs()) {
             cache.invalidate(key);
             return;
         }
 
-        if (Objects.equals(KVCacheEventType.UPDATE, event.getEventType())) {
-            handleUpdateEvent(message);
-        } else if (Objects.equals(KVCacheEventType.INVALIDATE, event.getEventType())) {
-            handleInvalidateEvent(message);
-        } else {
-            throw new IllegalArgumentException("暂不支持的事件类型，事件类型：" + event.getEventType());
+        final KVCacheEventType eventType = event.getEventType();
+        switch (eventType) {
+            case UPDATE:
+                handleUpdateEvent(message);
+                break;
+            case INVALIDATE:
+                handleInvalidateEvent(message);
+                break;
+            default:
+                throw new IllegalArgumentException("不支持的事件类型: " + event.getEventType());
         }
     }
 
@@ -423,10 +446,15 @@ public abstract class AbstractKVCacheAgent<E> extends AbstractMultiKeyCacheAgent
      *
      * @param key Redis 的 key
      */
-    protected void preventCachePenetration(String key) {
-        E emptyObject = getEmptyObject();
-        RedisSafeUtils.safeSet(key, emptyObject, (k, v)
+    protected void preventRemoteCachePenetration(String key) {
+        E e = getEmptyPlaceholder();
+        RedisSafeUtils.safeSet(key, e, (k, v)
                 -> valueOperations.set(k, v, properties.getPenetrationProtectTtlSecs(), TimeUnit.SECONDS));
+    }
+
+    protected void preventLocalCachePenetration(String key) {
+        E e = getEmptyPlaceholder();
+        cache.put(key, e);
     }
 
     protected KVCacheEvent<?> parseRawCacheEvent(String message) {

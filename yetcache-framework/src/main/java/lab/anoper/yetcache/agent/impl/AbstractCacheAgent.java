@@ -5,6 +5,8 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.support.spring.FastJsonRedisSerializer;
 import com.alibaba.fastjson2.JSON;
 import lab.anoper.yetcache.agent.ICacheAgent;
+import lab.anoper.yetcache.entity.dto.BaseCacheDTO;
+import lab.anoper.yetcache.enums.CacheType;
 import lab.anoper.yetcache.event.CacheEvent;
 import lab.anoper.yetcache.properties.BaseCacheAgentProperties;
 import lab.anoper.yetcache.utils.RabbitMQUtils;
@@ -20,7 +22,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-import javax.validation.constraints.NotNull;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.UUID;
@@ -30,7 +31,7 @@ import java.util.UUID;
  * @since 2025/5/23
  */
 @Slf4j
-public abstract class AbstractCacheAgent<E> implements ICacheAgent, ResolvableTypeProvider {
+public abstract class AbstractCacheAgent<E extends BaseCacheDTO> implements ICacheAgent, ResolvableTypeProvider {
     // 应用启动时生成唯一ID
     public static final String INSTANCE_ID = UUID.randomUUID().toString();
 
@@ -164,7 +165,7 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, ResolvableTy
         }
     }
 
-    protected E getEmptyObject() {
+    protected E getEmptyPlaceholder() {
         ResolvableType type = getResolvableType().getGeneric(0); // 拿到 T 的类型
         Class<?> clazz = type.resolve();
         if (clazz == null) {
@@ -173,6 +174,8 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, ResolvableTy
         try {
             @SuppressWarnings("unchecked")
             E instance = (E) clazz.getDeclaredConstructor().newInstance();
+            // 标记为占位对象
+            instance.markAsPlaceholder();
             return instance;
         } catch (Exception e) {
             throw new RuntimeException("创建空对象失败: " + clazz, e);
@@ -181,5 +184,9 @@ public abstract class AbstractCacheAgent<E> implements ICacheAgent, ResolvableTy
 
     protected boolean isEventFromCurrentInstance(CacheEvent<?> event) {
         return null != event && INSTANCE_ID.equalsIgnoreCase(event.getInstanceId());
+    }
+
+    protected boolean isLocalCacheEnabled() {
+        return CacheType.LOCAL_CACHE == properties.getCacheType() || CacheType.BOTH == properties.getCacheType();
     }
 }
