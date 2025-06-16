@@ -24,7 +24,6 @@ import org.springframework.retry.annotation.Recover;
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import java.lang.reflect.Type;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 
@@ -34,12 +33,9 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public abstract class AbstractKVCacheAgent<E extends BaseCacheDTO> extends AbstractMultiKeyCacheAgent<E> implements IKVCacheAgent<E> {
-
     // agent方法初始化
     protected Cache<String, E> cache;
     protected ValueOperations<String, E> valueOperations;
-
-    // 构造方法传入，@Autowired("xxx")方式传入
     protected IKVCacheSourceService<E> sourceService;
 
     public AbstractKVCacheAgent(BaseCacheAgentProperties properties,
@@ -76,7 +72,7 @@ public abstract class AbstractKVCacheAgent<E extends BaseCacheDTO> extends Abstr
         String key = getKeyFromBizKeyWithTenant(tenantId, bizKey);
         if (CacheType.LOCAL_CACHE == properties.getCacheType()) {
             E e = cache.getIfPresent(key);
-            if (null != e) {
+            if (null != e && (e.isNotPlaceholder() || e.isNewerThan()) {
                 return e;
             }
             e = getFromSource(tenantId, false, bizKey);
@@ -261,7 +257,7 @@ public abstract class AbstractKVCacheAgent<E extends BaseCacheDTO> extends Abstr
 
         // 检查是否是旧数据
         E e = cache.getIfPresent(key);
-        if (e != null && e.getVersion() > event.getVersion()) {
+        if (e != null && e.getCreateTime() > event.getVersion()) {
             log.warn("[JVM缓存]忽略旧数据：{}", message);
             return;
         }

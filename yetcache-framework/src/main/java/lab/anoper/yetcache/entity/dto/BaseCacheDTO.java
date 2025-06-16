@@ -16,7 +16,7 @@ public class BaseCacheDTO {
     /**
      * 版本号：可用于跨实例更新控制、消息刷新版本对比等
      */
-    protected Long version;
+    protected Long createTime;
 
     public boolean isPlaceholder() {
         return Boolean.TRUE.equals(placeholder);
@@ -28,19 +28,23 @@ public class BaseCacheDTO {
 
     public void markAsPlaceholder() {
         this.placeholder = true;
-        this.version = System.currentTimeMillis(); // 占位时自动打上版本戳，便于广播比对
+        this.createTime = System.currentTimeMillis(); // 占位时自动打上版本戳，便于广播比对
+    }
+
+    public boolean isPlaceholderExpired(Integer expireSecs) {
+        return expireSecs != null && createTime != null && System.currentTimeMillis() - createTime > expireSecs * 1000;
     }
 
     public boolean isNewerThan(BaseCacheDTO other) {
-        if (other == null || other.version == null) return true;
-        return this.version != null && this.version > other.version;
+        if (other == null || other.createTime == null) return true;
+        return this.createTime != null && this.createTime > other.createTime;
     }
 
     public static <T extends BaseCacheDTO> T getPlaceholder(Class<T> clazz) {
         try {
             T instance = clazz.getDeclaredConstructor().newInstance();
             instance.setPlaceholder(true);
-            instance.setVersion(System.currentTimeMillis());
+            instance.setCreateTime(System.currentTimeMillis());
             return instance;
         } catch (Exception e) {
             throw new RuntimeException("无法创建占位对象: " + clazz.getName(), e);
@@ -49,6 +53,6 @@ public class BaseCacheDTO {
 
     @Override
     public String toString() {
-        return String.format("DTO[placeholder=%s, version=%s]", placeholder, version);
+        return String.format("DTO[placeholder=%s, version=%s]", placeholder, createTime);
     }
 }
