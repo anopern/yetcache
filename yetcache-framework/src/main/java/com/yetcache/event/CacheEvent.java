@@ -28,7 +28,7 @@ public class CacheEvent<E> implements ResolvableTypeProvider {
     protected E data;
 
     // 创建时间，毫秒时间戳
-    protected Long createdTime = System.currentTimeMillis();
+    protected Long version = System.currentTimeMillis();
 
     @Override
     public ResolvableType getResolvableType() {
