@@ -3,9 +3,6 @@ package com.yetcache.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-import java.util.Set;
-
 /**
  * @author walter.yan
  * @since 2025/6/18
@@ -17,5 +14,11 @@ public interface KVCache<K, V> {
 
     void put(K key, V value);
 
-    void remove(K key);
+    void invalidate(K key);
+
+    KVCacheGetResult<K, V> getWithResult(K key);
+
+    KVCacheResult putWithResult(K key, V value);
+
+    KVCacheResult invalidateWithResult(K key);
 }

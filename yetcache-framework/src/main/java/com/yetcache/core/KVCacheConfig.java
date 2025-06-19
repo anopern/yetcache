@@ -7,7 +7,7 @@ import java.util.function.Function;
  * @author walter.yan
  * @since 2025/6/18
  */
-public class CacheConfig<K, V> {
+public class KVCacheConfig<K, V> {
     // 缓存过期时间
     private long expireAfterWriteMills = CacheConstants.DEFAULT_EXPIRE * 1000L;
 
