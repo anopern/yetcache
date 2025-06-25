@@ -1,5 +1,7 @@
 package com.yetcache.core;
 
+import com.yetcache.core.kv.KVCacheConfig;
+
 /**
  * @author walter.yan
  * @since 2025/6/18

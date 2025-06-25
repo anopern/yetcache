@@ -1,4 +1,7 @@
-package com.yetcache.core;
+package com.yetcache.core.kv;
+
+import com.yetcache.core.CacheConstants;
+import com.yetcache.core.CacheType;
 
 import java.time.Duration;
 import java.util.function.Function;
@@ -13,6 +16,8 @@ public class KVCacheConfig<K, V> {
 
     // 缓存key转换器
     private Function<K, Object> keyConvertor;
+
+    protected CacheType cacheType;
 
     // 缓存穿透保护，默认开启
     private boolean cachePenetrationProtect = true;
@@ -50,5 +55,13 @@ public class KVCacheConfig<K, V> {
 
     public void setPenetrationProtectTimeout(Duration penetrationProtectTimeout) {
         this.penetrationProtectTimeout = penetrationProtectTimeout;
+    }
+
+    public CacheType getCacheType() {
+        return cacheType;
+    }
+
+    public void setCacheType(CacheType cacheType) {
+        this.cacheType = cacheType;
     }
 }

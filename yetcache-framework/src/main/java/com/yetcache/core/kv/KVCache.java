@@ -1,4 +1,4 @@
-package com.yetcache.core;
+package com.yetcache.core.kv;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
