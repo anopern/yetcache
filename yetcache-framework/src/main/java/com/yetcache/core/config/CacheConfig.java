@@ -8,5 +8,6 @@ import lombok.Data;
  */
 @Data
 public class CacheConfig {
+    protected Integer maxSize = Integer.MAX_VALUE;
     protected Long ttlSec;
 }

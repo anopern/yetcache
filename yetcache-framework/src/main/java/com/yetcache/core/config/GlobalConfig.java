@@ -10,6 +10,13 @@ import lombok.Data;
  */
 @Data
 public class GlobalConfig {
-    private CacheLayer cacheLayer = CacheLayer.BOTH;
-    private TenantMode tenantMode = TenantMode.NONE;
+    protected CacheLayer cacheLayer = CacheLayer.BOTH;
+    protected TenantMode tenantMode = TenantMode.NONE;
+
+    protected Long localTtlSec = 60L;
+    protected Long remoteTtlSec = 60L;
+
+    protected Boolean allowNullValue = false;
+    protected Long nullTtlSec = 60L;
+    protected Boolean penetrationProtectEnable = true;
 }

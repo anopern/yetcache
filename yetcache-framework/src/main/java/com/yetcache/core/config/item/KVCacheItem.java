@@ -1,4 +1,4 @@
-package com.yetcache.core.config;
+package com.yetcache.core.config.item;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,5 +9,5 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class CaffeineCacheConfig extends CacheConfig {
+public class KVCacheItem extends BaseCacheItem {
 }

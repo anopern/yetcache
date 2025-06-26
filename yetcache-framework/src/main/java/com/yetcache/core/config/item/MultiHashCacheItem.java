@@ -1,4 +1,4 @@
-package com.yetcache.core.config;
+package com.yetcache.core.config.item;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,6 +9,5 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class LocalCacheConfig extends CacheConfig {
-    protected Integer maxSize;
+public class MultiHashCacheItem extends BaseCacheItem {
 }

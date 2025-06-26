@@ -11,9 +11,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "yetcache")
 public class YetCacheProperties {
     private GlobalConfig global = new GlobalConfig();
-    private LocalCacheConfig local = new LocalCacheConfig();
+    private CaffeineCacheConfig caffeine = new CaffeineCacheConfig();
     private RedisCacheConfig redis = new RedisCacheConfig();
     private SyncConfig sync = new SyncConfig();
     private PreloadConfig preload = new PreloadConfig();
     private RefreshConfig refresh = new RefreshConfig();
+    protected CacheGroups caches = new CacheGroups();
 }
