@@ -38,11 +38,13 @@ public class CaffeineKVCache<K, V> extends AbstractdKVCache<K, V> {
 
     @Override
     public KVCacheResult putWithResult(K key, V value) {
-        return null;
+        cache.put(key, value);
+        return new KVCacheResult();
     }
 
     @Override
     public KVCacheResult invalidateWithResult(K key) {
-        return null;
+        cache.invalidate(key);
+        return new KVCacheResult();
     }
 }
