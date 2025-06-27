@@ -1,7 +1,12 @@
 package com.yetcache.core.config;
 
+import com.alibaba.fastjson.JSON;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 /**
  * @author walter.yan
@@ -9,12 +14,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(prefix = "yetcache")
+@Component
+@Slf4j
 public class YetCacheProperties {
     private GlobalConfig global = new GlobalConfig();
-    private CaffeineCacheConfig caffeine = new CaffeineCacheConfig();
-    private RedisCacheConfig redis = new RedisCacheConfig();
-    private SyncConfig sync = new SyncConfig();
-    private PreloadConfig preload = new PreloadConfig();
-    private RefreshConfig refresh = new RefreshConfig();
     protected CacheGroups caches = new CacheGroups();
+
+    @PostConstruct
+    public void init() {
+        log.info("YetCacheProperties init: " + JSON.toJSONString(this));
+    }
 }

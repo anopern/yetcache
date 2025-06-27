@@ -13,10 +13,11 @@ public class GlobalConfig {
     protected CacheLayer cacheLayer = CacheLayer.BOTH;
     protected TenantMode tenantMode = TenantMode.NONE;
 
-    protected Long localTtlSec = 60L;
-    protected Long remoteTtlSec = 60L;
+    protected Long localTtlSec;
+    protected Long localMaxSize;
+    protected Long remoteTtlSec;
 
-    protected Boolean allowNullValue = false;
-    protected Long nullTtlSec = 60L;
-    protected Boolean penetrationProtectEnable = true;
+    protected Boolean penetrationProtectEnabled = true;
+    protected Long localPenetrationProtectTtlSec;
+    protected Long remotePenetrationProtectTtlSec;
 }
