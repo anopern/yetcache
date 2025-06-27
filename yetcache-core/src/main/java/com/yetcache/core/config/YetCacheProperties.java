@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -17,11 +18,13 @@ import javax.annotation.PostConstruct;
 @Component
 @Slf4j
 public class YetCacheProperties {
+    @NestedConfigurationProperty
     private GlobalConfig global = new GlobalConfig();
+    @NestedConfigurationProperty
     protected CacheGroups caches = new CacheGroups();
 
     @PostConstruct
     public void init() {
-        log.info("YetCacheProperties init: " + JSON.toJSONString(this));
+        log.info("\r\nYetCacheProperties init:\r\n " + JSON.toJSONString(this, true));
     }
 }
