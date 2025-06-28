@@ -29,13 +29,26 @@ spring:
 
 yetcache:
   global:
-    local-ttl-secs: 180
-    remote-ttl-secs: 300
-    local-max-size: 20_000
-    penetration-protect-enabled: true
-    local-penetration-protect-ttl-secs: 60
-    remote-penetration-protect-ttl-secs: 120
+    cache-tier: BOTH
+    tenant-mode: REQUIRED
+    local:
+      max-size: 2000
+      ttl-secs: 180
+      penetration-protect-enabled: true
+      penetration-protect-ttl-secs: 60
+    remote:
+      ttl-secs: 600
+      penetration-protect-enabled: true
+      penetration-protect-ttl-secs: 120
   caches:
     kv:
       user-id-key-cache:
-        local-max-size: 10000
+        local:
+          max-size: 2000
+          ttl-secs: 180
+          penetration-protect-enabled: true
+          penetration-protect-ttl-secs: 60
+        remote:
+          ttl-secs: 600
+          penetration-protect-enabled: true
+          penetration-protect-ttl-secs: 120

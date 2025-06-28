@@ -1,6 +1,7 @@
 package com.yetcache.core.config;
 
 import lombok.Data;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,5 +12,6 @@ import java.util.Map;
  */
 @Data
 public class CacheGroups {
-    protected Map<String, SpecKVCacheConfig> kv = new HashMap<>();
+    @NestedConfigurationProperty
+    protected Map<String, MultiTierCacheConfig> kv = new HashMap<>();
 }

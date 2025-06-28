@@ -3,19 +3,15 @@ package com.yetcache.core.config;
 import com.yetcache.core.CacheTier;
 import com.yetcache.core.TenantMode;
 import lombok.Data;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 /**
  * @author walter.yan
- * @since 2025/6/26
+ * @since 2025/6/28
  */
 @Data
-public class GlobalConfig {
+public class MultiTierCacheConfig {
     protected CacheTier cacheTier = CacheTier.BOTH;
     protected TenantMode tenantMode = TenantMode.NONE;
-
-    @NestedConfigurationProperty
     protected CaffeineCacheConfig local;
-    @NestedConfigurationProperty
     protected RedisCacheConfig remote;
 }
