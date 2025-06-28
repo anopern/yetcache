@@ -4,7 +4,10 @@ import com.yetcache.core.CacheAccessStatus;
 import com.yetcache.core.CacheValueHolder;
 import com.yetcache.core.SourceLoadStatus;
 import com.yetcache.core.config.MultiTierCacheConfig;
+import com.yetcache.core.config.PenetrationProtectConfig;
 import com.yetcache.core.key.CacheKeyConverter;
+import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
+import com.yetcache.core.protect.RedisPenetrationProtectCache;
 import com.yetcache.core.util.CacheParamChecker;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,8 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
     private CaffeineKVCache<V> localCache;
     private RedisKVCache<V> redisCache;
     private CacheKeyConverter<K> keyConverter;
+    private CaffeinePenetrationProtectCache<K> localPpCache;
+    private RedisPenetrationProtectCache<K> remotePpCache;
 
     public MultiTierKVCache(String cacheName,
                             MultiTierCacheConfig config,
@@ -36,6 +41,18 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
 
         this.localCache = config.getCacheTier().useLocal() ? new CaffeineKVCache<>(config.getLocal()) : null;
         this.redisCache = config.getCacheTier().useRemote() ? new RedisKVCache<>(config.getRemote(), rClient) : null;
+
+        if (config.getCacheTier().useLocal()) {
+            PenetrationProtectConfig ppConfig = config.getLocal().getPenetrationProtect();
+            this.localPpCache = new CaffeinePenetrationProtectCache<>(ppConfig.getPrefix(), getCacheName(),
+                    ppConfig.getTtlSecs(), ppConfig.getMaxSize());
+        }
+
+        if (config.getCacheTier().useRemote()) {
+            PenetrationProtectConfig ppConfig = config.getRemote().getPenetrationProtect();
+            this.remotePpCache = new RedisPenetrationProtectCache<>(rClient, ppConfig.getPrefix(), getCacheName(),
+                    ppConfig.getTtlSecs(), ppConfig.getMaxSize());
+        }
     }
 
     @Override
@@ -67,6 +84,25 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
         CacheValueHolder<V> localHolder;
         CacheValueHolder<V> remoteHolder;
         CacheGetResult<K, V> getResult = new CacheGetResult<>(getCacheName(), config.getCacheTier(), bizKey, key);
+
+        if (null != localPpCache) {
+            boolean blocked = localPpCache.isBlocked(bizKey);
+            if (blocked) {
+                getResult.setLocalStatus(CacheAccessStatus.BLOCKED);
+                return getResult;
+            }
+        }
+        if (null != remotePpCache) {
+            boolean blocked = remotePpCache.isBlocked(bizKey);
+            if (blocked) {
+                getResult.setLocalStatus(CacheAccessStatus.PHYSICAL_MISS);
+                getResult.setRemoteStatus(CacheAccessStatus.BLOCKED);
+                if (null != localPpCache) {
+                    localPpCache.markMiss(bizKey);
+                }
+                return getResult;
+            }
+        }
 
         // === 1. 本地缓存 ===
         if (localCache != null) {
@@ -114,6 +150,12 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
                 getResult.setValueHolder(new CacheValueHolder<>(loaded));
             } else {
                 getResult.setLoadStatus(SourceLoadStatus.NO_VALUE);
+                if (null != localPpCache) {
+                    localPpCache.markMiss(bizKey);
+                }
+                if (null != remotePpCache) {
+                    remotePpCache.markMiss(bizKey);
+                }
             }
         } catch (Exception e) {
             // 加载失败，可带上旧值用于降级

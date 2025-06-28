@@ -6,5 +6,5 @@ package com.yetcache.core.key;
  */
 @FunctionalInterface
 public interface CacheKeyConverter<K> {
-    String convert(K key);
+    String convert(K bizKey);
 }

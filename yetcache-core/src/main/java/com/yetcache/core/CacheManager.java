@@ -61,7 +61,7 @@ public class CacheManager {
                 .map(TenantProvider::getTenantCode)
                 .orElse(null);
         CacheKeyConverter<K> cacheKeyConverter = CacheKeyConverterFactory.create(config.getKeyPrefix(),
-                config.getTenantMode().useTenant(), config.isUseHashTag(), tenantCodeSupplier);
+                config.getTenantMode().useTenant(), config.getUseHashTag(), tenantCodeSupplier);
         MultiTierKVCache<K, V> newCache = new MultiTierKVCache<>(name, config, rClient, cacheLoader, cacheKeyConverter);
         registry.register(name, newCache);
         log.info("KVCache [{}] created and registered", name);

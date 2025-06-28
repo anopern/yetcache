@@ -26,8 +26,8 @@ public class DefaultCacheKeyConverter<K> implements CacheKeyConverter<K> {
     }
 
     @Override
-    public String convert(K key) {
-        if (key == null) {
+    public String convert(K bizKey) {
+        if (bizKey == null) {
             throw new IllegalArgumentException("Cache key cannot be null");
         }
 
@@ -43,7 +43,7 @@ public class DefaultCacheKeyConverter<K> implements CacheKeyConverter<K> {
 
         sb.append(":");
 
-        String bizKeyStr = String.valueOf(key); // 仅此处做 key.toString
+        String bizKeyStr = String.valueOf(bizKey); // 仅此处做 key.toString
         if (useHashTag) {
             sb.append("{").append(bizKeyStr).append("}");
         } else {

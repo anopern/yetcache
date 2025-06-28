@@ -20,7 +20,7 @@ public class MultiTierCacheConfig {
     protected TenantMode tenantMode = TenantMode.NONE;
 
     protected String keyPrefix;
-    protected boolean useHashTag;
+    protected Boolean useHashTag = true;
 
     protected CaffeineCacheConfig local;
     protected RedisCacheConfig remote;

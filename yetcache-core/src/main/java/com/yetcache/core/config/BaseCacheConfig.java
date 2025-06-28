@@ -11,6 +11,5 @@ import lombok.Data;
 public class BaseCacheConfig {
     protected Long ttlSecs;
 
-    protected Boolean penetrationProtectEnabled;
-    protected Long penetrationProtectTtlSecs;
+    protected PenetrationProtectConfig penetrationProtect;
 }
