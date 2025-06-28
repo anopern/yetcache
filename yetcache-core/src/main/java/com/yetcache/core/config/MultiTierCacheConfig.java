@@ -14,6 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MultiTierCacheConfig {
+    protected String cacheName;
+
     protected CacheTier cacheTier = CacheTier.BOTH;
     protected TenantMode tenantMode = TenantMode.NONE;
 

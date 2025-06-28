@@ -1,9 +1,14 @@
 package com.yetcache.core.kv;
 
+import com.yetcache.core.CacheAccessStatus;
+import com.yetcache.core.CacheValueHolder;
+import com.yetcache.core.SourceLoadStatus;
 import com.yetcache.core.config.MultiTierCacheConfig;
 import com.yetcache.core.key.CacheKeyConverter;
+import com.yetcache.core.util.CacheParamChecker;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
 /**
@@ -12,7 +17,9 @@ import org.redisson.api.RedissonClient;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Slf4j
 public class MultiTierKVCache<K, V> extends AbstractKVCache<K, V> {
+    private String cacheName;
     private final MultiTierCacheConfig config;
     private final KVCacheLoader<K, V> cacheLoader;
     private CaffeineKVCache<V> localCache;
@@ -33,41 +40,65 @@ public class MultiTierKVCache<K, V> extends AbstractKVCache<K, V> {
 
     @Override
     public CacheGetResult<K, V> getWithResult(K bizKey) {
+        CacheParamChecker.failIfNull(bizKey, getCacheName());
         String key = keyConverter.convert(bizKey);
-        // 1. 先查本地缓存
+
+        CacheValueHolder<V> localHolder;
+        CacheValueHolder<V> remoteHolder;
+        CacheGetResult<K, V> getResult = new CacheGetResult<>(getCacheName(), config.getCacheTier(), bizKey, key);
+
+        // === 1. 本地缓存 ===
         if (localCache != null) {
-            V localValue = localCache.getIfPresent(key);
-            if (localValue != null) {
-                return CacheGetResult.localHit(bizKey, localValue);
-            }
-        }
-
-        // 2. 查 Redis 缓存
-        if (redisCache != null) {
-            V remoteValue = redisCache.get(key);
-            if (remoteValue != null) {
-                // 回写本地缓存（穿透保护、预热可选）
-                if (localCache != null) {
-                    localCache.put(key, remoteValue);
+            localHolder = localCache.getIfPresent(key);
+            if (localHolder != null) {
+                if (localHolder.isNotLogicExpired()) {
+                    getResult.setLocalStatus(CacheAccessStatus.HIT);
+                    getResult.setValueHolder(localHolder);
+                    return getResult;
+                } else {
+                    getResult.setLocalStatus(CacheAccessStatus.LOGIC_EXPIRED);
                 }
-                return CacheGetResult.remoteHit(bizKey, remoteValue);
             }
         }
 
-        // 3. 回源（业务加载器）
-        V loaded = cacheLoader.load(bizKey);
-        if (loaded != null) {
-            if (redisCache != null) {
-                redisCache.put(key, loaded);
+        // === 2. Redis 缓存 ===
+        if (redisCache != null) {
+            remoteHolder = redisCache.get(key);
+            if (remoteHolder != null) {
+                if (remoteHolder.isNotLogicExpired()) {
+                    // 回写本地
+                    if (localCache != null) {
+                        localCache.put(key, remoteHolder.getValue());
+                    }
+                    getResult.setRemoteStatus(CacheAccessStatus.HIT);
+                    getResult.setValueHolder(remoteHolder);
+                    return getResult;
+                } else {
+                    getResult.setRemoteStatus(CacheAccessStatus.LOGIC_EXPIRED);
+                }
+            } else {
+                getResult.setRemoteStatus(CacheAccessStatus.PHYSICAL_MISS);
             }
-            if (localCache != null) {
-                localCache.put(key, loaded);
-            }
-            return CacheGetResult.missThenLoad(bizKey, loaded);
         }
 
-        // 4. 完全 miss
-        return CacheGetResult.notFound(bizKey);
+        // === 3. 回源加载 ===
+        try {
+            V loaded = cacheLoader.load(bizKey);
+            if (loaded != null) {
+                if (redisCache != null) redisCache.put(key, loaded);
+                if (localCache != null) localCache.put(key, loaded);
+                getResult.setLoadStatus(SourceLoadStatus.LOADED);
+                getResult.setValueHolder(new CacheValueHolder<>(loaded));
+            } else {
+                getResult.setLoadStatus(SourceLoadStatus.NO_VALUE);
+            }
+        } catch (Exception e) {
+            // 加载失败，可带上旧值用于降级
+            getResult.setLoadStatus(SourceLoadStatus.ERROR);
+            getResult.setException(e);
+            log.warn("缓存回源加载失败，cacheName={}, bizKey={}, key={}, ", getCacheName(), bizKey, key, e);
+        }
+        return getResult;
     }
 
     @Override

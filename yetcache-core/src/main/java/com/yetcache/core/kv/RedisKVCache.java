@@ -1,5 +1,6 @@
 package com.yetcache.core.kv;
 
+import com.yetcache.core.CacheValueHolder;
 import com.yetcache.core.config.RedisCacheConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBucket;
@@ -25,8 +26,8 @@ public class RedisKVCache<V> {
         this.rClient = rClient;
     }
 
-    public V get(String key) {
-        RBucket<V> bucket = rClient.getBucket(key);
+    public CacheValueHolder<V> get(String key) {
+        RBucket<CacheValueHolder<V>> bucket = rClient.getBucket(key);
         return bucket.get();
     }
 

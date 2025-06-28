@@ -46,10 +46,10 @@ yetcache:
         key-prefix: 'nd:acc:user:idk'
         local:
           max-size: 2000
-          ttl-secs: 180
+          ttl-secs: 5
           penetration-protect-enabled: true
           penetration-protect-ttl-secs: 60
         remote:
-          ttl-secs: 600
+          ttl-secs: 15
           penetration-protect-enabled: true
           penetration-protect-ttl-secs: 120

@@ -2,8 +2,10 @@ package com.yetcache.core.kv;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.yetcache.core.CacheValueHolder;
 import com.yetcache.core.config.CaffeineCacheConfig;
 import lombok.extern.slf4j.Slf4j;
+
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -18,14 +20,14 @@ import java.util.concurrent.TimeUnit;
 public class CaffeineKVCache<V> {
 
     protected final CaffeineCacheConfig config;
-    protected final Cache<String, V> cache;
+    protected final Cache<String, CacheValueHolder<V>> cache;
 
     public CaffeineKVCache(CaffeineCacheConfig config) {
         this.config = config;
         this.cache = buildCache();
     }
 
-    private Cache<String, V> buildCache() {
+    private Cache<String, CacheValueHolder<V>> buildCache() {
         Caffeine<Object, Object> builder = Caffeine.newBuilder();
 
         if (config.getTtlSecs() != null) {
@@ -41,23 +43,27 @@ public class CaffeineKVCache<V> {
 
     /**
      * 获取缓存值。仅在命中时返回非 null。
+     *
      * @param key 访问的 key
      */
-    public V getIfPresent(String key) {
+    public CacheValueHolder<V> getIfPresent(String key) {
         return cache.getIfPresent(key);
     }
 
     /**
      * 写入缓存值。
-     * @param key key
+     *
+     * @param key   key
      * @param value value
      */
     public void put(String key, V value) {
-        cache.put(key, value);
+        CacheValueHolder<V> valueHolder = CacheValueHolder.wrap(value, config.getTtlSecs());
+        cache.put(key, valueHolder);
     }
 
     /**
      * 使缓存失效。
+     *
      * @param key 要删除的 key
      */
     public void invalidate(String key) {

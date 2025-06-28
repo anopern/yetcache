@@ -7,7 +7,7 @@ package com.yetcache.core.kv;
 public abstract class AbstractKVCache<K, V> implements KVCache<K, V> {
     @Override
     public V get(K key) {
-        return getWithResult(key).getValue();
+        return getWithResult(key).getValueHolder().getValue();
     }
 
     @Override
