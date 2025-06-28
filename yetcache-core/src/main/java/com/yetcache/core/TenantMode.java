@@ -5,5 +5,9 @@ package com.yetcache.core;
  * @since 2025/6/26
  */
 public enum TenantMode {
-    REQUIRED, OPTIONAL, NONE
+    REQUIRED, OPTIONAL, NONE;
+
+    public boolean useTenant() {
+        return this != NONE;
+    }
 }

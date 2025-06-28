@@ -2,12 +2,19 @@ package com.yetcache.core;
 
 import com.yetcache.core.config.MultiTierCacheConfig;
 import com.yetcache.core.config.YetCacheProperties;
+import com.yetcache.core.key.CacheKeyConverter;
+import com.yetcache.core.key.CacheKeyExtractor;
+import com.yetcache.core.key.CacheKeyConverterFactory;
+import com.yetcache.core.kv.KVCacheLoader;
 import com.yetcache.core.kv.MultiTierKVCache;
+import com.yetcache.core.tenant.TenantProvider;
 import com.yetcache.core.util.CacheConfigMerger;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * @author walter.yan
@@ -17,18 +24,27 @@ import java.util.Optional;
 @Component
 public class CacheManager {
     protected final YetCacheProperties properties;
-    protected final CacheRegistry cacheRegistry;
+    protected final CacheRegistry registry;
 
-    public CacheManager(YetCacheProperties properties, CacheRegistry cacheRegistry) {
+    public CacheManager(YetCacheProperties properties, CacheRegistry registry) {
         this.properties = properties;
-        this.cacheRegistry = cacheRegistry;
+        this.registry = registry;
+    }
+
+    public <K, V> MultiTierKVCache<K, V> create(String name,
+                                                RedissonClient rClient,
+                                                KVCacheLoader<K, V> cacheLoader) {
+        return create(name, rClient, null, cacheLoader);
     }
 
     @SuppressWarnings("unchecked")
-    public <K, V> MultiTierKVCache<K, V> create(String name) {
-        MultiTierKVCache<?, ?> existing = cacheRegistry.get(name);
+    public <K, V> MultiTierKVCache<K, V> create(String name,
+                                                RedissonClient rClient,
+                                                TenantProvider tenantProvider,
+                                                KVCacheLoader<K, V> cacheLoader) {
+        MultiTierKVCache<?, ?> existing = registry.get(name);
         if (existing != null) {
-            return (MultiTierKVCache<K, V>) existing;
+            throw new IllegalStateException("Cache already exists: " + name);
         }
 
         MultiTierCacheConfig raw = Optional.ofNullable(properties.getCaches().getKv())
@@ -37,16 +53,19 @@ public class CacheManager {
 
         if (raw == null) {
             log.warn("Cache config not found for [{}], using global defaults", name);
-            raw = new MultiTierCacheConfig(); // 或 fail fast
+            throw new IllegalStateException("Cache config not found for: " + name);
         }
 
         MultiTierCacheConfig config = CacheConfigMerger.merge(properties.getGlobal(), raw);
 
-        MultiTierKVCache<K, V> newCache = new MultiTierKVCache<>(config);
-
-        cacheRegistry.register(name, newCache);
+        Supplier<String> tenantCodeSupplier = () -> Optional.ofNullable(tenantProvider)
+                .map(TenantProvider::getTenantCode)
+                .orElse(null);
+        CacheKeyConverter<K> cacheKeyConverter = CacheKeyConverterFactory.create(config.getKeyPrefix(),
+                config.getTenantMode().useTenant(), config.isUseHashTag(), tenantCodeSupplier);
+        MultiTierKVCache<K, V> newCache = new MultiTierKVCache<>(config, rClient, cacheLoader, cacheKeyConverter);
+        registry.register(name, newCache);
         log.info("KVCache [{}] created and registered", name);
-
         return newCache;
     }
 

@@ -1,6 +1,11 @@
 package com.yetcache.example.cache;
 
+import com.yetcache.core.key.CacheKeyExtractor;
+import com.yetcache.core.kv.KVCacheLoader;
+import com.yetcache.core.kv.MultiTierKVCache;
 import com.yetcache.example.entity.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -9,14 +14,22 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public final class UserCacheAgent extends BaseCacheAgent<Long, User> {
+    @Autowired
+    @Qualifier("idKeyUserCacheLoader")
+    private KVCacheLoader<Long, User> cacheLoader;
 
     @Override
-    protected void createCache() {
-        cacheManager.create(getCacheName());
+    protected MultiTierKVCache<Long, User> doCreateCache() {
+        return cacheManager.create(getCacheName(), rClient, cacheLoader);
     }
 
     @Override
     protected String getCacheName() {
         return "user-id-key-cache";
+    }
+
+    @Override
+    protected CacheKeyExtractor<Long, User> getBizKeyExtractor() {
+        return User::getId;
     }
 }

@@ -5,5 +5,5 @@ package com.yetcache.core.kv;
  * @since 2025/6/25
  */
 public interface KVCacheLoader<K, V> {
-    V load(K key);
+    V load(K bizKey);
 }

@@ -61,10 +61,6 @@ public final class CacheConfigMerger {
 
     public static MultiTierCacheConfig merge(GlobalConfig global, MultiTierCacheConfig spec) {
         Objects.requireNonNull(global, "Global MultiTierCacheConfig must not be null");
-        if (spec == null) {
-            return new MultiTierCacheConfig(global.getCacheTier(), global.getTenantMode(),
-                    global.getLocal(), global.getRemote());
-        }
 
         MultiTierCacheConfig result = new MultiTierCacheConfig();
         result.setCacheTier(spec.getCacheTier() != null ? spec.getCacheTier() : global.getCacheTier());

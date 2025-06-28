@@ -5,5 +5,13 @@ package com.yetcache.core;
  * @since 2025/6/25
  */
 public enum CacheTier {
-    LOCAL, REMOTE, BOTH
+    LOCAL, REMOTE, BOTH;
+
+    public boolean useLocal() {
+        return this == LOCAL || this == BOTH;
+    }
+
+    public boolean useRemote() {
+        return this == REMOTE || this == BOTH;
+    }
 }
