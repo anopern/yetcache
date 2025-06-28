@@ -43,6 +43,7 @@ yetcache:
   caches:
     kv:
       user-id-key-cache:
+        key-prefix: 'nd:acc:user:idk'
         local:
           max-size: 2000
           ttl-secs: 180

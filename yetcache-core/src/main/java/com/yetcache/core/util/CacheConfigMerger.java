@@ -63,6 +63,8 @@ public final class CacheConfigMerger {
         Objects.requireNonNull(global, "Global MultiTierCacheConfig must not be null");
 
         MultiTierCacheConfig result = new MultiTierCacheConfig();
+        result.setKeyPrefix(spec.getKeyPrefix());
+        result.setUseHashTag(spec.isUseHashTag() ? spec.isUseHashTag() : global.isUseHashTag());
         result.setCacheTier(spec.getCacheTier() != null ? spec.getCacheTier() : global.getCacheTier());
         result.setTenantMode(spec.getTenantMode() != null ? spec.getTenantMode() : global.getTenantMode());
 

@@ -87,15 +87,7 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        <repository>
-            <id>vcredit-repo</id>
-            <url>http://pro.nexus.vcredit.com.local/repository/maven-public/</url>
-        </repository>
+
     </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>vcredit-repo</id>
-            <url>http://pro.nexus.vcredit.com.local/repository/maven-public/</url>
-        </pluginRepository>
-    </pluginRepositories>
+
 </project>

@@ -27,9 +27,4 @@ public final class UserCacheAgent extends BaseCacheAgent<Long, User> {
     protected String getCacheName() {
         return "user-id-key-cache";
     }
-
-    @Override
-    protected CacheKeyExtractor<Long, User> getBizKeyExtractor() {
-        return User::getId;
-    }
 }

@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 @TableName("user")
 @Data
 public class User {
+    private static final long serialVersionUID = 1L;
+
     @TableId
     private Long id;
 

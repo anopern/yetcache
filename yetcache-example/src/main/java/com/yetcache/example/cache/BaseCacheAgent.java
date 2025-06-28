@@ -7,6 +7,9 @@ import com.yetcache.core.tenant.TenantProvider;
 import lombok.Data;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import javax.annotation.PostConstruct;
 
 /**
  * @author walter.yan
@@ -21,6 +24,11 @@ public abstract class BaseCacheAgent<K, V> {
     protected RedissonClient rClient;
     protected MultiTierKVCache<K, V> delegate;
 
+    @PostConstruct
+    public void init() {
+        createCache();
+    }
+
     protected void createCache() {
         delegate = doCreateCache();
     }
@@ -28,8 +36,6 @@ public abstract class BaseCacheAgent<K, V> {
     protected abstract MultiTierKVCache<K, V> doCreateCache();
 
     protected abstract String getCacheName();
-
-    protected abstract CacheKeyExtractor<K, V> getBizKeyExtractor();
 
     public V get(K key) {
         return delegate.get(key);
