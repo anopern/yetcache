@@ -1,12 +1,18 @@
 package com.yetcache.core.kv;
 
 import com.yetcache.core.CacheTier;
+import com.yetcache.core.CacheValueHolder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * @author walter.yan
  * @since 2025/6/18
  */
-public class CacheGetResult<K, V> extends CacheResult<K, V> {
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class CacheGetResult<K, V> extends CacheResult<K> {
+    protected CacheValueHolder<V> valueHolder;
 
     public CacheGetResult() {
     }

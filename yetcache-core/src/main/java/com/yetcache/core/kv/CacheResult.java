@@ -2,7 +2,6 @@ package com.yetcache.core.kv;
 
 import com.yetcache.core.CacheAccessStatus;
 import com.yetcache.core.CacheTier;
-import com.yetcache.core.CacheValueHolder;
 import com.yetcache.core.SourceLoadStatus;
 import lombok.Data;
 
@@ -11,7 +10,7 @@ import lombok.Data;
  * @since 2025/6/18
  */
 @Data
-public class CacheResult<K, V> {
+public class CacheResult<K> {
     protected String cacheName;
     protected CacheTier cacheTier;
     protected K bizKey;
@@ -19,8 +18,5 @@ public class CacheResult<K, V> {
     protected CacheAccessStatus localStatus;
     protected CacheAccessStatus remoteStatus;
     protected SourceLoadStatus loadStatus;
-
-    protected CacheValueHolder<V> valueHolder;
-
     protected Exception exception;
 }

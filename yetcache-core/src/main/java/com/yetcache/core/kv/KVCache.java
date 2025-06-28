@@ -18,9 +18,9 @@ public interface KVCache<K, V> {
 
     CacheGetResult<K, V> getWithResult(K bizKey);
 
-    CacheResult putWithResult(K key, V value);
+    CachePutResult<K, V> putWithResult(K bizKey, V value);
 
-    CacheResult invalidateWithResult(K key);
+    CacheResult<K> invalidateWithResult(K bizKey);
 
-    KVCacheRefreshResult<K, V> refresh(K key); // 用于热点/单 key
+    CacheRefreshResult<K, V> refresh(K key); // 用于热点/单 key
 }

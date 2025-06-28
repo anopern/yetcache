@@ -167,17 +167,51 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
     }
 
     @Override
-    public CacheResult putWithResult(K key, V value) {
-        return null;
+    public CachePutResult<K, V> putWithResult(K bizKey, V value) {
+        CacheParamChecker.failIfNull(bizKey, getCacheName());
+        String key = keyConverter.convert(bizKey);
+        CachePutResult<K, V> putResult = new CachePutResult<>(getCacheName(), config.getCacheTier(), bizKey, key);
+        if (localCache != null) {
+            localCache.put(key, value);
+        }
+        if (redisCache != null) {
+            redisCache.put(key, value);
+        }
+        return putResult;
     }
 
     @Override
-    public CacheResult invalidateWithResult(K key) {
-        return null;
+    public CacheResult<K> invalidateWithResult(K bizKey) {
+        CacheParamChecker.failIfNull(bizKey, getCacheName());
+        String key = keyConverter.convert(bizKey);
+        CacheInvalidateResult<K> invalidateResult = new CacheInvalidateResult<>(getCacheName(), config.getCacheTier(),
+                bizKey, key);
+        if (localCache != null) {
+            localCache.invalidate(key);
+        }
+        if (redisCache != null) {
+            redisCache.invalidate(key);
+        }
+        return invalidateResult;
     }
 
     @Override
-    public KVCacheRefreshResult<K, V> refresh(K key) {
-        return null;
+    public CacheRefreshResult<K, V> refresh(K bizKey) {
+        CacheParamChecker.failIfNull(bizKey, getCacheName());
+        String key = keyConverter.convert(bizKey);
+        CacheRefreshResult<K, V> refreshResult = new CacheRefreshResult<>(getCacheName(), config.getCacheTier(), bizKey, key);
+        V loaded = cacheLoader.load(bizKey);
+        if (loaded != null) {
+            if (localCache != null) {
+                localCache.put(key, loaded);
+            }
+            if (redisCache != null) {
+                redisCache.put(key, loaded);
+            }
+            refreshResult.valueHolder = new CacheValueHolder<>(loaded);
+        } else {
+            refreshResult.setLoadStatus(SourceLoadStatus.NO_VALUE);
+        }
+        return refreshResult;
     }
 }
