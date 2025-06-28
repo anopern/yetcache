@@ -27,6 +27,10 @@ spring:
         max-concurrency: 10
         acknowledge-mode: auto
 
+logging:
+  level:
+    com.yetcache.*: debug
+
 yetcache:
   global:
     cache-tier: BOTH

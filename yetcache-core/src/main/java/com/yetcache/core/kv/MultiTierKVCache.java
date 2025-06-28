@@ -7,7 +7,6 @@ import com.yetcache.core.config.MultiTierCacheConfig;
 import com.yetcache.core.key.CacheKeyConverter;
 import com.yetcache.core.util.CacheParamChecker;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
@@ -15,10 +14,9 @@ import org.redisson.api.RedissonClient;
  * @author walter.yan
  * @since 2025/6/25
  */
-@EqualsAndHashCode(callSuper = true)
 @Data
 @Slf4j
-public class MultiTierKVCache<K, V> extends AbstractKVCache<K, V> {
+public class MultiTierKVCache<K, V> implements KVCache<K, V> {
     private String cacheName;
     private final MultiTierCacheConfig config;
     private final KVCacheLoader<K, V> cacheLoader;
@@ -26,10 +24,12 @@ public class MultiTierKVCache<K, V> extends AbstractKVCache<K, V> {
     private RedisKVCache<V> redisCache;
     private CacheKeyConverter<K> keyConverter;
 
-    public MultiTierKVCache(MultiTierCacheConfig config,
+    public MultiTierKVCache(String cacheName,
+                            MultiTierCacheConfig config,
                             RedissonClient rClient,
                             KVCacheLoader<K, V> cacheLoader,
                             CacheKeyConverter<K> keyConverter) {
+        this.cacheName = cacheName;
         this.config = config;
         this.cacheLoader = cacheLoader;
         this.keyConverter = keyConverter;
@@ -37,6 +37,27 @@ public class MultiTierKVCache<K, V> extends AbstractKVCache<K, V> {
         this.localCache = config.getCacheTier().useLocal() ? new CaffeineKVCache<>(config.getLocal()) : null;
         this.redisCache = config.getCacheTier().useRemote() ? new RedisKVCache<>(config.getRemote(), rClient) : null;
     }
+
+    @Override
+    public V get(K key) {
+        CacheGetResult<K, V> getResult = getWithResult(key);
+        log.debug("CacheGetResult: {}", getResult);
+        if (getResult.getValueHolder() != null) {
+            return getResult.getValueHolder().getValue();
+        }
+        return null;
+    }
+
+    @Override
+    public void put(K key, V value) {
+        putWithResult(key, value);
+    }
+
+    @Override
+    public void invalidate(K key) {
+        invalidateWithResult(key);
+    }
+
 
     @Override
     public CacheGetResult<K, V> getWithResult(K bizKey) {
@@ -58,6 +79,8 @@ public class MultiTierKVCache<K, V> extends AbstractKVCache<K, V> {
                 } else {
                     getResult.setLocalStatus(CacheAccessStatus.LOGIC_EXPIRED);
                 }
+            } else {
+                getResult.setLocalStatus(CacheAccessStatus.PHYSICAL_MISS);
             }
         }
 

@@ -1,6 +1,5 @@
 package com.yetcache.example.cache;
 
-import com.yetcache.core.key.CacheKeyExtractor;
 import com.yetcache.core.kv.KVCacheLoader;
 import com.yetcache.core.kv.MultiTierKVCache;
 import com.yetcache.example.entity.User;

@@ -3,7 +3,6 @@ package com.yetcache.core;
 import com.yetcache.core.config.MultiTierCacheConfig;
 import com.yetcache.core.config.YetCacheProperties;
 import com.yetcache.core.key.CacheKeyConverter;
-import com.yetcache.core.key.CacheKeyExtractor;
 import com.yetcache.core.key.CacheKeyConverterFactory;
 import com.yetcache.core.kv.KVCacheLoader;
 import com.yetcache.core.kv.MultiTierKVCache;
@@ -63,7 +62,7 @@ public class CacheManager {
                 .orElse(null);
         CacheKeyConverter<K> cacheKeyConverter = CacheKeyConverterFactory.create(config.getKeyPrefix(),
                 config.getTenantMode().useTenant(), config.isUseHashTag(), tenantCodeSupplier);
-        MultiTierKVCache<K, V> newCache = new MultiTierKVCache<>(config, rClient, cacheLoader, cacheKeyConverter);
+        MultiTierKVCache<K, V> newCache = new MultiTierKVCache<>(name, config, rClient, cacheLoader, cacheKeyConverter);
         registry.register(name, newCache);
         log.info("KVCache [{}] created and registered", name);
         return newCache;

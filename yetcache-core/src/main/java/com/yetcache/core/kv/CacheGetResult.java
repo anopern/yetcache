@@ -1,14 +1,12 @@
 package com.yetcache.core.kv;
 
 import com.yetcache.core.CacheTier;
-import com.yetcache.core.CacheValueHolder;
 
 /**
  * @author walter.yan
  * @since 2025/6/18
  */
 public class CacheGetResult<K, V> extends CacheResult<K, V> {
-    private CacheValueHolder<V> valueHolder;
 
     public CacheGetResult() {
     }
@@ -18,5 +16,20 @@ public class CacheGetResult<K, V> extends CacheResult<K, V> {
         this.cacheTier = cacheTier;
         this.bizKey = bizKey;
         this.key = key;
+    }
+
+    @Override
+    public String toString() {
+        return "CacheGetResult{" +
+                "cacheName='" + cacheName + '\'' +
+                ", cacheTier=" + cacheTier +
+                ", bizKey=" + bizKey +
+                ", key='" + key + '\'' +
+                ", localStatus=" + localStatus +
+                ", remoteStatus=" + remoteStatus +
+                ", loadStatus=" + loadStatus +
+                ", valueHolder=" + valueHolder +
+                ", exception=" + exception +
+                '}';
     }
 }

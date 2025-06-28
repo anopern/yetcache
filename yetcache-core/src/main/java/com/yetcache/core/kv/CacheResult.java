@@ -16,9 +16,11 @@ public class CacheResult<K, V> {
     protected CacheTier cacheTier;
     protected K bizKey;
     protected String key;
-    protected CacheValueHolder<V> valueHolder;
     protected CacheAccessStatus localStatus;
     protected CacheAccessStatus remoteStatus;
     protected SourceLoadStatus loadStatus;
+
+    protected CacheValueHolder<V> valueHolder;
+
     protected Exception exception;
 }

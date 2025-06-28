@@ -1,13 +1,10 @@
 package com.yetcache.example.cache;
 
-import com.yetcache.core.key.CacheKeyExtractor;
 import com.yetcache.core.CacheManager;
 import com.yetcache.core.kv.MultiTierKVCache;
-import com.yetcache.core.tenant.TenantProvider;
 import lombok.Data;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.annotation.PostConstruct;
 
