@@ -1,8 +1,6 @@
 package com.yetcache.core.config.kv;
 
 import com.yetcache.core.config.BaseMultiTierCacheConfig;
-import com.yetcache.core.config.CacheTier;
-import com.yetcache.core.config.TenantMode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

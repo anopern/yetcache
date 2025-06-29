@@ -1,5 +1,6 @@
-package com.yetcache.core.cache.result;
+package com.yetcache.core.cache.result.kv;
 
+import com.yetcache.core.cache.result.BaseCacheResult;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

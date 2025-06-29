@@ -6,49 +6,56 @@ import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.singlehash.CaffeineSingleHashCacheConfig;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import static com.yetcache.core.util.CacheConstants.DEFAULT_EXPIRE;
+import static com.yetcache.core.util.CacheConstants.DEFAULT_LOCAL_LIMIT;
 
 /**
  * @author walter.yan
  * @since 2025/6/29
  */
 public class CaffeineSingleHashCache<V> {
+
     private final CaffeineSingleHashCacheConfig config;
-    private final Cache<String, CacheValueHolder<V>> cache;
+    private final Cache<String, ConcurrentHashMap<String, CacheValueHolder<V>>> cache;
 
     public CaffeineSingleHashCache(CaffeineSingleHashCacheConfig config) {
         this.config = config;
-        this.cache = buildCache();
+        this.cache = Caffeine.newBuilder()
+                .expireAfterWrite(DEFAULT_EXPIRE, TimeUnit.SECONDS)
+                .maximumSize(DEFAULT_LOCAL_LIMIT)
+                .build();
     }
 
-    private Cache<String, CacheValueHolder<V>> buildCache() {
-        Caffeine<Object, Object> builder = Caffeine.newBuilder();
+    public CacheValueHolder<V> getIfPresent(String key, String field) {
+        ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.getIfPresent(key);
+        return map != null ? map.get(field) : null;
+    }
 
-        if (config.getTtlSecs() != null) {
-            builder.expireAfterWrite(DEFAULT_EXPIRE, TimeUnit.SECONDS);
+    public void put(String key, String field, CacheValueHolder<V> valueHolder) {
+        ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.get(key, k -> new ConcurrentHashMap<>());
+        map.put(field, valueHolder);
+    }
+
+    public void invalidate(String key, String field) {
+        ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.getIfPresent(key);
+        if (map != null) {
+            map.remove(field);
+            if (map.isEmpty()) {
+                cache.invalidate(key);
+            }
         }
-        if (config.getMaxSize() != null) {
-            builder.maximumSize(config.getMaxSize());
-        }
-
-        return builder.build();
     }
 
-    public CacheValueHolder<V> get(String field) {
-        return cache.getIfPresent(field);
+    public void invalidate(String key) {
+        cache.invalidate(key);
     }
 
-    public void put(String field, CacheValueHolder<V> valueHolder) {
-        cache.put(field, valueHolder);
-    }
-
-    public void invalidate(String field) {
-        cache.invalidate(field);
-    }
-
-    public Map<String, CacheValueHolder<V>> listAll() {
-        return cache.asMap();
+    public Map<String, CacheValueHolder<V>> listAll(String key) {
+        ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.getIfPresent(key);
+        return map != null ? new ConcurrentHashMap<>(map) : new ConcurrentHashMap<>();
     }
 }
+

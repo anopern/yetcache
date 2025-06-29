@@ -1,6 +1,8 @@
 package com.yetcache.core.cache.singlehash;
 
-import java.util.Collection;
+import com.yetcache.core.cache.result.kv.KVCacheGetResult;
+import com.yetcache.core.cache.result.singlehash.SingleHashCacheGetResult;
+
 import java.util.Map;
 
 /**
@@ -8,11 +10,13 @@ import java.util.Map;
  * @since 2025/6/29
  */
 public interface SingleHashCache<K, V> {
-    V get(K field);
+    V get(K bizField);
 
-    void refresh(K field);
+    void refresh(K bizField);
 
-    void invalidate(K field);
+    void invalidate(K bizField);
 
     Map<K, V> listAll(boolean forceRefresh);
+
+    SingleHashCacheGetResult<K, V> getWithResult(K bizField);
 }

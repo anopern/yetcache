@@ -1,7 +1,7 @@
 package com.yetcache.core.cache.kv;
 
-import com.yetcache.core.cache.result.*;
 import com.yetcache.core.cache.result.CacheAccessStatus;
+import com.yetcache.core.cache.result.kv.*;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.result.SourceLoadStatus;
 import com.yetcache.core.cache.loader.KVCacheLoader;
@@ -65,7 +65,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
 
     @Override
     public V get(K bizKey) {
-        CacheGetResult<K, V> getResult = getWithResult(bizKey);
+        KVCacheGetResult<K, V> getResult = getWithResult(bizKey);
         log.debug("CacheGetResult: {}", getResult);
         if (getResult.getValueHolder() != null) {
             return getResult.getValueHolder().getValue();
@@ -89,14 +89,14 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
     }
 
     @Override
-    public CacheGetResult<K, V> getWithResult(K bizKey) {
+    public KVCacheGetResult<K, V> getWithResult(K bizKey) {
         long startMills = System.currentTimeMillis();
         CacheParamChecker.failIfNull(bizKey, cacheName);
         String key = keyConverter.convert(bizKey);
 
         CacheValueHolder<V> localHolder;
         CacheValueHolder<V> remoteHolder;
-        CacheGetResult<K, V> getResult = new CacheGetResult<>(cacheName, config.getCacheTier(), bizKey, key, startMills);
+        KVCacheGetResult<K, V> getResult = new KVCacheGetResult<>(cacheName, config.getCacheTier(), bizKey, key, startMills);
         if (null != localPpCache) {
             boolean blocked = localPpCache.isBlocked(bizKey);
             if (blocked) {
@@ -190,10 +190,10 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
     }
 
     @Override
-    public CachePutResult<K, V> putWithResult(K bizKey, V value) {
+    public KVCachePutResult<K, V> putWithResult(K bizKey, V value) {
         CacheParamChecker.failIfNull(bizKey, cacheName);
         String key = keyConverter.convert(bizKey);
-        CachePutResult<K, V> putResult = new CachePutResult<>(cacheName, config.getCacheTier(), bizKey, key);
+        KVCachePutResult<K, V> putResult = new KVCachePutResult<>(cacheName, config.getCacheTier(), bizKey, key);
         if (redisCache != null) {
             redisCache.put(key, CacheValueHolder.wrap(value, config.getRemote().getTtlSecs()));
         }
@@ -208,7 +208,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
         CacheParamChecker.failIfNull(bizKey, cacheName);
         Long startMills = System.currentTimeMillis();
         String key = keyConverter.convert(bizKey);
-        CacheInvalidateResult<K> invalidateResult = new CacheInvalidateResult<>(cacheName, config.getCacheTier(),
+        KVCacheInvalidateResult<K> invalidateResult = new KVCacheInvalidateResult<>(cacheName, config.getCacheTier(),
                 bizKey, key, startMills);
         if (localCache != null) {
             localCache.invalidate(key);
@@ -220,11 +220,11 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
     }
 
     @Override
-    public CacheRefreshResult<K, V> refresh(K bizKey) {
+    public KVCacheRefreshResult<K, V> refresh(K bizKey) {
         Long startMills = System.currentTimeMillis();
         CacheParamChecker.failIfNull(bizKey, cacheName);
         String key = keyConverter.convert(bizKey);
-        CacheRefreshResult<K, V> refreshResult = new CacheRefreshResult<>(cacheName, config.getCacheTier(),
+        KVCacheRefreshResult<K, V> refreshResult = new KVCacheRefreshResult<>(cacheName, config.getCacheTier(),
                 bizKey, key, startMills);
         V loaded = cacheLoader.load(bizKey);
         if (loaded != null) {

@@ -1,5 +1,6 @@
-package com.yetcache.core.cache.result;
+package com.yetcache.core.cache.result.kv;
 
+import com.yetcache.core.cache.result.kv.BaseKVCacheResult;
 import com.yetcache.core.config.CacheTier;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import lombok.Data;
@@ -11,10 +12,10 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class CachePutResult<K, V> extends BaseKVCacheResult<K> {
+public class KVCachePutResult<K, V> extends BaseKVCacheResult<K> {
     protected CacheValueHolder<V> valueHolder;
 
-    public CachePutResult(String cacheName, CacheTier cacheTier, K bizKey, String key) {
+    public KVCachePutResult(String cacheName, CacheTier cacheTier, K bizKey, String key) {
         this.cacheName = cacheName;
         this.cacheTier = cacheTier;
         this.bizKey = bizKey;
