@@ -1,7 +1,7 @@
 package com.yetcache.example.service.loader;
 
 import cn.hutool.core.collection.CollUtil;
-import com.yetcache.core.kv.AbstractKVCacheLoader;
+import com.yetcache.core.cache.loader.AbstractKVCacheLoader;
 import com.yetcache.example.entity.User;
 import com.yetcache.example.service.IUserService;
 import lombok.extern.slf4j.Slf4j;

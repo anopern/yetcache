@@ -11,7 +11,10 @@
     <modules>
         <module>yetcache-core</module>
         <module>yetcache-example</module>
-        <module>yetcache-preload</module>
+        <module>yetcache-scheduler</module>
+        <module>yetcache-agent</module>
+        <module>yetcache-spring-boot</module>
+        <module>yetcache-ops</module>
     </modules>
 
     <properties>

@@ -1,7 +1,5 @@
 package com.yetcache.core.config;
 
-import com.yetcache.core.CacheTier;
-import com.yetcache.core.TenantMode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

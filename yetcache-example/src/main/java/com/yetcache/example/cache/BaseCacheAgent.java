@@ -1,7 +1,7 @@
 package com.yetcache.example.cache;
 
-import com.yetcache.core.CacheManager;
-import com.yetcache.core.kv.MultiTierKVCache;
+import com.yetcache.core.cache.manager.CacheManager;
+import com.yetcache.core.cache.kv.MultiTierKVCache;
 import lombok.Data;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;

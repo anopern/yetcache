@@ -1,7 +1,7 @@
 package com.yetcache.example.cache;
 
-import com.yetcache.core.kv.KVCacheLoader;
-import com.yetcache.core.kv.MultiTierKVCache;
+import com.yetcache.core.cache.loader.KVCacheLoader;
+import com.yetcache.core.cache.kv.MultiTierKVCache;
 import com.yetcache.example.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
