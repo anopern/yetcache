@@ -31,8 +31,8 @@ public class RedisKVCache<V> {
         return bucket.get();
     }
 
-    public void put(String key, V value) {
-        RBucket<V> bucket = rClient.getBucket(key);
+    public void put(String key, CacheValueHolder<V> value) {
+        RBucket<CacheValueHolder<V>> bucket = rClient.getBucket(key);
         bucket.set(value, config.getTtlSecs(), TimeUnit.SECONDS);
     }
 

@@ -17,25 +17,26 @@ public class CacheGetResult<K, V> extends CacheResult<K> {
     public CacheGetResult() {
     }
 
-    public CacheGetResult(String cacheName, CacheTier cacheTier, K bizKey, String key) {
+    public CacheGetResult(String cacheName, CacheTier cacheTier, K bizKey, String key, Long startMills) {
         this.cacheName = cacheName;
         this.cacheTier = cacheTier;
         this.bizKey = bizKey;
         this.key = key;
+        this.startMills = startMills;
     }
 
-    @Override
     public String toString() {
         return "CacheGetResult{" +
                 "cacheName='" + cacheName + '\'' +
                 ", cacheTier=" + cacheTier +
                 ", bizKey=" + bizKey +
                 ", key='" + key + '\'' +
+                ", durationMills=" + durationMillis() +
+                ", startMills=" + startMills +
+                ", endMills=" + endMills +
                 ", localStatus=" + localStatus +
                 ", remoteStatus=" + remoteStatus +
                 ", loadStatus=" + loadStatus +
-                ", valueHolder=" + valueHolder +
-                ", exception=" + exception +
-                '}';
+                ", exception=" + exception + "}";
     }
 }

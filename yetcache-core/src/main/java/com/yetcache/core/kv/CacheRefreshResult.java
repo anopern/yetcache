@@ -14,10 +14,11 @@ import lombok.EqualsAndHashCode;
 public class CacheRefreshResult<K, V> extends CacheResult<K> {
     protected CacheValueHolder<V> valueHolder;
 
-    public CacheRefreshResult(String cacheName, CacheTier cacheTier, K bizKey, String key) {
+    public CacheRefreshResult(String cacheName, CacheTier cacheTier, K bizKey, String key, Long startMills) {
         this.cacheName = cacheName;
         this.cacheTier = cacheTier;
         this.bizKey = bizKey;
         this.key = key;
+        this.startMills = startMills;
     }
 }

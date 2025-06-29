@@ -20,14 +20,14 @@ import java.util.concurrent.TimeUnit;
 public class CaffeineKVCache<V> {
 
     protected final CaffeineCacheConfig config;
-    protected final Cache<String, CacheValueHolder<V>> cache;
+    protected final Cache<String, V> cache;
 
     public CaffeineKVCache(CaffeineCacheConfig config) {
         this.config = config;
         this.cache = buildCache();
     }
 
-    private Cache<String, CacheValueHolder<V>> buildCache() {
+    private Cache<String, V> buildCache() {
         Caffeine<Object, Object> builder = Caffeine.newBuilder();
 
         if (config.getTtlSecs() != null) {
@@ -46,7 +46,7 @@ public class CaffeineKVCache<V> {
      *
      * @param key 访问的 key
      */
-    public CacheValueHolder<V> getIfPresent(String key) {
+    public V getIfPresent(String key) {
         return cache.getIfPresent(key);
     }
 
@@ -57,8 +57,7 @@ public class CaffeineKVCache<V> {
      * @param value value
      */
     public void put(String key, V value) {
-        CacheValueHolder<V> valueHolder = CacheValueHolder.wrap(value, config.getTtlSecs());
-        cache.put(key, valueHolder);
+        cache.put(key, value);
     }
 
     /**
