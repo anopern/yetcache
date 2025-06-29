@@ -10,6 +10,6 @@ import lombok.Data;
 @Data
 public class BaseCacheConfig {
     protected Long ttlSecs;
-
+    protected Double ttlRandomPercent;
     protected PenetrationProtectConfig penetrationProtect;
 }

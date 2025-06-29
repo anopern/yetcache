@@ -49,6 +49,7 @@ public final class CacheConfigMerger {
         MultiTierCacheConfig result = new MultiTierCacheConfig();
         result.setKeyPrefix(spec.getKeyPrefix());
         result.setUseHashTag(firstNonNull(spec.getUseHashTag(), global.getUseHashTag()));
+        result.setTtlRandomPercent(firstNonNull(spec.getTtlRandomPercent(), global.getTtlRandomPercent()));
         result.setCacheTier(firstNonNull(spec.getCacheTier(), global.getCacheTier()));
         result.setTenantMode(firstNonNull(spec.getTenantMode(), global.getTenantMode()));
 

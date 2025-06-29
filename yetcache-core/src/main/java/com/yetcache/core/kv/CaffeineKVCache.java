@@ -2,8 +2,8 @@ package com.yetcache.core.kv;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.yetcache.core.CacheValueHolder;
 import com.yetcache.core.config.CaffeineCacheConfig;
+import com.yetcache.core.util.TtlRandomizer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.TimeUnit;
@@ -31,9 +31,9 @@ public class CaffeineKVCache<V> {
         Caffeine<Object, Object> builder = Caffeine.newBuilder();
 
         if (config.getTtlSecs() != null) {
-            builder.expireAfterWrite(config.getTtlSecs(), TimeUnit.SECONDS);
+            long realTtl = TtlRandomizer.randomizeSecs(config.getTtlSecs(), config.getTtlRandomPercent());
+            builder.expireAfterWrite(realTtl, TimeUnit.SECONDS);
         }
-
         if (config.getMaxSize() != null) {
             builder.maximumSize(config.getMaxSize());
         }

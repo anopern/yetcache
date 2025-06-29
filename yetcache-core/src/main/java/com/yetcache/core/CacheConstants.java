@@ -11,4 +11,9 @@ public interface CacheConstants {
 
     // 本地缓存数量限制
     int DEFAULT_LOCAL_LIMIT = 100;
+
+    /**
+     * 缓存TTL随机化最大百分比
+     */
+    double MAX_TTL_RANDOMIZE_PERCENT = 0.3;
 }

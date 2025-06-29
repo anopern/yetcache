@@ -16,11 +16,12 @@ import lombok.NoArgsConstructor;
 public class MultiTierCacheConfig {
     protected String cacheName;
 
-    protected CacheTier cacheTier = CacheTier.BOTH;
-    protected TenantMode tenantMode = TenantMode.NONE;
+    protected CacheTier cacheTier;
+    protected TenantMode tenantMode;
 
     protected String keyPrefix;
-    protected Boolean useHashTag = true;
+    protected Boolean useHashTag;
+    protected Double ttlRandomPercent;
 
     protected CaffeineCacheConfig local;
     protected RedisCacheConfig remote;

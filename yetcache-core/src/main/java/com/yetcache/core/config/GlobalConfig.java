@@ -14,7 +14,8 @@ public class GlobalConfig {
     protected CacheTier cacheTier = CacheTier.BOTH;
     protected TenantMode tenantMode = TenantMode.NONE;
 
-    protected Boolean useHashTag;
+    protected Boolean useHashTag = false;
+    protected Double ttlRandomPercent = 0.1;
 
     @NestedConfigurationProperty
     protected CaffeineCacheConfig local;

@@ -2,6 +2,7 @@ package com.yetcache.core.kv;
 
 import com.yetcache.core.CacheValueHolder;
 import com.yetcache.core.config.RedisCacheConfig;
+import com.yetcache.core.util.TtlRandomizer;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
@@ -33,7 +34,8 @@ public class RedisKVCache<V> {
 
     public void put(String key, CacheValueHolder<V> value) {
         RBucket<CacheValueHolder<V>> bucket = rClient.getBucket(key);
-        bucket.set(value, config.getTtlSecs(), TimeUnit.SECONDS);
+        long realTtlSecs = TtlRandomizer.randomizeSecs(config.getTtlSecs(), config.getTtlRandomPercent());
+        bucket.set(value, realTtlSecs, TimeUnit.SECONDS);
     }
 
     public void invalidate(String key) {

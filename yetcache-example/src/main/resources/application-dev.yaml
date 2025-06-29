@@ -34,7 +34,7 @@ logging:
 yetcache:
   global:
     cache-tier: BOTH
-    tenant-mode: REQUIRED
+    tenant-mode: NONE
     local:
       max-size: 2000
       ttl-secs: 180
@@ -54,6 +54,6 @@ yetcache:
         key-prefix: 'nd:acc:user:idk'
         local:
           max-size: 2000
-          ttl-secs: 60
+          ttl-secs: 30
         remote:
           ttl-secs: 120
