@@ -21,11 +21,11 @@ import java.util.function.Supplier;
  */
 @Slf4j
 @Component
-public class CacheManager {
-    protected final YetCacheProperties properties;
-    protected final CacheRegistry registry;
+public final class KVCacheManager {
+    private final YetCacheProperties properties;
+    private final KVCacheRegistry registry;
 
-    public CacheManager(YetCacheProperties properties, CacheRegistry registry) {
+    public KVCacheManager(YetCacheProperties properties, KVCacheRegistry registry) {
         this.properties = properties;
         this.registry = registry;
     }

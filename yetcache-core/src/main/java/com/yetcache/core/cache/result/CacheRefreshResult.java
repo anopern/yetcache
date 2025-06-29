@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class CacheRefreshResult<K, V> extends CacheResult<K> {
+public class CacheRefreshResult<K, V> extends BaseKVCacheResult<K> {
     protected CacheValueHolder<V> valueHolder;
 
     public CacheRefreshResult(String cacheName, CacheTier cacheTier, K bizKey, String key, Long startMills) {

@@ -19,7 +19,7 @@ public final class UserCacheAgent extends BaseCacheAgent<Long, User> {
 
     @Override
     protected MultiTierKVCache<Long, User> doCreateCache() {
-        return cacheManager.create(getCacheName(), rClient, cacheLoader);
+        return KVCacheManager.create(getCacheName(), rClient, cacheLoader);
     }
 
     @Override

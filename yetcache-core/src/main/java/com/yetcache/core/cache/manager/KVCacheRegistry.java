@@ -14,7 +14,7 @@ import java.util.function.Supplier;
  */
 @Slf4j
 @Component
-public final class CacheRegistry {
+public final class KVCacheRegistry {
     private final Map<String, MultiTierKVCache<?, ?>> registry = new ConcurrentHashMap<>();
 
     @SuppressWarnings("unchecked")

@@ -1,6 +1,6 @@
 package com.yetcache.example.cache;
 
-import com.yetcache.core.cache.manager.CacheManager;
+import com.yetcache.core.cache.manager.KVCacheManager;
 import com.yetcache.core.cache.kv.MultiTierKVCache;
 import lombok.Data;
 import org.redisson.api.RedissonClient;
@@ -16,7 +16,7 @@ import javax.annotation.PostConstruct;
 @Data
 public abstract class BaseCacheAgent<K, V> {
     @Autowired
-    protected CacheManager cacheManager;
+    protected KVCacheManager KVCacheManager;
     @Autowired
     protected RedissonClient rClient;
     protected MultiTierKVCache<K, V> delegate;

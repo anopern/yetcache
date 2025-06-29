@@ -204,7 +204,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
     }
 
     @Override
-    public CacheResult<K> invalidateWithResult(K bizKey) {
+    public BaseKVCacheResult<K> invalidateWithResult(K bizKey) {
         CacheParamChecker.failIfNull(bizKey, cacheName);
         Long startMills = System.currentTimeMillis();
         String key = keyConverter.convert(bizKey);
