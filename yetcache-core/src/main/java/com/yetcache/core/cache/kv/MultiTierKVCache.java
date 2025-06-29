@@ -5,7 +5,7 @@ import com.yetcache.core.cache.result.CacheAccessStatus;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.result.SourceLoadStatus;
 import com.yetcache.core.cache.loader.KVCacheLoader;
-import com.yetcache.core.config.MultiTierCacheConfig;
+import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import com.yetcache.core.config.PenetrationProtectConfig;
 import com.yetcache.core.support.key.CacheKeyConverter;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
@@ -26,16 +26,16 @@ import java.util.Map;
 @Slf4j
 public class MultiTierKVCache<K, V> implements KVCache<K, V> {
     private String cacheName;
-    private final MultiTierCacheConfig config;
+    private final MultiTierKVCacheConfig config;
     private final KVCacheLoader<K, V> cacheLoader;
-    private CaffeineKVCache<CacheValueHolder<V>> localCache;
+    private CaffeineKVCache<V> localCache;
     private RedisKVCache<V> redisCache;
     private CacheKeyConverter<K> keyConverter;
     private CaffeinePenetrationProtectCache<K> localPpCache;
     private RedisPenetrationProtectCache<K> remotePpCache;
 
     public MultiTierKVCache(String cacheName,
-                            MultiTierCacheConfig config,
+                            MultiTierKVCacheConfig config,
                             RedissonClient rClient,
                             KVCacheLoader<K, V> cacheLoader,
                             CacheKeyConverter<K> keyConverter) {

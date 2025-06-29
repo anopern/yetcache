@@ -1,6 +1,9 @@
 package com.yetcache.core.merger;
 
 import com.yetcache.core.config.*;
+import com.yetcache.core.config.kv.CaffeineKVCacheConfig;
+import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
+import com.yetcache.core.config.kv.RedisKVCacheConfig;
 
 import java.util.Objects;
 
@@ -16,12 +19,12 @@ public final class CacheConfigMerger {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    public static CaffeineCacheConfig merge(CaffeineCacheConfig global, CaffeineCacheConfig spec) {
+    public static CaffeineKVCacheConfig merge(CaffeineKVCacheConfig global, CaffeineKVCacheConfig spec) {
         Objects.requireNonNull(global, "Global CaffeineCacheConfig must not be null");
 
-        if (spec == null) spec = new CaffeineCacheConfig();
+        if (spec == null) spec = new CaffeineKVCacheConfig();
 
-        CaffeineCacheConfig result = new CaffeineCacheConfig();
+        CaffeineKVCacheConfig result = new CaffeineKVCacheConfig();
         result.setTtlSecs(firstNonNull(spec.getTtlSecs(), global.getTtlSecs()));
         result.setMaxSize(firstNonNull(spec.getMaxSize(), global.getMaxSize()));
         result.setPenetrationProtect(merge(global.getPenetrationProtect(), spec.getPenetrationProtect()));
@@ -29,24 +32,24 @@ public final class CacheConfigMerger {
         return result;
     }
 
-    public static RedisCacheConfig merge(RedisCacheConfig global, RedisCacheConfig spec) {
+    public static RedisKVCacheConfig merge(RedisKVCacheConfig global, RedisKVCacheConfig spec) {
         Objects.requireNonNull(global, "Global RedisCacheConfig must not be null");
 
-        if (spec == null) spec = new RedisCacheConfig();
+        if (spec == null) spec = new RedisKVCacheConfig();
 
-        RedisCacheConfig result = new RedisCacheConfig();
+        RedisKVCacheConfig result = new RedisKVCacheConfig();
         result.setTtlSecs(firstNonNull(spec.getTtlSecs(), global.getTtlSecs()));
         result.setPenetrationProtect(merge(global.getPenetrationProtect(), spec.getPenetrationProtect()));
 
         return result;
     }
 
-    public static MultiTierCacheConfig merge(GlobalConfig global, MultiTierCacheConfig spec) {
+    public static MultiTierKVCacheConfig merge(GlobalConfig global, MultiTierKVCacheConfig spec) {
         Objects.requireNonNull(global, "Global MultiTierCacheConfig must not be null");
 
-        if (spec == null) spec = new MultiTierCacheConfig();
+        if (spec == null) spec = new MultiTierKVCacheConfig();
 
-        MultiTierCacheConfig result = new MultiTierCacheConfig();
+        MultiTierKVCacheConfig result = new MultiTierKVCacheConfig();
         result.setKeyPrefix(spec.getKeyPrefix());
         result.setUseHashTag(firstNonNull(spec.getUseHashTag(), global.getUseHashTag()));
         result.setTtlRandomPercent(firstNonNull(spec.getTtlRandomPercent(), global.getTtlRandomPercent()));

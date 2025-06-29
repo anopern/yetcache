@@ -2,7 +2,8 @@ package com.yetcache.core.cache.kv;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.yetcache.core.config.CaffeineCacheConfig;
+import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.config.kv.CaffeineKVCacheConfig;
 import com.yetcache.core.support.util.TtlRandomizer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,15 +20,15 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CaffeineKVCache<V> {
 
-    protected final CaffeineCacheConfig config;
-    protected final Cache<String, V> cache;
+    protected final CaffeineKVCacheConfig config;
+    protected final Cache<String, CacheValueHolder<V>> cache;
 
-    public CaffeineKVCache(CaffeineCacheConfig config) {
+    public CaffeineKVCache(CaffeineKVCacheConfig config) {
         this.config = config;
         this.cache = buildCache();
     }
 
-    private Cache<String, V> buildCache() {
+    private Cache<String, CacheValueHolder<V>> buildCache() {
         Caffeine<Object, Object> builder = Caffeine.newBuilder();
 
         if (config.getTtlSecs() != null) {
@@ -46,7 +47,7 @@ public class CaffeineKVCache<V> {
      *
      * @param key 访问的 key
      */
-    public V getIfPresent(String key) {
+    public CacheValueHolder<V> getIfPresent(String key) {
         return cache.getIfPresent(key);
     }
 
@@ -56,7 +57,7 @@ public class CaffeineKVCache<V> {
      * @param key   key
      * @param value value
      */
-    public void put(String key, V value) {
+    public void put(String key, CacheValueHolder<V> value) {
         cache.put(key, value);
     }
 

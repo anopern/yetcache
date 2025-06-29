@@ -1,5 +1,7 @@
 package com.yetcache.core.config;
 
+import com.yetcache.core.config.kv.CaffeineKVCacheConfig;
+import com.yetcache.core.config.kv.RedisKVCacheConfig;
 import lombok.Data;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
@@ -16,7 +18,7 @@ public class GlobalConfig {
     protected Double ttlRandomPercent = 0.1;
 
     @NestedConfigurationProperty
-    protected CaffeineCacheConfig local;
+    protected CaffeineKVCacheConfig local;
     @NestedConfigurationProperty
-    protected RedisCacheConfig remote;
+    protected RedisKVCacheConfig remote;
 }

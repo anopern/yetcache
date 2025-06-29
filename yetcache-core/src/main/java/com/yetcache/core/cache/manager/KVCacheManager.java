@@ -1,6 +1,6 @@
 package com.yetcache.core.cache.manager;
 
-import com.yetcache.core.config.MultiTierCacheConfig;
+import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import com.yetcache.core.config.YetCacheProperties;
 import com.yetcache.core.support.key.CacheKeyConverter;
 import com.yetcache.core.support.key.CacheKeyConverterFactory;
@@ -46,7 +46,7 @@ public final class KVCacheManager {
             throw new IllegalStateException("Cache already exists: " + name);
         }
 
-        MultiTierCacheConfig raw = Optional.ofNullable(properties.getCaches().getKv())
+        MultiTierKVCacheConfig raw = Optional.ofNullable(properties.getCaches().getKv())
                 .map(m -> m.get(name))
                 .orElse(null);
 
@@ -55,7 +55,7 @@ public final class KVCacheManager {
             throw new IllegalStateException("Cache config not found for: " + name);
         }
 
-        MultiTierCacheConfig config = CacheConfigMerger.merge(properties.getGlobal(), raw);
+        MultiTierKVCacheConfig config = CacheConfigMerger.merge(properties.getGlobal(), raw);
 
         Supplier<String> tenantCodeSupplier = () -> Optional.ofNullable(tenantProvider)
                 .map(TenantProvider::getTenantCode)

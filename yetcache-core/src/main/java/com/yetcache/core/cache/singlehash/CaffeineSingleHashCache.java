@@ -1,25 +1,54 @@
 package com.yetcache.core.cache.singlehash;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.config.singlehash.CaffeineSingleHashCacheConfig;
+
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static com.yetcache.core.util.CacheConstants.DEFAULT_EXPIRE;
 
 /**
  * @author walter.yan
  * @since 2025/6/29
  */
-public class CaffeineSingleHashCache<K, V> {
-    public V get(K field) {
-        return null;
+public class CaffeineSingleHashCache<V> {
+    private final CaffeineSingleHashCacheConfig config;
+    private final Cache<String, CacheValueHolder<V>> cache;
+
+    public CaffeineSingleHashCache(CaffeineSingleHashCacheConfig config) {
+        this.config = config;
+        this.cache = buildCache();
     }
 
-    public void refresh(K field) {
+    private Cache<String, CacheValueHolder<V>> buildCache() {
+        Caffeine<Object, Object> builder = Caffeine.newBuilder();
 
+        if (config.getTtlSecs() != null) {
+            builder.expireAfterWrite(DEFAULT_EXPIRE, TimeUnit.SECONDS);
+        }
+        if (config.getMaxSize() != null) {
+            builder.maximumSize(config.getMaxSize());
+        }
+
+        return builder.build();
     }
 
-    public void invalidate(K field) {
-
+    public CacheValueHolder<V> get(String field) {
+        return cache.getIfPresent(field);
     }
 
-    public Map<K, V> listAll(boolean forceRefresh) {
-        return null;
+    public void put(String field, CacheValueHolder<V> valueHolder) {
+        cache.put(field, valueHolder);
+    }
+
+    public void invalidate(String field) {
+        cache.invalidate(field);
+    }
+
+    public Map<String, CacheValueHolder<V>> listAll() {
+        return cache.asMap();
     }
 }

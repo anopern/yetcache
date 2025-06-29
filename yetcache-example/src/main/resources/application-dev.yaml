@@ -57,3 +57,6 @@ yetcache:
           ttl-secs: 30
         remote:
           ttl-secs: 120
+    single-hash:
+      config-common-info-cache:
+        key: 'nd:config:common:info'
