@@ -13,6 +13,9 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author walter.yan
  * @since 2025/6/25
@@ -56,12 +59,17 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
     }
 
     @Override
-    public V get(K key) {
-        CacheGetResult<K, V> getResult = getWithResult(key);
+    public V get(K bizKey) {
+        CacheGetResult<K, V> getResult = getWithResult(bizKey);
         log.debug("CacheGetResult: {}", getResult);
         if (getResult.getValueHolder() != null) {
             return getResult.getValueHolder().getValue();
         }
+        return null;
+    }
+
+    @Override
+    public Map<K, V> batchGet(List<K> bizKeys) {
         return null;
     }
 
@@ -74,7 +82,6 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
     public void invalidate(K key) {
         invalidateWithResult(key);
     }
-
 
     @Override
     public CacheGetResult<K, V> getWithResult(K bizKey) {
