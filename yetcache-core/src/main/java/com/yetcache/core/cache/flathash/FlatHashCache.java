@@ -1,6 +1,6 @@
 package com.yetcache.core.cache.flathash;
 
-import com.yetcache.core.cache.result.singlehash.SingleHashCacheGetResult;
+import com.yetcache.core.cache.result.singlehash.FlatHashCacheGetResult;
 
 import java.util.Map;
 
@@ -19,5 +19,5 @@ public interface FlatHashCache<K, V> {
 
     Map<K, V> listAll(boolean forceRefresh);
 
-    SingleHashCacheGetResult<K, V> getWithResult(K bizField);
+    FlatHashCacheGetResult<K, V> getWithResult(K bizField);
 }

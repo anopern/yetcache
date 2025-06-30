@@ -4,7 +4,7 @@ import com.yetcache.core.cache.AbstractMultiTierCache;
 import com.yetcache.core.cache.loader.KVCacheLoader;
 import com.yetcache.core.cache.result.CacheAccessStatus;
 import com.yetcache.core.cache.result.SourceLoadStatus;
-import com.yetcache.core.cache.result.singlehash.SingleHashCacheGetResult;
+import com.yetcache.core.cache.result.singlehash.FlatHashCacheGetResult;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.PenetrationProtectConfig;
 import com.yetcache.core.config.singlehash.MultiTierFlatHashCacheConfig;
@@ -97,100 +97,135 @@ public class MultiTierFlatHashCache<K, V> extends AbstractMultiTierCache<K>
     }
 
     @Override
-    public SingleHashCacheGetResult<K, V> getWithResult(K bizField) {
+    public FlatHashCacheGetResult<K, V> getWithResult(K bizField) {
         try {
-            long startMills = System.currentTimeMillis();
             CacheParamChecker.failIfNull(bizField, cacheName);
+            long startMills = System.currentTimeMillis();
+
             String key = config.getKey();
             String field = fieldConverter.convert(bizField);
-            CacheValueHolder<V> localHolder;
-            CacheValueHolder<V> remoteHolder;
-            SingleHashCacheGetResult<K, V> getResult = new SingleHashCacheGetResult<>(cacheName, config.getCacheTier(),
-                    key, bizField, field, startMills);
 
-            if (tryLocalBlock(bizField, getResult)) {
-                return getResult;
-            }
-            if (tryRemoteBlock(bizField, getResult)) {
-                return getResult;
+            FlatHashCacheGetResult<K, V> result = new FlatHashCacheGetResult<>(cacheName, config.getCacheTier(), key, bizField, field, startMills);
+
+            if (tryBlock(bizField, result)) {
+                return result;
             }
 
-            // === 1. 本地缓存 ===
-            if (localCache != null) {
-                localHolder = localCache.getIfPresent(key, field);
-                if (localHolder != null) {
-                    if (localHolder.isNotLogicExpired()) {
-                        getResult.setLocalStatus(CacheAccessStatus.HIT);
-                        getResult.setValueHolder(localHolder);
-                        getResult.end();
-                        return getResult;
-                    } else {
-                        getResult.setLocalStatus(CacheAccessStatus.LOGIC_EXPIRED);
-                    }
-                } else {
-                    getResult.setLocalStatus(CacheAccessStatus.PHYSICAL_MISS);
-                }
+            CacheValueHolder<V> holder = tryLocalGet(key, field, result);
+            if (holder != null) {
+                return end(result, holder);
             }
 
-            // === 2. Redis 缓存 ===
-            if (remoteCache != null) {
-                remoteHolder = remoteCache.get(key);
-                if (remoteHolder != null) {
-                    if (remoteHolder.isNotLogicExpired()) {
-                        // 回写本地
-                        if (localCache != null) {
-                            localCache.put(key, field, CacheValueHolder.wrap(remoteHolder.getValue(), config.getLocal().getTtlSecs()));
-                        }
-                        getResult.setRemoteStatus(CacheAccessStatus.HIT);
-                        getResult.setValueHolder(remoteHolder);
-                        getResult.end();
-                        return getResult;
-                    } else {
-                        getResult.setRemoteStatus(CacheAccessStatus.LOGIC_EXPIRED);
-                    }
-                } else {
-                    getResult.setRemoteStatus(CacheAccessStatus.PHYSICAL_MISS);
-                }
+            holder = tryRemoteGet(key, field, result);
+            if (holder != null) {
+                return end(result, holder);
             }
 
-            if (Boolean.FALSE.equals(config.getEnableLoadFallbackOnMiss())) {
-                getResult.end();
-                return getResult;
+            if (!Boolean.TRUE.equals(config.getEnableLoadFallbackOnMiss())) {
+                return end(result, null);
             }
 
-            // === 3. 回源加载 ===
-            try {
-                V loaded = cacheLoader.load(bizField);
-                if (loaded != null) {
-                    if (remoteCache != null) {
-                        CacheValueHolder<V> valueHolder = CacheValueHolder.wrap(loaded, config.getRemote().getTtlSecs());
-                        remoteCache.put(key, valueHolder);
-                    }
-                    if (localCache != null) {
-                        CacheValueHolder<V> valueHolder = CacheValueHolder.wrap(loaded, config.getLocal().getTtlSecs());
-                        localCache.put(key, field, valueHolder);
-                    }
-                    getResult.setLoadStatus(SourceLoadStatus.LOADED);
-                    getResult.setValueHolder(new CacheValueHolder<>(loaded));
-                } else {
-                    getResult.setLoadStatus(SourceLoadStatus.NO_VALUE);
-                    if (null != localPpCache) {
-                        localPpCache.markMiss(bizField);
-                    }
-                    if (null != remotePpCache) {
-                        remotePpCache.markMiss(bizField);
-                    }
-                }
-            } catch (Exception e) {
-                // 加载失败，可带上旧值用于降级
-                getResult.setLoadStatus(SourceLoadStatus.ERROR);
-                getResult.setException(e);
-                log.warn("缓存回源加载失败，cacheName={}, bizKey={}, key={}, ", cacheName, bizField, key, e);
-            }
-            getResult.end();
-            return getResult;
+            holder = tryLoad(key, field, bizField, result);
+            return end(result, holder);
         } finally {
             CacheAccessContext.clear();
         }
     }
+
+    private boolean tryBlock(K bizField, FlatHashCacheGetResult<K, V> result) {
+        return tryLocalBlock(bizField, result) || tryRemoteBlock(bizField, result);
+    }
+
+    private CacheValueHolder<V> tryLocalGet(String key, String field, FlatHashCacheGetResult<K, V> result) {
+        if (localCache == null) {
+            return null;
+        }
+
+        CacheValueHolder<V> holder = localCache.getIfPresent(key, field);
+        if (holder == null) {
+            result.setLocalStatus(CacheAccessStatus.PHYSICAL_MISS);
+            return null;
+        }
+
+        if (holder.isNotLogicExpired()) {
+            result.setLocalStatus(CacheAccessStatus.HIT);
+            result.setValueHolder(holder);
+            return holder;
+        } else {
+            result.setLocalStatus(CacheAccessStatus.LOGIC_EXPIRED);
+            return null;
+        }
+    }
+
+    private CacheValueHolder<V> tryRemoteGet(String key, String field, FlatHashCacheGetResult<K, V> result) {
+        if (remoteCache == null) {
+            return null;
+        }
+
+        CacheValueHolder<V> holder = remoteCache.get(key);
+        if (holder == null) {
+            result.setRemoteStatus(CacheAccessStatus.PHYSICAL_MISS);
+            return null;
+        }
+
+        if (holder.isNotLogicExpired()) {
+            result.setRemoteStatus(CacheAccessStatus.HIT);
+            result.setValueHolder(holder);
+            if (localCache != null) {
+                localCache.put(key, field, CacheValueHolder.wrap(holder.getValue(), config.getLocal().getTtlSecs()));
+            }
+            return holder;
+        } else {
+            result.setRemoteStatus(CacheAccessStatus.LOGIC_EXPIRED);
+            return null;
+        }
+    }
+
+    private CacheValueHolder<V> tryLoad(String key, String field, K bizField, FlatHashCacheGetResult<K, V> result) {
+        try {
+            V loaded = cacheLoader.load(bizField);
+            if (loaded == null) {
+                result.setLoadStatus(SourceLoadStatus.NO_VALUE);
+                markPenetrationProtect(bizField);
+                return null;
+            }
+
+            CacheValueHolder<V> wrappedRemote = CacheValueHolder.wrap(loaded, config.getRemote().getTtlSecs());
+            CacheValueHolder<V> wrappedLocal = CacheValueHolder.wrap(loaded, config.getLocal().getTtlSecs());
+
+            if (remoteCache != null) {
+                remoteCache.put(key, wrappedRemote);
+            }
+            if (localCache != null) {
+                localCache.put(key, field, wrappedLocal);
+            }
+
+            result.setLoadStatus(SourceLoadStatus.LOADED);
+            result.setValueHolder(new CacheValueHolder<>(loaded));
+            return result.getValueHolder();
+        } catch (Exception e) {
+            result.setLoadStatus(SourceLoadStatus.ERROR);
+            result.setException(e);
+            log.warn("缓存回源加载失败，cacheName={}, bizKey={}, key={}", cacheName, bizField, key, e);
+            return null;
+        }
+    }
+
+    private void markPenetrationProtect(K bizField) {
+        if (localPpCache != null) {
+            localPpCache.markMiss(bizField);
+        }
+        if (remotePpCache != null) {
+            remotePpCache.markMiss(bizField);
+        }
+    }
+
+    private FlatHashCacheGetResult<K, V> end(FlatHashCacheGetResult<K, V> result, CacheValueHolder<V> holder) {
+        if (holder != null) {
+            result.setValueHolder(holder);
+        }
+        result.end();
+        return result;
+    }
+
 }

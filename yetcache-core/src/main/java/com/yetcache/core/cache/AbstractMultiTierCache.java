@@ -2,8 +2,6 @@ package com.yetcache.core.cache;
 
 import com.yetcache.core.cache.result.BaseCacheResult;
 import com.yetcache.core.cache.result.CacheAccessStatus;
-import com.yetcache.core.cache.result.singlehash.SingleHashCacheGetResult;
-import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
 import lombok.Data;
