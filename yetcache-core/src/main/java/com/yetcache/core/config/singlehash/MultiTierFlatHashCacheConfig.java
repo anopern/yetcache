@@ -15,10 +15,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MultiTierFlatHashCacheConfig extends BaseMultiTierCacheConfig {
-    protected String key;
+    protected String keyPrefix;
 
-    protected CaffeineSingleHashCacheConfig local;
-    protected RedisSingleHashCacheConfig remote;
+    protected CaffeineFlatHashCacheConfig local;
+    protected RedisFlatHashCacheConfig remote;
 
     protected Boolean enableLoadFallbackOnMiss = false;
 }

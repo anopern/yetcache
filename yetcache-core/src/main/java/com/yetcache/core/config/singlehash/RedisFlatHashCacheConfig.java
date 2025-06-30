@@ -10,6 +10,5 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class CaffeineSingleHashCacheConfig extends BaseCacheConfig {
-    protected Integer maxSize;
+public class RedisFlatHashCacheConfig extends BaseCacheConfig {
 }

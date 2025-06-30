@@ -1,28 +1,31 @@
 package com.yetcache.core.support.key;
 
 import cn.hutool.core.util.StrUtil;
-
-import java.util.function.Supplier;
+import com.yetcache.core.config.TenantMode;
+import com.yetcache.core.support.tenant.TenantProvider;
 
 /**
  * @author walter.yan
  * @since 2025/6/28
  */
 public class DefaultCacheKeyConverter<K> implements CacheKeyConverter<K> {
-
     private final String keyPrefix;
-    private final boolean useTenant;
+    private final TenantMode tenantMode;
     private final boolean useHashTag;
-    private final Supplier<String> tenantSupplier;
+    private final TenantProvider tenantProvider;
 
     public DefaultCacheKeyConverter(String keyPrefix,
-                                    boolean useTenant,
+                                    TenantMode tenantMode,
                                     boolean useHashTag,
-                                    Supplier<String> tenantSupplier) {
+                                    TenantProvider tenantProvider) {
         this.keyPrefix = keyPrefix;
-        this.useTenant = useTenant;
+        this.tenantMode = tenantMode;
         this.useHashTag = useHashTag;
-        this.tenantSupplier = tenantSupplier;
+        this.tenantProvider = tenantProvider;
+
+        if ((tenantMode == TenantMode.REQUIRED || tenantMode == TenantMode.OPTIONAL) && tenantProvider == null) {
+            throw new IllegalArgumentException("TenantProvider must be provided when tenantMode != NONE");
+        }
     }
 
     @Override
@@ -31,19 +34,15 @@ public class DefaultCacheKeyConverter<K> implements CacheKeyConverter<K> {
             throw new IllegalArgumentException("Cache key cannot be null");
         }
 
-        StringBuilder sb = new StringBuilder();
-        sb.append(keyPrefix);
+        StringBuilder sb = new StringBuilder(keyPrefix);
 
-        if (useTenant) {
-            String tenant = tenantSupplier.get();
-            if (StrUtil.isNotBlank(tenant)) {
-                sb.append(":").append(tenant);
-            }
+        // 拼接租户信息（如配置要求）
+        String tenantCode = resolveTenantCode();
+        if (tenantCode != null) {
+            sb.append(":").append(tenantCode);
         }
 
-        sb.append(":");
-
-        String bizKeyStr = String.valueOf(bizKey); // 仅此处做 key.toString
+        String bizKeyStr = String.valueOf(bizKey);
         if (useHashTag) {
             sb.append("{").append(bizKeyStr).append("}");
         } else {
@@ -51,5 +50,32 @@ public class DefaultCacheKeyConverter<K> implements CacheKeyConverter<K> {
         }
 
         return sb.toString();
+    }
+
+    /**
+     * 根据租户模式，解析并校验租户编码。
+     *
+     * @return 租户编码，若无需求则返回 null
+     */
+    private String resolveTenantCode() {
+        switch (tenantMode) {
+            case REQUIRED:
+                String requiredCode = tenantProvider.getCurrentTenantCode();
+                if (StrUtil.isBlank(requiredCode)) {
+                    throw new IllegalStateException("Tenant code is required but not provided");
+                }
+                return requiredCode;
+
+            case OPTIONAL:
+                String optionalCode = tenantProvider.getDefaultTenantCode();
+                if (StrUtil.isBlank(optionalCode)) {
+                    throw new IllegalStateException("Tenant code is optional but no default code provided");
+                }
+                return optionalCode;
+
+            case NONE:
+            default:
+                return null;
+        }
     }
 }

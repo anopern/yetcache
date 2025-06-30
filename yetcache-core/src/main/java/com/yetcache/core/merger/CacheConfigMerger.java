@@ -4,6 +4,9 @@ import com.yetcache.core.config.*;
 import com.yetcache.core.config.kv.CaffeineKVCacheConfig;
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import com.yetcache.core.config.kv.RedisKVCacheConfig;
+import com.yetcache.core.config.singlehash.CaffeineFlatHashCacheConfig;
+import com.yetcache.core.config.singlehash.MultiTierFlatHashCacheConfig;
+import com.yetcache.core.config.singlehash.RedisFlatHashCacheConfig;
 
 import java.util.Objects;
 
@@ -56,8 +59,8 @@ public final class CacheConfigMerger {
         result.setCacheTier(firstNonNull(spec.getCacheTier(), global.getCacheTier()));
         result.setTenantMode(firstNonNull(spec.getTenantMode(), global.getTenantMode()));
 
-        result.setLocal(merge(global.getLocal(), spec.getLocal()));
-        result.setRemote(merge(global.getRemote(), spec.getRemote()));
+        result.setLocal(merge(global.getKvLocal(), spec.getLocal()));
+        result.setRemote(merge(global.getKvRemote(), spec.getRemote()));
 
         return result;
     }
@@ -75,6 +78,51 @@ public final class CacheConfigMerger {
 
         return result;
     }
+
+    public static CaffeineFlatHashCacheConfig merge(CaffeineFlatHashCacheConfig global, CaffeineFlatHashCacheConfig spec) {
+        Objects.requireNonNull(global, "Global CaffeineCacheConfig must not be null");
+
+        if (spec == null) spec = new CaffeineFlatHashCacheConfig();
+
+        CaffeineFlatHashCacheConfig result = new CaffeineFlatHashCacheConfig();
+        result.setTtlSecs(firstNonNull(spec.getTtlSecs(), global.getTtlSecs()));
+        result.setMaxSize(firstNonNull(spec.getMaxSize(), global.getMaxSize()));
+        result.setPenetrationProtect(merge(global.getPenetrationProtect(), spec.getPenetrationProtect()));
+
+        return result;
+    }
+
+    public static RedisFlatHashCacheConfig merge(RedisFlatHashCacheConfig global, RedisFlatHashCacheConfig spec) {
+        Objects.requireNonNull(global, "Global RedisCacheConfig must not be null");
+
+        if (spec == null) spec = new RedisFlatHashCacheConfig();
+
+        RedisFlatHashCacheConfig result = new RedisFlatHashCacheConfig();
+        result.setTtlSecs(firstNonNull(spec.getTtlSecs(), global.getTtlSecs()));
+        result.setPenetrationProtect(merge(global.getPenetrationProtect(), spec.getPenetrationProtect()));
+
+        return result;
+    }
+
+    public static MultiTierFlatHashCacheConfig merge(GlobalConfig global, MultiTierFlatHashCacheConfig spec) {
+        Objects.requireNonNull(global, "GlobalConfig must not be null");
+
+        if (spec == null) spec = new MultiTierFlatHashCacheConfig();
+
+        MultiTierFlatHashCacheConfig result = new MultiTierFlatHashCacheConfig();
+        result.setKeyPrefix(spec.getKeyPrefix());
+        result.setUseHashTag(firstNonNull(spec.getUseHashTag(), global.getUseHashTag()));
+        result.setTtlRandomPercent(firstNonNull(spec.getTtlRandomPercent(), global.getTtlRandomPercent()));
+        result.setCacheTier(firstNonNull(spec.getCacheTier(), global.getCacheTier()));
+        result.setTenantMode(firstNonNull(spec.getTenantMode(), global.getTenantMode()));
+
+        // Local + Remote 合并，重用 KVConfig 的结构
+        result.setLocal(CacheConfigMerger.merge(global.getFlatHashLocal(), spec.getLocal()));
+        result.setRemote(CacheConfigMerger.merge(global.getFlatHashRemote(), spec.getRemote()));
+
+        return result;
+    }
+
 
     private static <T> T firstNonNull(T primary, T fallback) {
         return primary != null ? primary : fallback;

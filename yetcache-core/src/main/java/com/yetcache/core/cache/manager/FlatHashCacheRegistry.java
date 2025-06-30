@@ -1,5 +1,7 @@
 package com.yetcache.core.cache.manager;
 
+import com.yetcache.core.cache.flathash.FlatHashCache;
+import com.yetcache.core.cache.flathash.MultiTierFlatHashCache;
 import com.yetcache.core.cache.kv.MultiTierKVCache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,10 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Component
-public final class KVCacheRegistry {
-    private final Map<String, MultiTierKVCache<?, ?>> registry = new ConcurrentHashMap<>();
+public final class FlatHashCacheRegistry {
+    private final Map<String, MultiTierFlatHashCache<?, ?, ?>> registry = new ConcurrentHashMap<>();
 
-    public MultiTierKVCache<?, ?> get(String name) {
+    public MultiTierFlatHashCache<?, ?, ?> get(String name) {
         return registry.get(name);
     }
 
@@ -24,13 +26,13 @@ public final class KVCacheRegistry {
         return registry.containsKey(name);
     }
 
-    public void register(String name, MultiTierKVCache<?, ?> cache) {
+    public void register(String name, MultiTierFlatHashCache<?, ?, ?> cache) {
         registry.put(name, cache);
     }
 
     public void clearRegistry() {
         registry.clear();
-        log.warn("KVCache registry cleared");
+        log.warn("MultiTierFlatHashCache registry cleared");
     }
 
 }

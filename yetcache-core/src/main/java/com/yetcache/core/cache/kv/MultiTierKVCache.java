@@ -83,10 +83,10 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
         putWithResult(key, value);
     }
 
-    @Override
-    public void invalidate(K key) {
-        invalidateWithResult(key);
-    }
+//    @Override
+//    public void invalidate(K key) {
+//        invalidateWithResult(key);
+//    }
 
     @Override
     public KVCacheGetResult<K, V> getWithResult(K bizKey) {
@@ -204,21 +204,21 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
         return putResult;
     }
 
-    @Override
-    public BaseKVCacheResult<K> invalidateWithResult(K bizKey) {
-        CacheParamChecker.failIfNull(bizKey, cacheName);
-        Long startMills = System.currentTimeMillis();
-        String key = keyConverter.convert(bizKey);
-        KVCacheInvalidateResult<K> invalidateResult = new KVCacheInvalidateResult<>(cacheName, config.getCacheTier(),
-                bizKey, key, startMills);
-        if (localCache != null) {
-            localCache.invalidate(key);
-        }
-        if (redisCache != null) {
-            redisCache.invalidate(key);
-        }
-        return invalidateResult.end();
-    }
+//    @Override
+//    public BaseKVCacheResult<K> invalidateWithResult(K bizKey) {
+//        CacheParamChecker.failIfNull(bizKey, cacheName);
+//        Long startMills = System.currentTimeMillis();
+//        String key = keyConverter.convert(bizKey);
+//        KVCacheInvalidateResult<K> invalidateResult = new KVCacheInvalidateResult<>(cacheName, config.getCacheTier(),
+//                bizKey, key, startMills);
+//        if (localCache != null) {
+//            localCache.invalidate(key);
+//        }
+//        if (redisCache != null) {
+//            redisCache.invalidate(key);
+//        }
+//        return invalidateResult.end();
+//    }
 
     @Override
     public KVCacheRefreshResult<K, V> refresh(K bizKey) {

@@ -1,8 +1,9 @@
 package com.yetcache.example.cache;
 
-import com.yetcache.core.cache.loader.KVCacheLoader;
 import com.yetcache.core.cache.kv.MultiTierKVCache;
+import com.yetcache.core.cache.loader.KVCacheLoader;
 import com.yetcache.example.entity.User;
+import com.yetcache.example.enums.EnumCaches;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -12,18 +13,19 @@ import org.springframework.stereotype.Component;
  * @since 2025/6/28
  */
 @Component
-public final class UserCacheAgent extends BaseCacheAgent<Long, User> {
+public final class UserCacheAgent extends BaseCacheAgent {
     @Autowired
     @Qualifier("idKeyUserCacheLoader")
-    private KVCacheLoader<Long, User> cacheLoader;
+    private KVCacheLoader<Long, User> idKeyCacheLoader;
+
+    private MultiTierKVCache<Long, User> idKeyCache;
 
     @Override
-    protected MultiTierKVCache<Long, User> doCreateCache() {
-        return KVCacheManager.create(getCacheName(), rClient, cacheLoader);
+    protected void createCache() {
+        idKeyCache = kVCacheManager.create(EnumCaches.USER_ID_KEY_CACHE.getName(), rClient, idKeyCacheLoader);
     }
 
-    @Override
-    protected String getCacheName() {
-        return "user-id-key-cache";
+    public User get(Long id) {
+        return idKeyCache.get(id);
     }
 }

@@ -2,6 +2,8 @@ package com.yetcache.core.config;
 
 import com.yetcache.core.config.kv.CaffeineKVCacheConfig;
 import com.yetcache.core.config.kv.RedisKVCacheConfig;
+import com.yetcache.core.config.singlehash.CaffeineFlatHashCacheConfig;
+import com.yetcache.core.config.singlehash.RedisFlatHashCacheConfig;
 import lombok.Data;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
@@ -17,8 +19,9 @@ public class GlobalConfig {
     protected Boolean useHashTag = false;
     protected Double ttlRandomPercent = 0.1;
 
-    @NestedConfigurationProperty
-    protected CaffeineKVCacheConfig local;
-    @NestedConfigurationProperty
-    protected RedisKVCacheConfig remote;
+    protected CaffeineKVCacheConfig kvLocal;
+    protected RedisKVCacheConfig kvRemote;
+
+    protected CaffeineFlatHashCacheConfig flatHashLocal;
+    protected RedisFlatHashCacheConfig flatHashRemote;
 }

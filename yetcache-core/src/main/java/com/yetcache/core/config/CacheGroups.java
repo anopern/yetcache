@@ -1,6 +1,7 @@
 package com.yetcache.core.config;
 
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
+import com.yetcache.core.config.singlehash.MultiTierFlatHashCacheConfig;
 import lombok.Data;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
@@ -15,5 +16,5 @@ import java.util.Map;
 public class CacheGroups {
     @NestedConfigurationProperty
     protected Map<String, MultiTierKVCacheConfig> kv = new HashMap<>();
-    protected Map<String, MultiTierKVCacheConfig> singleHash = new HashMap<>();
+    protected Map<String, MultiTierFlatHashCacheConfig> flatHash = new HashMap<>();
 }

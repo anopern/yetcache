@@ -1,5 +1,8 @@
 package com.yetcache.core.support.key;
 
+import com.yetcache.core.config.TenantMode;
+import com.yetcache.core.support.tenant.TenantProvider;
+
 import java.util.function.Supplier;
 
 /**
@@ -7,8 +10,8 @@ import java.util.function.Supplier;
  * @since 2025/6/28
  */
 public class CacheKeyConverterFactory {
-    public static <K> CacheKeyConverter<K> create(String keyPrefix, boolean useTenant, boolean useHashTag,
-                                                  Supplier<String> tenantCodeSupplier) {
-        return new DefaultCacheKeyConverter<>(keyPrefix, useTenant, useHashTag, tenantCodeSupplier);
+    public static <K> CacheKeyConverter<K> create(String keyPrefix, TenantMode tenantMode, boolean useHashTag,
+                                                  TenantProvider tenantProvider) {
+        return new DefaultCacheKeyConverter<>(keyPrefix, tenantMode, useHashTag, tenantProvider);
     }
 }

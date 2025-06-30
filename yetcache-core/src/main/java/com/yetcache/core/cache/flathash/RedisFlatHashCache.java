@@ -1,7 +1,7 @@
 package com.yetcache.core.cache.flathash;
 
 import com.yetcache.core.cache.support.CacheValueHolder;
-import com.yetcache.core.config.singlehash.RedisSingleHashCacheConfig;
+import com.yetcache.core.config.singlehash.RedisFlatHashCacheConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
@@ -15,10 +15,10 @@ import java.util.Map;
  */
 @Slf4j
 public class RedisFlatHashCache<V> {
-    protected final RedisSingleHashCacheConfig config;
+    protected final RedisFlatHashCacheConfig config;
     protected final RedissonClient rClient;
 
-    public RedisFlatHashCache(RedisSingleHashCacheConfig config, RedissonClient rClient) {
+    public RedisFlatHashCache(RedisFlatHashCacheConfig config, RedissonClient rClient) {
         this.config = config;
         this.rClient = rClient;
     }

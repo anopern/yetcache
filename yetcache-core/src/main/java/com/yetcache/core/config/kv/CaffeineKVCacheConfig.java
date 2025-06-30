@@ -11,5 +11,5 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class CaffeineKVCacheConfig extends BaseCacheConfig {
-    protected Long maxSize;
+    protected Integer maxSize;
 }

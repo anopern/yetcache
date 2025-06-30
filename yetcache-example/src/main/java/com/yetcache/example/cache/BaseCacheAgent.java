@@ -14,12 +14,11 @@ import javax.annotation.PostConstruct;
  */
 
 @Data
-public abstract class BaseCacheAgent<K, V> {
+public abstract class BaseCacheAgent {
     @Autowired
-    protected KVCacheManager KVCacheManager;
+    protected KVCacheManager kVCacheManager;
     @Autowired
     protected RedissonClient rClient;
-    protected MultiTierKVCache<K, V> delegate;
 
     @PostConstruct
     public void init() {
@@ -27,22 +26,6 @@ public abstract class BaseCacheAgent<K, V> {
     }
 
     protected void createCache() {
-        delegate = doCreateCache();
-    }
 
-    protected abstract MultiTierKVCache<K, V> doCreateCache();
-
-    protected abstract String getCacheName();
-
-    public V get(K key) {
-        return delegate.get(key);
-    }
-
-    public void put(K key, V value) {
-        delegate.put(key, value);
-    }
-
-    public void invalidate(K key) {
-        delegate.invalidate(key);
     }
 }

@@ -19,13 +19,13 @@ public interface KVCache<K, V> {
 
     void put(K bizKey, V value);
 
-    void invalidate(K bizKey);
+//    void invalidate(K bizKey);
 
     KVCacheGetResult<K, V> getWithResult(K bizKey);
 
     KVCachePutResult<K, V> putWithResult(K bizKey, V value);
 
-    BaseKVCacheResult<K> invalidateWithResult(K bizKey);
+//    BaseKVCacheResult<K> invalidateWithResult(K bizKey);
 
     KVCacheRefreshResult<K, V> refresh(K bizKey); // 用于热点/单 key
 }

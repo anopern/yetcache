@@ -1,5 +1,6 @@
 package com.yetcache.core.cache.manager;
 
+import com.yetcache.core.config.TenantMode;
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import com.yetcache.core.config.YetCacheProperties;
 import com.yetcache.core.support.key.CacheKeyConverter;
@@ -13,7 +14,6 @@ import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.function.Supplier;
 
 /**
  * @author walter.yan
@@ -24,10 +24,16 @@ import java.util.function.Supplier;
 public final class KVCacheManager {
     private final YetCacheProperties properties;
     private final KVCacheRegistry registry;
+    private final TenantProvider tenantProvider;
 
     public KVCacheManager(YetCacheProperties properties, KVCacheRegistry registry) {
+        this(properties, registry, null);
+    }
+
+    public KVCacheManager(YetCacheProperties properties, KVCacheRegistry registry, TenantProvider tenantProvider) {
         this.properties = properties;
         this.registry = registry;
+        this.tenantProvider = tenantProvider;
     }
 
     public <K, V> MultiTierKVCache<K, V> create(String name,
@@ -57,11 +63,9 @@ public final class KVCacheManager {
 
         MultiTierKVCacheConfig config = CacheConfigMerger.merge(properties.getGlobal(), raw);
 
-        Supplier<String> tenantCodeSupplier = () -> Optional.ofNullable(tenantProvider)
-                .map(TenantProvider::getTenantCode)
-                .orElse(null);
+        TenantProvider providerToUse = config.getTenantMode() == TenantMode.NONE ? null : this.tenantProvider;
         CacheKeyConverter<K> cacheKeyConverter = CacheKeyConverterFactory.create(config.getKeyPrefix(),
-                config.getTenantMode().useTenant(), config.getUseHashTag(), tenantCodeSupplier);
+                config.getTenantMode(), config.getUseHashTag(), providerToUse);
         MultiTierKVCache<K, V> newCache = new MultiTierKVCache<>(name, config, rClient, cacheLoader, cacheKeyConverter);
         registry.register(name, newCache);
         log.info("KVCache [{}] created and registered", name);
