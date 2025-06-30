@@ -10,6 +10,8 @@
     </parent>
 
     <artifactId>yetcache-core</artifactId>
+    <description>YetCache 核心模块</description>
+    <url>https://github.com/anopern/yetcache</url>
     <version>1.0.0-SNAPSHOT</version>
 
     <properties>
@@ -70,5 +72,25 @@
             <version>1.6.3</version>
         </dependency>
     </dependencies>
+
+    <licenses>
+        <license>
+            <name>Apache License Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>walter.yan</id>
+            <name>Walter Yan</name>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/anopern/yetcache</url>
+        <connection>scm:git:git://github.com/anopern/yetcache.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:anopern/yetcache.git</developerConnection>
+    </scm>
 
 </project>
