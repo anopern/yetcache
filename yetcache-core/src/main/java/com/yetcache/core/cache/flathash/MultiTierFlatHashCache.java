@@ -9,6 +9,7 @@ import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.PenetrationProtectConfig;
 import com.yetcache.core.config.singlehash.MultiTierFlatHashCacheConfig;
 import com.yetcache.core.context.CacheAccessContext;
+import com.yetcache.core.context.CacheAccessSources;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
 import com.yetcache.core.support.field.CacheFieldConverter;
@@ -17,9 +18,10 @@ import com.yetcache.core.support.util.CacheParamChecker;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.K;
 import org.redisson.api.RedissonClient;
 
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author walter.yan
@@ -130,6 +132,48 @@ public class MultiTierFlatHashCache<K, V> extends AbstractMultiTierCache<K>
         } finally {
             CacheAccessContext.clear();
         }
+    }
+
+    @Override
+    public FlatHashCacheGetResult<K, V> batGetWithResult(Collection<K> bizFields) {
+        try {
+            CacheAccessContext.setSource(CacheAccessSources.NORMAL.name());
+            String key = config.getKey();
+            FlatHashCacheGetResult<K, V> result = new FlatHashCacheGetResult<>(cacheName, config.getCacheTier(), key,
+                    System.currentTimeMillis());
+            Map<K, String> fieldMap = new HashMap<>();
+            for (K bizField : bizFields) {
+                CacheParamChecker.failIfNull(bizField, cacheName);
+                fieldMap.put(bizField, fieldConverter.convert(bizField));
+            }
+            // 1. 从 local 批量获取
+            Map<String, CacheValueHolder<V>> localValueHolderMap = localCache != null
+                    ? localCache.batchGetIfPresent(key, fieldMap.values())
+                    : Collections.emptyMap();
+            Set<K> localMissBizKeys = new HashSet<>();
+            for (Map.Entry<K, String> entry : fieldMap.entrySet()) {
+                CacheValueHolder<V> holder = localValueHolderMap.get(entry.getValue());
+                if (holder != null && holder.isNotLogicExpired()) {
+                    result.recordLocalStatus(entry.getKey(), CacheAccessStatus.HIT);
+                } else {
+                    localMissBizKeys.add(entry.getKey());
+                }
+            }
+            if (localMissBizKeys.isEmpty()) {
+                return remapToBizKey(localValueHolderMap, fieldMap);
+            }
+        } finally {
+            CacheAccessContext.clear();
+        }
+        return null;
+    }
+
+    public Map<K, CacheValueHolder<V>> remapToBizKey(Map<String, CacheValueHolder<V>> fieldMap) {
+        Map<K, CacheValueHolder<V>> result = new HashMap<>();
+        for (Map.Entry<String, CacheValueHolder<V>> entry : fieldMap.entrySet()) {
+            result.put(fieldConverter.reverse(entry.getKey()), entry.getValue());
+        }
+        return result;
     }
 
     private boolean tryBlock(K bizField, FlatHashCacheGetResult<K, V> result) {

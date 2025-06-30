@@ -2,6 +2,7 @@ package com.yetcache.core.cache.flathash;
 
 import com.yetcache.core.cache.result.singlehash.FlatHashCacheGetResult;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -20,4 +21,6 @@ public interface FlatHashCache<K, V> {
     Map<K, V> listAll(boolean forceRefresh);
 
     FlatHashCacheGetResult<K, V> getWithResult(K bizField);
+
+    FlatHashCacheGetResult<K, V> batGetWithResult(Collection<K> bizFields);
 }

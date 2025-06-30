@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class BaseSingleHashCacheResult<K> extends BaseCacheResult<BaseSingleHashCacheResult<K>> {
+public class BaseSingleHashCacheResult<K> extends BaseCacheResult<K, BaseSingleHashCacheResult<K>> {
     protected K bizField;
     protected String field;
 }

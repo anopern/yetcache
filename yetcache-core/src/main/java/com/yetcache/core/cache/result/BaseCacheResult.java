@@ -3,12 +3,15 @@ package com.yetcache.core.cache.result;
 import com.yetcache.core.config.CacheTier;
 import lombok.Data;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author walter.yan
  * @since 2025/6/18
  */
 @Data
-public class BaseCacheResult<T extends BaseCacheResult<T>> {
+public class BaseCacheResult<K, T extends BaseCacheResult<K, T>> {
 
     /**
      * 缓存名称（cacheName），用于唯一标识当前缓存逻辑，便于日志归因与监控打点。
@@ -31,18 +34,22 @@ public class BaseCacheResult<T extends BaseCacheResult<T>> {
      * 仅在启用本地缓存时有效。
      */
     protected CacheAccessStatus localStatus;
+    protected Map<K, CacheAccessStatus> localStatusMap = new HashMap<>();
 
     /**
      * 远程缓存命中状态，来源于 CacheAccessStatus 枚举。
      * 仅在启用远程缓存时有效（如 Redis）。
      */
     protected CacheAccessStatus remoteStatus;
+    protected Map<K, CacheAccessStatus> remoteStatusMap = new HashMap<>();
 
     /**
      * 数据加载器的执行状态（是否触发加载、是否成功加载、是否触发穿透等），
      * 来源于 SourceLoadStatus 枚举，表示最终是否走了数据源加载。
      */
     protected SourceLoadStatus loadStatus;
+    protected Map<K, SourceLoadStatus> loadStatusMap = new HashMap<>();
+
 
     /**
      * 缓存访问或加载过程中出现的异常信息（若有），可用于日志回溯与问题归因。
@@ -68,5 +75,9 @@ public class BaseCacheResult<T extends BaseCacheResult<T>> {
 
     public long durationMillis() {
         return endMills - startMills;
+    }
+
+    public void recordLocalStatus(K bizField, CacheAccessStatus status) {
+        localStatusMap.put(bizField, status);
     }
 }

@@ -5,9 +5,12 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.singlehash.CaffeineSingleHashCacheConfig;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.yetcache.core.util.CacheConstants.DEFAULT_EXPIRE;
 import static com.yetcache.core.util.CacheConstants.DEFAULT_LOCAL_LIMIT;
@@ -33,6 +36,14 @@ public class CaffeineFlatHashCache<V> {
         ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.getIfPresent(key);
         return map != null ? map.get(field) : null;
     }
+
+    public Map<String, CacheValueHolder<V>> batchGetIfPresent(String key, Collection<String> fields) {
+        ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.getIfPresent(key);
+        return map != null ? map.entrySet().stream()
+                .filter(entry -> fields.contains(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)) : Collections.emptyMap();
+    }
+
 
     public void put(String key, String field, CacheValueHolder<V> valueHolder) {
         ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.get(key, k -> new ConcurrentHashMap<>());
