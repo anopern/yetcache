@@ -1,6 +1,5 @@
-package com.yetcache.core.cache.singlehash;
+package com.yetcache.core.cache.flathash;
 
-import com.yetcache.core.cache.result.kv.KVCacheGetResult;
 import com.yetcache.core.cache.result.singlehash.SingleHashCacheGetResult;
 
 import java.util.Map;
@@ -9,8 +8,10 @@ import java.util.Map;
  * @author walter.yan
  * @since 2025/6/29
  */
-public interface SingleHashCache<K, V> {
+public interface FlatHashCache<K, V> {
     V get(K bizField);
+
+    V get(String tenantCode, K bizField);
 
     void refresh(K bizField);
 

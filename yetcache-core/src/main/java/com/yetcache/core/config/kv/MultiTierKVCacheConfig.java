@@ -20,4 +20,6 @@ public class MultiTierKVCacheConfig extends BaseMultiTierCacheConfig {
 
     protected CaffeineKVCacheConfig local;
     protected RedisKVCacheConfig remote;
+
+    protected Boolean enableLoadFallbackOnMiss = true;
 }

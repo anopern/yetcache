@@ -1,4 +1,4 @@
-package com.yetcache.core.cache.singlehash;
+package com.yetcache.core.cache.flathash;
 
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.singlehash.RedisSingleHashCacheConfig;
@@ -8,16 +8,17 @@ import org.redisson.api.RedissonClient;
 
 import java.util.Map;
 
+
 /**
  * @author walter.yan
  * @since 2025/6/29
  */
 @Slf4j
-public class RedisSingleHashCache<V> {
+public class RedisFlatHashCache<V> {
     protected final RedisSingleHashCacheConfig config;
     protected final RedissonClient rClient;
 
-    public RedisSingleHashCache(RedisSingleHashCacheConfig config, RedissonClient rClient) {
+    public RedisFlatHashCache(RedisSingleHashCacheConfig config, RedissonClient rClient) {
         this.config = config;
         this.rClient = rClient;
     }
@@ -26,8 +27,7 @@ public class RedisSingleHashCache<V> {
         return getRedisMap().get(field);
     }
 
-    public void put(String field, V value) {
-        CacheValueHolder<V> valueHolder = CacheValueHolder.wrap(value, config.getTtlSecs());
+    public void put(String field, CacheValueHolder<V> valueHolder) {
         getRedisMap().put(field, valueHolder);
     }
 
