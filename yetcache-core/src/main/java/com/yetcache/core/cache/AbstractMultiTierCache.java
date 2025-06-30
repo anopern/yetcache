@@ -15,7 +15,7 @@ public abstract class AbstractMultiTierCache<K> {
     protected CaffeinePenetrationProtectCache<K> localPpCache;
     protected RedisPenetrationProtectCache<K> remotePpCache;
 
-    protected <T extends BaseCacheResult<T>> boolean tryLocalBlock(K key, T getResult) {
+    protected <T extends BaseCacheResult<K, T>> boolean tryLocalBlock(K key, T getResult) {
         if (localPpCache != null && localPpCache.isBlocked(key)) {
             getResult.setLocalStatus(CacheAccessStatus.BLOCKED);
             getResult.end();
@@ -24,7 +24,7 @@ public abstract class AbstractMultiTierCache<K> {
         return false;
     }
 
-    protected <T extends BaseCacheResult<T>> boolean tryRemoteBlock(K key, T getResult) {
+    protected <T extends BaseCacheResult<K, T>> boolean tryRemoteBlock(K key, T getResult) {
         if (remotePpCache != null && remotePpCache.isBlocked(key)) {
             getResult.setRemoteStatus(CacheAccessStatus.BLOCKED);
             getResult.end();

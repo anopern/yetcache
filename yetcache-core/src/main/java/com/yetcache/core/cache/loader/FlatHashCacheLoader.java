@@ -6,8 +6,8 @@ import java.util.Map;
  * @author walter.yan
  * @since 2025/6/30
  */
-public interface FlatHashCacheLoader<K, V> {
-    V load(K bizField);
+public interface FlatHashCacheLoader<K, F, V> {
+    V load(K bizKey, F bizField);
 
-    Map<K, V> loadAll();
+    Map<F, V> loadAll(K bizKey);
 }

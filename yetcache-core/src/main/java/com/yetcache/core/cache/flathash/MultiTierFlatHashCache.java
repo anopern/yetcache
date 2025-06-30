@@ -1,24 +1,25 @@
 package com.yetcache.core.cache.flathash;
 
 import com.yetcache.core.cache.AbstractMultiTierCache;
-import com.yetcache.core.cache.loader.KVCacheLoader;
-import com.yetcache.core.cache.result.CacheAccessStatus;
-import com.yetcache.core.cache.result.SourceLoadStatus;
+import com.yetcache.core.cache.loader.FlatHashCacheLoader;
+import com.yetcache.core.cache.result.CacheResult;
 import com.yetcache.core.cache.result.singlehash.FlatHashCacheGetResult;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.PenetrationProtectConfig;
 import com.yetcache.core.config.singlehash.MultiTierFlatHashCacheConfig;
 import com.yetcache.core.context.CacheAccessContext;
-import com.yetcache.core.context.CacheAccessSources;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
 import com.yetcache.core.support.field.CacheFieldConverter;
 import com.yetcache.core.support.key.CacheKeyConverter;
+import com.yetcache.core.support.result.CacheLoadResult;
+import com.yetcache.core.support.result.CacheLookupResult;
+import com.yetcache.core.support.trace.CacheAccessRecorder;
+import com.yetcache.core.support.trace.DefaultCacheAccessRecorder;
 import com.yetcache.core.support.util.CacheParamChecker;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.K;
 import org.redisson.api.RedissonClient;
 
 import java.util.*;
@@ -30,23 +31,22 @@ import java.util.*;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Slf4j
-public class MultiTierFlatHashCache<K, V> extends AbstractMultiTierCache<K>
-        implements FlatHashCache<K, V> {
-
+public class MultiTierFlatHashCache<K, F, V> extends AbstractMultiTierCache<F>
+        implements FlatHashCache<K, F, V> {
     private String cacheName;
     private final MultiTierFlatHashCacheConfig config;
-    private final KVCacheLoader<K, V> cacheLoader;
+    private final FlatHashCacheLoader<K, F, V> cacheLoader;
     private CaffeineFlatHashCache<V> localCache;
     private RedisFlatHashCache<V> remoteCache;
     private CacheKeyConverter<K> keyConverter;
-    private CacheFieldConverter<K> fieldConverter;
+    private CacheFieldConverter<F> fieldConverter;
 
     public MultiTierFlatHashCache(String cacheName,
                                   MultiTierFlatHashCacheConfig config,
                                   RedissonClient rClient,
-                                  KVCacheLoader<K, V> cacheLoader,
+                                  FlatHashCacheLoader<K, F, V> cacheLoader,
                                   CacheKeyConverter<K> keyConverter,
-                                  CacheFieldConverter<K> fieldConverter) {
+                                  CacheFieldConverter<F> fieldConverter) {
         this.cacheName = cacheName;
         this.config = config;
         this.cacheLoader = cacheLoader;
@@ -73,189 +73,199 @@ public class MultiTierFlatHashCache<K, V> extends AbstractMultiTierCache<K>
     }
 
     @Override
-    public V get(K field) {
-        return null;
+    public V get(K bizKey, F bizField) {
+        CacheResult<K, F, V> result = getWithResult(bizKey, bizField);
+        return result != null ? result.getValueHolder().getValue() : null;
     }
 
     @Override
-    public V get(String tenantCode, K bizField) {
-        CacheAccessContext.setTenantCode(tenantCode);
-        return get(bizField);
-    }
-
-    @Override
-    public void refresh(K field) {
-
-    }
-
-    @Override
-    public void invalidate(K field) {
-
-    }
-
-    @Override
-    public Map<K, V> listAll(boolean forceRefresh) {
-        return null;
-    }
-
-    @Override
-    public FlatHashCacheGetResult<K, V> getWithResult(K bizField) {
+    public CacheResult<K, F, V> getWithResult(K bizKey, F bizField) {
         try {
             CacheParamChecker.failIfNull(bizField, cacheName);
-            long startMills = System.currentTimeMillis();
-
-            String key = config.getKey();
+            DefaultCacheAccessRecorder<K, F> recorder = new DefaultCacheAccessRecorder<>();
+            recorder.onStart(bizKey, bizField);
+            String key = keyConverter.convert(bizKey);
             String field = fieldConverter.convert(bizField);
+            CacheResult<K, F, V> result = new CacheResult<>(CacheAccessContext.getTrace());
 
-            FlatHashCacheGetResult<K, V> result = new FlatHashCacheGetResult<>(cacheName, config.getCacheTier(), key, bizField, field, startMills);
-
-            if (tryBlock(bizField, result)) {
+            if (localPpCache != null && localPpCache.isBlocked(bizField)) {
+                recorder.localBlocked(bizField);
+                recorder.end();
+                result.setTrace(CacheAccessContext.getTrace());
                 return result;
             }
 
-            CacheValueHolder<V> holder = tryLocalGet(key, field, result);
-            if (holder != null) {
-                return end(result, holder);
+            if (remotePpCache != null && remotePpCache.isBlocked(bizField)) {
+                recorder.remoteBlocked(bizField);
+                recorder.end();
+                result.setTrace(CacheAccessContext.getTrace());
+                return result;
             }
 
-            holder = tryRemoteGet(key, field, result);
-            if (holder != null) {
-                return end(result, holder);
+            CacheLookupResult<V> localResult = tryLocalGet(key, field);
+            if (localResult != null) {
+                if (localResult.isHit()) {
+                    recorder.localHit(bizField);
+                    result.setValueHolder(localResult.getValueHolder());
+                } else if (localResult.isPhysicalMiss()) {
+                    recorder.localPhysicalMiss(bizField);
+                } else if (localResult.isLogicalExpired()) {
+                    recorder.localLogicExpired(bizField);
+                }
+            }
+
+            CacheLookupResult<V> remoteResult = tryRemoteGet(key, field);
+            if (remoteResult != null) {
+                if (remoteResult.isHit()) {
+                    recorder.remoteHit(bizField);
+                    result.setValueHolder(remoteResult.getValueHolder());
+                } else if (remoteResult.isPhysicalMiss()) {
+                    recorder.remotePhysicalMiss(bizField);
+                } else if (remoteResult.isLogicalExpired()) {
+                    recorder.remoteLogicExpired(bizField);
+                }
             }
 
             if (!Boolean.TRUE.equals(config.getEnableLoadFallbackOnMiss())) {
-                return end(result, null);
+                recorder.end();
+                return result;
             }
 
-            holder = tryLoad(key, field, bizField, result);
-            return end(result, holder);
+            CacheLoadResult<V> loadResult = tryLoad(bizKey, bizField);
+            if (loadResult.isLoaded()) {
+                recorder.sourceLoaded(bizField);
+            } else if (loadResult.isNoValue()) {
+                recorder.sourceLoadNoValue(bizField);
+            } else if (loadResult.isError()) {
+                recorder.sourceLoadError(bizField);
+            }
+            recorder.end();
+            return result;
         } finally {
             CacheAccessContext.clear();
         }
     }
 
-    @Override
-    public FlatHashCacheGetResult<K, V> batGetWithResult(Collection<K> bizFields) {
-        try {
-            CacheAccessContext.setSource(CacheAccessSources.NORMAL.name());
-            String key = config.getKey();
-            FlatHashCacheGetResult<K, V> result = new FlatHashCacheGetResult<>(cacheName, config.getCacheTier(), key,
-                    System.currentTimeMillis());
-            Map<K, String> fieldMap = new HashMap<>();
-            for (K bizField : bizFields) {
-                CacheParamChecker.failIfNull(bizField, cacheName);
-                fieldMap.put(bizField, fieldConverter.convert(bizField));
-            }
-            // 1. 从 local 批量获取
-            Map<String, CacheValueHolder<V>> localValueHolderMap = localCache != null
-                    ? localCache.batchGetIfPresent(key, fieldMap.values())
-                    : Collections.emptyMap();
-            Set<K> localMissBizKeys = new HashSet<>();
-            for (Map.Entry<K, String> entry : fieldMap.entrySet()) {
-                CacheValueHolder<V> holder = localValueHolderMap.get(entry.getValue());
-                if (holder != null && holder.isNotLogicExpired()) {
-                    result.recordLocalStatus(entry.getKey(), CacheAccessStatus.HIT);
-                } else {
-                    localMissBizKeys.add(entry.getKey());
-                }
-            }
-            if (localMissBizKeys.isEmpty()) {
-                return remapToBizKey(localValueHolderMap, fieldMap);
-            }
-        } finally {
-            CacheAccessContext.clear();
-        }
-        return null;
+    private void recordLocal(CacheAccessRecorder<K, F> recorder, CacheLookupResult<CacheValueHolder<V>> result) {
+
     }
 
-    public Map<K, CacheValueHolder<V>> remapToBizKey(Map<String, CacheValueHolder<V>> fieldMap) {
-        Map<K, CacheValueHolder<V>> result = new HashMap<>();
+//    @Override
+//    public FlatHashCacheGetResult<F, V> batGetWithResult(Collection<F> bizFields) {
+//        try {
+//            CacheAccessContext.setSourceNormal();
+//            String key = config.getKey();
+//            FlatHashCacheGetResult<F, V> result = new FlatHashCacheGetResult<>(cacheName, config.getCacheTier(), key,
+//                    System.currentTimeMillis());
+//            Map<F, String> fieldMap = new HashMap<>();
+//            for (F bizField : bizFields) {
+//                CacheParamChecker.failIfNull(bizField, cacheName);
+//                fieldMap.put(bizField, fieldConverter.convert(bizField));
+//            }
+//            // 1. 从 local 批量获取
+//            Map<String, CacheValueHolder<V>> localValueHolderMap = localCache != null
+//                    ? localCache.batchGetIfPresent(key, fieldMap.values())
+//                    : Collections.emptyMap();
+//            Set<F> localMissBizKeys = new HashSet<>();
+//            for (Map.Entry<F, String> entry : fieldMap.entrySet()) {
+//                CacheValueHolder<V> holder = localValueHolderMap.get(entry.getValue());
+//                if (holder != null && holder.isNotLogicExpired()) {
+//                    result.recordLocalStatus(entry.getKey(), CacheAccessStatus.HIT);
+//                } else {
+//                    localMissBizKeys.add(entry.getKey());
+//                }
+//            }
+//            if (localMissBizKeys.isEmpty()) {
+//                return remapToBizKey(localValueHolderMap, fieldMap);
+//            }
+//        } finally {
+//            CacheAccessContext.clear();
+//        }
+//        return null;
+//    }
+
+    public Map<F, CacheValueHolder<V>> remapToBizKey(Map<String, CacheValueHolder<V>> fieldMap) {
+        Map<F, CacheValueHolder<V>> result = new HashMap<>();
         for (Map.Entry<String, CacheValueHolder<V>> entry : fieldMap.entrySet()) {
             result.put(fieldConverter.reverse(entry.getKey()), entry.getValue());
         }
         return result;
     }
 
-    private boolean tryBlock(K bizField, FlatHashCacheGetResult<K, V> result) {
+    private boolean tryBlock(F bizField, FlatHashCacheGetResult<F, V> result) {
         return tryLocalBlock(bizField, result) || tryRemoteBlock(bizField, result);
     }
 
-    private CacheValueHolder<V> tryLocalGet(String key, String field, FlatHashCacheGetResult<K, V> result) {
+    private CacheLookupResult<V> tryLocalGet(String key, String field) {
         if (localCache == null) {
             return null;
         }
-
+        CacheLookupResult<V> result = new CacheLookupResult<>();
         CacheValueHolder<V> holder = localCache.getIfPresent(key, field);
         if (holder == null) {
-            result.setLocalStatus(CacheAccessStatus.PHYSICAL_MISS);
-            return null;
-        }
-
-        if (holder.isNotLogicExpired()) {
-            result.setLocalStatus(CacheAccessStatus.HIT);
-            result.setValueHolder(holder);
-            return holder;
+            result.physicalMiss();
         } else {
-            result.setLocalStatus(CacheAccessStatus.LOGIC_EXPIRED);
-            return null;
+            if (holder.isNotLogicExpired()) {
+                result.hit();
+                result.setValueHolder(holder);
+            } else {
+                result.logicalExpired();
+            }
         }
+        return result;
     }
 
-    private CacheValueHolder<V> tryRemoteGet(String key, String field, FlatHashCacheGetResult<K, V> result) {
+    private CacheLookupResult<V> tryRemoteGet(String key, String field) {
         if (remoteCache == null) {
             return null;
         }
-
-        CacheValueHolder<V> holder = remoteCache.get(key);
+        CacheLookupResult<V> result = new CacheLookupResult<>();
+        CacheValueHolder<V> holder = remoteCache.getIfPresent(key, field);
         if (holder == null) {
-            result.setRemoteStatus(CacheAccessStatus.PHYSICAL_MISS);
-            return null;
-        }
-
-        if (holder.isNotLogicExpired()) {
-            result.setRemoteStatus(CacheAccessStatus.HIT);
-            result.setValueHolder(holder);
-            if (localCache != null) {
-                localCache.put(key, field, CacheValueHolder.wrap(holder.getValue(), config.getLocal().getTtlSecs()));
-            }
-            return holder;
+            result.physicalMiss();
         } else {
-            result.setRemoteStatus(CacheAccessStatus.LOGIC_EXPIRED);
-            return null;
+            if (holder.isNotLogicExpired()) {
+                result.hit();
+                result.setValueHolder(holder);
+            } else {
+                result.logicalExpired();
+            }
         }
+        return result;
     }
 
-    private CacheValueHolder<V> tryLoad(String key, String field, K bizField, FlatHashCacheGetResult<K, V> result) {
+    private CacheLoadResult<V> tryLoad(K bizKey, F bizField) {
+        CacheLoadResult<V> result = new CacheLoadResult<>();
         try {
-            V loaded = cacheLoader.load(bizField);
+            V loaded = cacheLoader.load(bizKey, bizField);
             if (loaded == null) {
-                result.setLoadStatus(SourceLoadStatus.NO_VALUE);
+                result.noValue();
                 markPenetrationProtect(bizField);
-                return null;
+                return result;
             }
 
             CacheValueHolder<V> wrappedRemote = CacheValueHolder.wrap(loaded, config.getRemote().getTtlSecs());
             CacheValueHolder<V> wrappedLocal = CacheValueHolder.wrap(loaded, config.getLocal().getTtlSecs());
 
+            String key = keyConverter.convert(bizKey);
+            String field = fieldConverter.convert(bizField);
             if (remoteCache != null) {
-                remoteCache.put(key, wrappedRemote);
+                remoteCache.put(key, field, wrappedRemote);
             }
             if (localCache != null) {
                 localCache.put(key, field, wrappedLocal);
             }
-
-            result.setLoadStatus(SourceLoadStatus.LOADED);
-            result.setValueHolder(new CacheValueHolder<>(loaded));
-            return result.getValueHolder();
+            result.loaded();
+            result.setValueHolder(wrappedLocal);
         } catch (Exception e) {
-            result.setLoadStatus(SourceLoadStatus.ERROR);
+            log.warn("缓存回源加载失败，cacheName={}, bizKey={}, bizField={}", cacheName, bizKey, bizField, e);
+            result.error();
             result.setException(e);
-            log.warn("缓存回源加载失败，cacheName={}, bizKey={}, key={}", cacheName, bizField, key, e);
-            return null;
         }
+        return result;
     }
 
-    private void markPenetrationProtect(K bizField) {
+    private void markPenetrationProtect(F bizField) {
         if (localPpCache != null) {
             localPpCache.markMiss(bizField);
         }
@@ -264,7 +274,7 @@ public class MultiTierFlatHashCache<K, V> extends AbstractMultiTierCache<K>
         }
     }
 
-    private FlatHashCacheGetResult<K, V> end(FlatHashCacheGetResult<K, V> result, CacheValueHolder<V> holder) {
+    private FlatHashCacheGetResult<F, V> end(FlatHashCacheGetResult<F, V> result, CacheValueHolder<V> holder) {
         if (holder != null) {
             result.setValueHolder(holder);
         }

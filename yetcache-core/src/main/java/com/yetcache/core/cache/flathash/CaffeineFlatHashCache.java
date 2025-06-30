@@ -20,7 +20,6 @@ import static com.yetcache.core.util.CacheConstants.DEFAULT_LOCAL_LIMIT;
  * @since 2025/6/29
  */
 public class CaffeineFlatHashCache<V> {
-
     private final CaffeineSingleHashCacheConfig config;
     private final Cache<String, ConcurrentHashMap<String, CacheValueHolder<V>>> cache;
 

@@ -23,23 +23,23 @@ public class RedisFlatHashCache<V> {
         this.rClient = rClient;
     }
 
-    public CacheValueHolder<V> get(String field) {
-        return getRedisMap().get(field);
+    public CacheValueHolder<V> getIfPresent(String key, String field) {
+        return getRedisMap(key).get(field);
     }
 
-    public void put(String field, CacheValueHolder<V> valueHolder) {
-        getRedisMap().put(field, valueHolder);
+    public void put(String key, String field, CacheValueHolder<V> valueHolder) {
+        getRedisMap(key).put(field, valueHolder);
     }
 
-    public void invalidate(String field) {
-        getRedisMap().remove(field);
+    public void invalidate(String key, String field) {
+        getRedisMap(key).remove(field);
     }
 
-    public Map<String, CacheValueHolder<V>> listAll() {
-        return getRedisMap().readAllMap();
+    public Map<String, CacheValueHolder<V>> listAll(String key) {
+        return getRedisMap(key).readAllMap();
     }
 
-    protected RMap<String, CacheValueHolder<V>> getRedisMap() {
-        return rClient.getMap(config.getKey());
+    protected RMap<String, CacheValueHolder<V>> getRedisMap(String key) {
+        return rClient.getMap(key);
     }
 }

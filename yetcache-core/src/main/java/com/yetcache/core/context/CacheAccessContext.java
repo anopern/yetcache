@@ -1,6 +1,10 @@
 package com.yetcache.core.context;
 
+import com.yetcache.core.support.trace.CacheAccessTrace;
 import lombok.Data;
+import org.checkerframework.checker.units.qual.K;
+
+import javax.sound.midi.SoundbankResource;
 
 /**
  * @author walter.yan
@@ -16,6 +20,7 @@ public class CacheAccessContext {
         private String source;
         private String operator;
         private boolean forceRefresh;
+        private CacheAccessTrace<?, ?> trace;
     }
 
     // 设置方法
@@ -72,5 +77,18 @@ public class CacheAccessContext {
 
     public static void setContext(Context context) {
         CONTEXT.set(context);
+    }
+
+    public static void setSourceNormal() {
+        CONTEXT.get().setSource(CacheAccessSources.NORMAL.name());
+    }
+
+    public static void setTrace(CacheAccessTrace<?, ?> trace) {
+        CONTEXT.get().setTrace(trace);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <K, F> CacheAccessTrace<K, F> getTrace() {
+        return (CacheAccessTrace<K, F>) CONTEXT.get().getTrace();
     }
 }
