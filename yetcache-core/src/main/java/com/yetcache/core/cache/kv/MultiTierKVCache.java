@@ -7,7 +7,7 @@ import com.yetcache.core.cache.result.SourceLoadStatus;
 import com.yetcache.core.cache.loader.KVCacheLoader;
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import com.yetcache.core.config.PenetrationProtectConfig;
-import com.yetcache.core.support.key.CacheKeyConverter;
+import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
 import com.yetcache.core.support.util.CacheParamChecker;
@@ -30,7 +30,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
     private final KVCacheLoader<K, V> cacheLoader;
     private CaffeineKVCache<V> localCache;
     private RedisKVCache<V> redisCache;
-    private CacheKeyConverter<K> keyConverter;
+    private KeyConverter<K> keyConverter;
     private CaffeinePenetrationProtectCache<K> localPpCache;
     private RedisPenetrationProtectCache<K> remotePpCache;
 
@@ -38,7 +38,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
                             MultiTierKVCacheConfig config,
                             RedissonClient rClient,
                             KVCacheLoader<K, V> cacheLoader,
-                            CacheKeyConverter<K> keyConverter) {
+                            KeyConverter<K> keyConverter) {
         this.cacheName = cacheName;
         this.config = config;
         this.cacheLoader = cacheLoader;

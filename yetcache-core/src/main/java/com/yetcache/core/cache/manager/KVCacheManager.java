@@ -3,16 +3,20 @@ package com.yetcache.core.cache.manager;
 import com.yetcache.core.config.TenantMode;
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import com.yetcache.core.config.YetCacheProperties;
-import com.yetcache.core.support.key.CacheKeyConverter;
-import com.yetcache.core.support.key.CacheKeyConverterFactory;
+import com.yetcache.core.support.key.BizKeyPartConverter;
+import com.yetcache.core.support.key.DefaultBizKeyPartConverter;
+import com.yetcache.core.support.key.KeyConverter;
+import com.yetcache.core.support.key.KeyConverterFactory;
 import com.yetcache.core.cache.loader.KVCacheLoader;
 import com.yetcache.core.cache.kv.MultiTierKVCache;
 import com.yetcache.core.support.tenant.TenantProvider;
 import com.yetcache.core.merger.CacheConfigMerger;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -36,17 +40,18 @@ public final class KVCacheManager {
         this.tenantProvider = tenantProvider;
     }
 
+    @SuppressWarnings("unchecked")
     public <K, V> MultiTierKVCache<K, V> create(String name,
                                                 RedissonClient rClient,
                                                 KVCacheLoader<K, V> cacheLoader) {
-        return create(name, rClient, null, cacheLoader);
+        return create(name, rClient, cacheLoader, null);
     }
 
     @SuppressWarnings("unchecked")
     public <K, V> MultiTierKVCache<K, V> create(String name,
                                                 RedissonClient rClient,
-                                                TenantProvider tenantProvider,
-                                                KVCacheLoader<K, V> cacheLoader) {
+                                                KVCacheLoader<K, V> cacheLoader,
+                                                BizKeyPartConverter<K> bizKeyPartConverter) {
         MultiTierKVCache<?, ?> existing = registry.get(name);
         if (existing != null) {
             throw new IllegalStateException("Cache already exists: " + name);
@@ -64,9 +69,11 @@ public final class KVCacheManager {
         MultiTierKVCacheConfig config = CacheConfigMerger.merge(properties.getGlobal(), raw);
 
         TenantProvider providerToUse = config.getTenantMode() == TenantMode.NONE ? null : this.tenantProvider;
-        CacheKeyConverter<K> cacheKeyConverter = CacheKeyConverterFactory.create(config.getKeyPrefix(),
-                config.getTenantMode(), config.getUseHashTag(), providerToUse);
-        MultiTierKVCache<K, V> newCache = new MultiTierKVCache<>(name, config, rClient, cacheLoader, cacheKeyConverter);
+
+        KeyConverter<K> keyConverter = KeyConverterFactory.createDefault(config.getKeyPrefix(),
+                config.getTenantMode(), config.getUseHashTag(), providerToUse,
+                Objects.requireNonNullElseGet(bizKeyPartConverter, DefaultBizKeyPartConverter::new));
+        MultiTierKVCache<K, V> newCache = new MultiTierKVCache<>(name, config, rClient, cacheLoader, keyConverter);
         registry.register(name, newCache);
         log.info("KVCache [{}] created and registered", name);
         return newCache;

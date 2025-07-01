@@ -8,20 +8,21 @@ import com.yetcache.core.support.tenant.TenantProvider;
  * @author walter.yan
  * @since 2025/6/28
  */
-public class DefaultCacheKeyConverter<K> implements CacheKeyConverter<K> {
-    private final String keyPrefix;
-    private final TenantMode tenantMode;
-    private final boolean useHashTag;
-    private final TenantProvider tenantProvider;
+public class DefaultKeyConverter<K> implements KeyConverter<K> {
+    protected final String keyPrefix;
+    protected final TenantMode tenantMode;
+    protected final boolean useHashTag;
+    protected final TenantProvider tenantProvider;
+    protected final BizKeyPartConverter<K> bizKeyPartConverter;
 
-    public DefaultCacheKeyConverter(String keyPrefix,
-                                    TenantMode tenantMode,
-                                    boolean useHashTag,
-                                    TenantProvider tenantProvider) {
+    public DefaultKeyConverter(String keyPrefix, TenantMode tenantMode,
+                               boolean useHashTag, TenantProvider tenantProvider,
+                               BizKeyPartConverter<K> bizKeyPartConverter) {
         this.keyPrefix = keyPrefix;
         this.tenantMode = tenantMode;
         this.useHashTag = useHashTag;
         this.tenantProvider = tenantProvider;
+        this.bizKeyPartConverter = bizKeyPartConverter;
 
         if ((tenantMode == TenantMode.REQUIRED || tenantMode == TenantMode.OPTIONAL) && tenantProvider == null) {
             throw new IllegalArgumentException("TenantProvider must be provided when tenantMode != NONE");
@@ -33,22 +34,24 @@ public class DefaultCacheKeyConverter<K> implements CacheKeyConverter<K> {
         if (bizKey == null) {
             throw new IllegalArgumentException("Cache key cannot be null");
         }
+        StringBuilder sb = new StringBuilder(getKeyPrefixWithTenant());
 
+        String bizKeyPart = bizKeyPartConverter.convert(bizKey);
+        if (useHashTag) {
+            sb.append("{").append(bizKeyPart).append("}");
+        } else {
+            sb.append(bizKeyPart);
+        }
+
+        return sb.toString();
+    }
+
+    protected String getKeyPrefixWithTenant() {
         StringBuilder sb = new StringBuilder(keyPrefix);
-
-        // 拼接租户信息（如配置要求）
         String tenantCode = resolveTenantCode();
         if (tenantCode != null) {
             sb.append(":").append(tenantCode);
         }
-
-        String bizKeyStr = String.valueOf(bizKey);
-        if (useHashTag) {
-            sb.append("{").append(bizKeyStr).append("}");
-        } else {
-            sb.append(bizKeyStr);
-        }
-
         return sb.toString();
     }
 
@@ -57,7 +60,7 @@ public class DefaultCacheKeyConverter<K> implements CacheKeyConverter<K> {
      *
      * @return 租户编码，若无需求则返回 null
      */
-    private String resolveTenantCode() {
+    protected String resolveTenantCode() {
         switch (tenantMode) {
             case REQUIRED:
                 String requiredCode = tenantProvider.getCurrentTenantCode();

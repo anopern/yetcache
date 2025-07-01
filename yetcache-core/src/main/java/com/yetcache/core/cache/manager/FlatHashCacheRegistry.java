@@ -1,8 +1,6 @@
 package com.yetcache.core.cache.manager;
 
-import com.yetcache.core.cache.flathash.FlatHashCache;
 import com.yetcache.core.cache.flathash.MultiTierFlatHashCache;
-import com.yetcache.core.cache.kv.MultiTierKVCache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

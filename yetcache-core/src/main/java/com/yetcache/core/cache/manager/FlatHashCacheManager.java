@@ -1,22 +1,23 @@
 package com.yetcache.core.cache.manager;
 
 import com.yetcache.core.cache.flathash.MultiTierFlatHashCache;
-import com.yetcache.core.cache.kv.MultiTierKVCache;
 import com.yetcache.core.cache.loader.FlatHashCacheLoader;
 import com.yetcache.core.config.TenantMode;
 import com.yetcache.core.config.YetCacheProperties;
-import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import com.yetcache.core.config.singlehash.MultiTierFlatHashCacheConfig;
 import com.yetcache.core.merger.CacheConfigMerger;
-import com.yetcache.core.support.field.CacheFieldConverter;
-import com.yetcache.core.support.field.CacheFieldConverterFactory;
-import com.yetcache.core.support.key.CacheKeyConverter;
-import com.yetcache.core.support.key.CacheKeyConverterFactory;
+import com.yetcache.core.support.field.FieldConverter;
+import com.yetcache.core.support.field.FieldConverterFactory;
+import com.yetcache.core.support.key.BizKeyPartConverter;
+import com.yetcache.core.support.key.DefaultBizKeyPartConverter;
+import com.yetcache.core.support.key.KeyConverter;
+import com.yetcache.core.support.key.KeyConverterFactory;
 import com.yetcache.core.support.tenant.TenantProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -43,14 +44,14 @@ public final class FlatHashCacheManager {
     public <K, F, V> MultiTierFlatHashCache<K, F, V> create(String name,
                                                             RedissonClient rClient,
                                                             FlatHashCacheLoader<K, F, V> cacheLoader) {
-        return create(name, rClient, null, cacheLoader);
+        return create(name, rClient, cacheLoader, null);
     }
 
     @SuppressWarnings("unchecked")
     public <K, F, V> MultiTierFlatHashCache<K, F, V> create(String name,
                                                             RedissonClient rClient,
-                                                            TenantProvider tenantProvider,
-                                                            FlatHashCacheLoader<K, F, V> cacheLoader) {
+                                                            FlatHashCacheLoader<K, F, V> cacheLoader,
+                                                            BizKeyPartConverter<K> bizKeyPartConverter) {
         MultiTierFlatHashCache<?, ?, ?> existing = registry.get(name);
         if (existing != null) {
             throw new IllegalStateException("Cache already exists: " + name);
@@ -68,11 +69,12 @@ public final class FlatHashCacheManager {
         MultiTierFlatHashCacheConfig config = CacheConfigMerger.merge(properties.getGlobal(), raw);
 
         TenantProvider providerToUse = config.getTenantMode() == TenantMode.NONE ? null : this.tenantProvider;
-        CacheKeyConverter<K> cacheKeyConverter = CacheKeyConverterFactory.create(config.getKeyPrefix(),
-                config.getTenantMode(), config.getUseHashTag(), providerToUse);
-        CacheFieldConverter<F> cacheFieldConverter = CacheFieldConverterFactory.create();
+        KeyConverter<K> keyConverter = KeyConverterFactory.createDefault(config.getKeyPrefix(),
+                config.getTenantMode(), config.getUseHashTag(), providerToUse,
+                Objects.requireNonNullElseGet(bizKeyPartConverter, DefaultBizKeyPartConverter::new));
+        FieldConverter<F> fieldConverter = FieldConverterFactory.create();
         MultiTierFlatHashCache<K, F, V> newCache = new MultiTierFlatHashCache<>(name, config, rClient, cacheLoader,
-                cacheKeyConverter, cacheFieldConverter);
+                keyConverter, fieldConverter);
         registry.register(name, newCache);
         log.info("FlatHashCache [{}] created and registered", name);
         return newCache;

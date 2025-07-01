@@ -10,11 +10,10 @@ import com.yetcache.core.config.singlehash.MultiTierFlatHashCacheConfig;
 import com.yetcache.core.context.CacheAccessContext;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
-import com.yetcache.core.support.field.CacheFieldConverter;
-import com.yetcache.core.support.key.CacheKeyConverter;
+import com.yetcache.core.support.field.FieldConverter;
+import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.support.result.CacheLoadResult;
 import com.yetcache.core.support.result.CacheLookupResult;
-import com.yetcache.core.support.trace.CacheAccessRecorder;
 import com.yetcache.core.support.trace.DefaultCacheAccessRecorder;
 import com.yetcache.core.support.util.CacheParamChecker;
 import lombok.Data;
@@ -38,15 +37,15 @@ public class MultiTierFlatHashCache<K, F, V> extends AbstractMultiTierCache<F>
     private final FlatHashCacheLoader<K, F, V> cacheLoader;
     private CaffeineFlatHashCache<V> localCache;
     private RedisFlatHashCache<V> remoteCache;
-    private CacheKeyConverter<K> keyConverter;
-    private CacheFieldConverter<F> fieldConverter;
+    private KeyConverter<K> keyConverter;
+    private FieldConverter<F> fieldConverter;
 
     public MultiTierFlatHashCache(String cacheName,
                                   MultiTierFlatHashCacheConfig config,
                                   RedissonClient rClient,
                                   FlatHashCacheLoader<K, F, V> cacheLoader,
-                                  CacheKeyConverter<K> keyConverter,
-                                  CacheFieldConverter<F> fieldConverter) {
+                                  KeyConverter<K> keyConverter,
+                                  FieldConverter<F> fieldConverter) {
         this.cacheName = cacheName;
         this.config = config;
         this.cacheLoader = cacheLoader;

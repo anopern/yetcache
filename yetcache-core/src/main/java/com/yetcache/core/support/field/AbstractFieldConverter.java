@@ -4,7 +4,7 @@ package com.yetcache.core.support.field;
  * @author walter.yan
  * @since 2025/6/29
  */
-public class AbstractCacheFieldConverter<K> implements CacheFieldConverter<K> {
+public class AbstractFieldConverter<K> implements FieldConverter<K> {
     @Override
     public String convert(K bizField) {
         if (bizField == null) {

@@ -13,16 +13,15 @@ import org.springframework.stereotype.Component;
  * @since 2025/6/28
  */
 @Component
-public final class UserCacheAgent extends BaseCacheAgent {
+public final class UserCacheAgent extends BaseKVCacheAgent {
     @Autowired
     @Qualifier("idKeyUserCacheLoader")
     private KVCacheLoader<Long, User> idKeyCacheLoader;
-
     private MultiTierKVCache<Long, User> idKeyCache;
 
     @Override
     protected void createCache() {
-        idKeyCache = kVCacheManager.create(EnumCaches.USER_ID_KEY_CACHE.getName(), rClient, idKeyCacheLoader);
+        idKeyCache = kVCacheManager.create(EnumCaches.USER_ID_KEY_CACHE.getName(), rClient, idKeyCacheLoader, null);
     }
 
     public User get(Long id) {

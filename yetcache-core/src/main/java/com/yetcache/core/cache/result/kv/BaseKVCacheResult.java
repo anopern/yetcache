@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class BaseKVCacheResult<K> extends BaseCacheResult<BaseKVCacheResult<K>> {
+public class BaseKVCacheResult<K> extends BaseCacheResult<K, BaseKVCacheResult<K>> {
     /**
      * 业务原始 key（未转换前的业务层 key），用于定位调用源头，便于排查。
      */
