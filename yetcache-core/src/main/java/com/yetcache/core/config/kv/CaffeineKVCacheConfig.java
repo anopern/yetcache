@@ -3,6 +3,7 @@ package com.yetcache.core.config.kv;
 import com.yetcache.core.config.BaseCacheConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 
 /**
  * @author walter.yan
@@ -10,6 +11,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@ConfigurationPropertiesBinding
 public class CaffeineKVCacheConfig extends BaseCacheConfig {
     protected Integer maxSize;
 }

@@ -3,6 +3,7 @@ package com.yetcache.core.cache.flathash;
 import com.yetcache.core.cache.AbstractMultiTierCache;
 import com.yetcache.core.cache.loader.FlatHashCacheLoader;
 import com.yetcache.core.cache.result.CacheResult;
+import com.yetcache.core.cache.result.kv.KVCacheGetResult;
 import com.yetcache.core.cache.result.singlehash.FlatHashCacheGetResult;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.PenetrationProtectConfig;
@@ -12,6 +13,7 @@ import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
+import com.yetcache.core.support.key.NoneBizKeyKeyConverter;
 import com.yetcache.core.support.result.CacheLoadResult;
 import com.yetcache.core.support.result.CacheLookupResult;
 import com.yetcache.core.support.trace.DefaultCacheAccessRecorder;
@@ -72,15 +74,29 @@ public class MultiTierFlatHashCache<K, F, V> extends AbstractMultiTierCache<F>
     }
 
     @Override
+    public V get(F bizField) {
+        if (!(keyConverter instanceof NoneBizKeyKeyConverter)) {
+            throw new IllegalArgumentException("Cache key must be not null");
+        }
+        return get(null, bizField);
+    }
+
+    @Override
     public V get(K bizKey, F bizField) {
         CacheResult<K, F, V> result = getWithResult(bizKey, bizField);
-        return result != null ? result.getValueHolder().getValue() : null;
+        log.debug("CacheResult: {}", result);
+        if (result.getValueHolder() != null) {
+            return result.getValueHolder().getValue();
+        }
+        return null;
     }
 
     @Override
     public CacheResult<K, F, V> getWithResult(K bizKey, F bizField) {
         try {
-            CacheParamChecker.failIfNull(bizField, cacheName);
+            if (!(keyConverter instanceof NoneBizKeyKeyConverter)) {
+                CacheParamChecker.failIfNull(bizField, cacheName);
+            }
             DefaultCacheAccessRecorder<K, F> recorder = new DefaultCacheAccessRecorder<>();
             recorder.onStart(bizKey, bizField);
 

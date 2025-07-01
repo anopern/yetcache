@@ -26,6 +26,6 @@ public class ConfigCommonInfoCacheAgent extends BaseFlatHashCacheAgent {
     }
 
     public ConfigCommonInfo getByCode(String code) {
-        return cache.get(EnumCaches.CONFIG_COMMON_INFO_CACHE.getName(), code);
+        return cache.get(code);
     }
 }

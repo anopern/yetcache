@@ -12,7 +12,13 @@ public class KeyConverterFactory {
                                                     TenantMode tenantMode,
                                                     boolean useHashTag,
                                                     TenantProvider tenantProvider,
-                                                    BizKeyPartConverter<K> bizKeyPartConverter) {
-        return new DefaultKeyConverter<>(keyPrefix, tenantMode, useHashTag, tenantProvider, bizKeyPartConverter);
+                                                    BizKeyConverter<K> bizKeyConverter) {
+        return new DefaultKeyConverter<>(keyPrefix, tenantMode, useHashTag, tenantProvider, bizKeyConverter);
+    }
+
+    public static <K> KeyConverter<K> createNoneBizKey(String keyPrefix,
+                                                    TenantMode tenantMode,
+                                                    TenantProvider tenantProvider) {
+        return new NoneBizKeyKeyConverter<>(keyPrefix, tenantMode, tenantProvider);
     }
 }

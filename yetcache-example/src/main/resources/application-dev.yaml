@@ -35,14 +35,28 @@ yetcache:
   global:
     cache-tier: BOTH
     tenant-mode: NONE
-    local:
+    use-hash-tag: true
+    kv-local:
       max-size: 2000
       ttl-secs: 180
       penetration-protect:
         enabled: true
         ttl-secs: 30
         max-size: 10_000
-    remote:
+    kv-remote:
+      ttl-secs: 600
+      penetration-protect:
+        enabled: true
+        ttl-secs: 60
+        max-size: 10_000
+    flat-hash-local:
+      max-size: 2000
+      ttl-secs: 180
+      penetration-protect:
+        enabled: true
+        max-size: 10_000
+        ttl-secs: 30
+    flat-hash-remote:
       ttl-secs: 600
       penetration-protect:
         enabled: true
@@ -57,6 +71,6 @@ yetcache:
           ttl-secs: 30
         remote:
           ttl-secs: 120
-    single-hash:
+    flat-hash:
       config-common-info-cache:
-        key: 'nd:config:common:info'
+        key-prefix: 'nd:config:common:info'

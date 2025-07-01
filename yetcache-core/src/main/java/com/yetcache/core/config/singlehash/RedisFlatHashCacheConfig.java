@@ -3,6 +3,7 @@ package com.yetcache.core.config.singlehash;
 import com.yetcache.core.config.BaseCacheConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 
 /**
  * @author walter.yan
@@ -10,5 +11,6 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@ConfigurationPropertiesBinding
 public class RedisFlatHashCacheConfig extends BaseCacheConfig {
 }

@@ -11,6 +11,8 @@ import java.util.Map;
  * @since 2025/6/29
  */
 public interface FlatHashCache<K, F, V> {
+    V get(F bizField);
+
     V get(K bizKey, F bizField);
 
     CacheResult<K, F, V> getWithResult(K bizKey, F bizField);

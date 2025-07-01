@@ -15,8 +15,8 @@ import javax.annotation.PostConstruct;
  */
 @Data
 @ConfigurationProperties(prefix = "yetcache")
-@Component
 @Slf4j
+@Component
 public class YetCacheProperties {
     @NestedConfigurationProperty
     private GlobalConfig global = new GlobalConfig();
