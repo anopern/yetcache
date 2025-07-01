@@ -7,5 +7,5 @@ import org.checkerframework.checker.units.qual.K;
  * @author walter.yan
  * @since 2025/7/1
  */
-public interface KVCacheAccessRecorder<K> extends CacheAccessRecorder<K> {
+public interface KVCacheAccessRecorder<K> extends CacheAccessRecorder  {
 }

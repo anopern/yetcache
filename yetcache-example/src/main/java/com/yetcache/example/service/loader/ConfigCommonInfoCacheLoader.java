@@ -18,17 +18,13 @@ import java.util.stream.Collectors;
  * @since 2025/7/1
  */
 @Component
-public class ConfigCommonInfoCacheLoader extends AbstractFlatHashCacheLoader<String, String, ConfigCommonInfo> {
+public class ConfigCommonInfoCacheLoader extends AbstractFlatHashCacheLoader<String, ConfigCommonInfo> {
     @Autowired
     private IConfigCommonInfoService configCommonInfoService;
 
-    @Override
-    public ConfigCommonInfo load(String bizKey, String bizField) {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
-    public Map<String, ConfigCommonInfo> loadAll(String bizKey) {
+    public Map<String, ConfigCommonInfo> loadAll() {
         List<ConfigCommonInfo> list = configCommonInfoService.listAll();
         if (CollUtil.isEmpty(list)) {
             return new HashMap<>();

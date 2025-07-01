@@ -11,6 +11,7 @@ import com.yetcache.core.support.field.FieldConverterFactory;
 import com.yetcache.core.support.key.*;
 import com.yetcache.core.support.tenant.TenantProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.K;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,18 +32,18 @@ public final class FlatHashCacheManager {
     @Autowired(required = false)
     private TenantProvider tenantProvider;
 
-    public <K, F, V> MultiTierFlatHashCache<K, F, V> create(String name,
-                                                            RedissonClient rClient,
-                                                            FlatHashCacheLoader<K, F, V> cacheLoader) {
+    public <F, V> MultiTierFlatHashCache<F, V> create(String name,
+                                                      RedissonClient rClient,
+                                                      FlatHashCacheLoader<F, V> cacheLoader) {
         return create(name, rClient, cacheLoader, null);
     }
 
     @SuppressWarnings("unchecked")
-    public <K, F, V> MultiTierFlatHashCache<K, F, V> create(String name,
-                                                            RedissonClient rClient,
-                                                            FlatHashCacheLoader<K, F, V> cacheLoader,
-                                                            FieldConverter<F> fieldConverter) {
-        MultiTierFlatHashCache<?, ?, ?> existing = registry.get(name);
+    public <F, V> MultiTierFlatHashCache<F, V> create(String name,
+                                                      RedissonClient rClient,
+                                                      FlatHashCacheLoader<F, V> cacheLoader,
+                                                      FieldConverter<F> fieldConverter) {
+        MultiTierFlatHashCache<?, ?> existing = registry.get(name);
         if (existing != null) {
             throw new IllegalStateException("Cache already exists: " + name);
         }
@@ -64,7 +65,7 @@ public final class FlatHashCacheManager {
         if (null == fieldConverter) {
             fieldConverter = FieldConverterFactory.create();
         }
-        MultiTierFlatHashCache<K, F, V> newCache = new MultiTierFlatHashCache<>(name, config, rClient, cacheLoader,
+        MultiTierFlatHashCache<F, V> newCache = new MultiTierFlatHashCache<>(name, config, rClient, cacheLoader,
                 keyConverter, fieldConverter);
         registry.register(name, newCache);
         log.info("FlatHashCache [{}] created and registered", name);

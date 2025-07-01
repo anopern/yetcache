@@ -2,8 +2,7 @@ package com.yetcache.core.cache.flathash;
 
 import com.yetcache.core.cache.AbstractMultiTierCache;
 import com.yetcache.core.cache.loader.FlatHashCacheLoader;
-import com.yetcache.core.cache.result.CacheResult;
-import com.yetcache.core.cache.result.flathash.FlatHashCacheGetResult;
+import com.yetcache.core.cache.result.flathash.FlatHashCacheResult;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.PenetrationProtectConfig;
 import com.yetcache.core.config.singlehash.MultiTierFlatHashCacheConfig;
@@ -30,21 +29,21 @@ import java.util.*;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Slf4j
-public class MultiTierFlatHashCache<K, F, V> extends AbstractMultiTierCache<F>
-        implements FlatHashCache<K, F, V> {
+public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
+        implements FlatHashCache<F, V> {
     private String cacheName;
     private final MultiTierFlatHashCacheConfig config;
-    private final FlatHashCacheLoader<K, F, V> cacheLoader;
+    private final FlatHashCacheLoader<F, V> cacheLoader;
     private CaffeineFlatHashCache<V> localCache;
     private RedisFlatHashCache<V> remoteCache;
-    private NoneBizKeyKeyConverter<K> keyConverter;
+    private NoneBizKeyKeyConverter<?> keyConverter;
     private FieldConverter<F> fieldConverter;
 
     public MultiTierFlatHashCache(String cacheName,
                                   MultiTierFlatHashCacheConfig config,
                                   RedissonClient rClient,
-                                  FlatHashCacheLoader<K, F, V> cacheLoader,
-                                  NoneBizKeyKeyConverter<K> keyConverter,
+                                  FlatHashCacheLoader<F, V> cacheLoader,
+                                  NoneBizKeyKeyConverter<?> keyConverter,
                                   FieldConverter<F> fieldConverter) {
         this.cacheName = cacheName;
         this.config = config;
@@ -73,7 +72,7 @@ public class MultiTierFlatHashCache<K, F, V> extends AbstractMultiTierCache<F>
 
     @Override
     public V get(F bizField) {
-        CacheResult<K, F, V> result = getWithResult(bizField);
+        FlatHashCacheResult<F, V> result = getWithResult(bizField);
         log.debug("CacheResult: {}", result);
         if (result.getValueHolder() != null) {
             return result.getValueHolder().getValue();
@@ -82,7 +81,7 @@ public class MultiTierFlatHashCache<K, F, V> extends AbstractMultiTierCache<F>
     }
 
     @Override
-    public CacheResult<K, F, V> getWithResult(F bizField) {
+    public FlatHashCacheResult<F, V> getWithResult(F bizField) {
         try {
             CacheParamChecker.failIfNull(bizField, cacheName);
             DefaultFlatHashCacheAccessRecorder<F> recorder = new DefaultFlatHashCacheAccessRecorder<>();
@@ -90,7 +89,7 @@ public class MultiTierFlatHashCache<K, F, V> extends AbstractMultiTierCache<F>
 
             String key = keyConverter.convert(null);
             String field = fieldConverter.convert(bizField);
-            CacheResult<K, F, V> result = new CacheResult<>();
+            FlatHashCacheResult<F, V> result = new FlatHashCacheResult<>();
 
             // --- 封装后的三段核心逻辑 ---
             if (tryBlockAndRecord(bizField, recorder)) {
@@ -108,7 +107,7 @@ public class MultiTierFlatHashCache<K, F, V> extends AbstractMultiTierCache<F>
     }
 
     @Override
-    public CacheResult<K, F, V> refreshAllWithResult() {
+    public FlatHashCacheResult<F, V> refreshAllWithResult() {
         try {
             FlatHashCacheAccessRecorder<F> recorder = new DefaultFlatHashCacheAccessRecorder<>();
             recorder.recordStart();
@@ -133,7 +132,7 @@ public class MultiTierFlatHashCache<K, F, V> extends AbstractMultiTierCache<F>
 
     private boolean tryCacheLookupAndRecord(String key, String field, F bizField,
                                             FlatHashCacheAccessRecorder<F> recorder,
-                                            CacheResult<K, F, V> result) {
+                                            FlatHashCacheResult<F, V> result) {
         CacheLookupResult<V> localResult = tryLocalGet(key, field);
         if (localResult != null) {
             if (localResult.isHit()) {
@@ -161,53 +160,6 @@ public class MultiTierFlatHashCache<K, F, V> extends AbstractMultiTierCache<F>
         }
 
         return false;
-    }
-
-
-//    @Override
-//    public FlatHashCacheGetResult<F, V> batGetWithResult(Collection<F> bizFields) {
-//        try {
-//            CacheAccessContext.setSourceNormal();
-//            String key = config.getKey();
-//            FlatHashCacheGetResult<F, V> result = new FlatHashCacheGetResult<>(cacheName, config.getCacheTier(), key,
-//                    System.currentTimeMillis());
-//            Map<F, String> fieldMap = new HashMap<>();
-//            for (F bizField : bizFields) {
-//                CacheParamChecker.failIfNull(bizField, cacheName);
-//                fieldMap.put(bizField, fieldConverter.convert(bizField));
-//            }
-//            // 1. 从 local 批量获取
-//            Map<String, CacheValueHolder<V>> localValueHolderMap = localCache != null
-//                    ? localCache.batchGetIfPresent(key, fieldMap.values())
-//                    : Collections.emptyMap();
-//            Set<F> localMissBizKeys = new HashSet<>();
-//            for (Map.Entry<F, String> entry : fieldMap.entrySet()) {
-//                CacheValueHolder<V> holder = localValueHolderMap.get(entry.getValue());
-//                if (holder != null && holder.isNotLogicExpired()) {
-//                    result.recordLocalStatus(entry.getKey(), CacheAccessStatus.HIT);
-//                } else {
-//                    localMissBizKeys.add(entry.getKey());
-//                }
-//            }
-//            if (localMissBizKeys.isEmpty()) {
-//                return remapToBizKey(localValueHolderMap, fieldMap);
-//            }
-//        } finally {
-//            CacheAccessContext.clear();
-//        }
-//        return null;
-//    }
-
-    public Map<F, CacheValueHolder<V>> remapToBizKey(Map<String, CacheValueHolder<V>> fieldMap) {
-        Map<F, CacheValueHolder<V>> result = new HashMap<>();
-        for (Map.Entry<String, CacheValueHolder<V>> entry : fieldMap.entrySet()) {
-            result.put(fieldConverter.reverse(entry.getKey()), entry.getValue());
-        }
-        return result;
-    }
-
-    private boolean tryBlock(F bizField, FlatHashCacheGetResult<F, V> result) {
-        return tryLocalBlock(bizField, result) || tryRemoteBlock(bizField, result);
     }
 
     private CacheLookupResult<V> tryLocalGet(String key, String field) {
@@ -249,10 +201,10 @@ public class MultiTierFlatHashCache<K, F, V> extends AbstractMultiTierCache<F>
     }
 
 
-    private CacheResult<K, F, V> end(FlatHashCacheAccessRecorder<F> recorder,
-                                     CacheResult<K, F, V> result) {
+    private FlatHashCacheResult<F, V> end(FlatHashCacheAccessRecorder<F> recorder,
+                                          FlatHashCacheResult<F, V> result) {
         recorder.recordEnd();
-        result.setFlashHashTrace(CacheAccessContext.getFlatHashTrace());
+        result.setTrace(CacheAccessContext.getFlatHashTrace());
         return result;
     }
 }

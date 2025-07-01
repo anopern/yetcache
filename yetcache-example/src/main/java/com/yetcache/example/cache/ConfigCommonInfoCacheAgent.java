@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 public class ConfigCommonInfoCacheAgent extends BaseFlatHashCacheAgent {
     @Autowired
     private ConfigCommonInfoCacheLoader cacheLoader;
-    private FlatHashCache<String, String, ConfigCommonInfo> cache;
+    private FlatHashCache<String, ConfigCommonInfo> cache;
 
     @Override
     protected void createCache() {

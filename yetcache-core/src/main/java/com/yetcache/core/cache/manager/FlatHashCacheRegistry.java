@@ -14,9 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Component
 public final class FlatHashCacheRegistry {
-    private final Map<String, MultiTierFlatHashCache<?, ?, ?>> registry = new ConcurrentHashMap<>();
+    private final Map<String, MultiTierFlatHashCache<?, ?>> registry = new ConcurrentHashMap<>();
 
-    public MultiTierFlatHashCache<?, ?, ?> get(String name) {
+    public MultiTierFlatHashCache<?, ?> get(String name) {
         return registry.get(name);
     }
 
@@ -24,7 +24,7 @@ public final class FlatHashCacheRegistry {
         return registry.containsKey(name);
     }
 
-    public void register(String name, MultiTierFlatHashCache<?, ?, ?> cache) {
+    public void register(String name, MultiTierFlatHashCache<?, ?> cache) {
         registry.put(name, cache);
     }
 
