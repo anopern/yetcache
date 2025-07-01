@@ -7,6 +7,7 @@ import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -29,6 +30,12 @@ public class RedisFlatHashCache<V> {
 
     public void put(String key, String field, CacheValueHolder<V> valueHolder) {
         getRedisMap(key).put(field, valueHolder);
+        getRedisMap(key).expire(config.getTtlSecs(), TimeUnit.SECONDS);
+    }
+
+    public void putAll(String key, Map<String, CacheValueHolder<V>> valueHolderMap) {
+        getRedisMap(key).putAll(valueHolderMap);
+        getRedisMap(key).expire(config.getTtlSecs(), TimeUnit.SECONDS);
     }
 
     public void invalidate(String key, String field) {

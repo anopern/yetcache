@@ -1,5 +1,6 @@
 package com.yetcache.core.cache.flathash;
 
+import cn.hutool.core.collection.CollUtil;
 import com.yetcache.core.cache.AbstractMultiTierCache;
 import com.yetcache.core.cache.loader.FlatHashCacheLoader;
 import com.yetcache.core.cache.result.flathash.FlatHashCacheResult;
@@ -74,8 +75,9 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
     public V get(F bizField) {
         FlatHashCacheResult<F, V> result = getWithResult(bizField);
         log.debug("CacheResult: {}", result);
-        if (result.getValueHolder() != null) {
-            return result.getValueHolder().getValue();
+        CacheValueHolder<V> valueHolder = result.getValueHolder();
+        if (valueHolder != null) {
+            return valueHolder.getValue();
         }
         return null;
     }
@@ -108,11 +110,45 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
 
     @Override
     public FlatHashCacheResult<F, V> refreshAllWithResult() {
+        FlatHashCacheAccessRecorder<F> recorder = new DefaultFlatHashCacheAccessRecorder<>();
+        FlatHashCacheResult<F, V> result = new FlatHashCacheResult<>();
         try {
-            FlatHashCacheAccessRecorder<F> recorder = new DefaultFlatHashCacheAccessRecorder<>();
             recorder.recordStart();
             Map<F, V> map = cacheLoader.loadAll();
-            return null;
+            if (CollUtil.isEmpty(map)) {
+                recorder.recordSourceLoadNoValue(null); // 可选，标记无数据情况
+                return end(recorder, result);
+            }
+            String key = keyConverter.convert(null);
+            Map<String, CacheValueHolder<V>> remoteMap = new HashMap<>();
+            Map<String, CacheValueHolder<V>> localMap = new HashMap<>();
+            for (Map.Entry<F, V> entry : map.entrySet()) {
+                F fieldBizKey = entry.getKey();
+                V value = entry.getValue();
+                if (fieldBizKey == null || value == null) {
+                    continue;
+                }
+
+                String field = fieldConverter.convert(fieldBizKey);
+                CacheValueHolder<V> remoteHolder = CacheValueHolder.wrap(value, config.getRemote().getTtlSecs());
+                CacheValueHolder<V> localHolder = CacheValueHolder.wrap(value, config.getLocal().getTtlSecs());
+
+                remoteMap.put(field, remoteHolder);
+                localMap.put(field, localHolder);
+
+                recorder.recordSourceLoaded(fieldBizKey); // 单条打点
+            }
+            if (remoteCache != null && !remoteMap.isEmpty()) {
+                remoteCache.putAll(key, remoteMap);
+            }
+            if (localCache != null && !localMap.isEmpty()) {
+                localCache.putAll(key, localMap);
+            }
+            return end(recorder, result);
+        } catch (Exception e) {
+            log.warn("FlatHash refreshAll error，cacheName={}", cacheName, e);
+            recorder.recordSourceLoadError(null); // null 表示批量行为
+            return end(recorder, result);
         } finally {
             CacheAccessContext.clear();
         }
@@ -199,7 +235,6 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
         }
         return result;
     }
-
 
     private FlatHashCacheResult<F, V> end(FlatHashCacheAccessRecorder<F> recorder,
                                           FlatHashCacheResult<F, V> result) {

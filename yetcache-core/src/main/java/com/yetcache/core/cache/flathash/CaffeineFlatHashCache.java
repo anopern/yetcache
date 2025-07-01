@@ -49,6 +49,11 @@ public class CaffeineFlatHashCache<V> {
         map.put(field, valueHolder);
     }
 
+    public void putAll(String key, Map<String, CacheValueHolder<V>> valueHolderMap) {
+        ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.get(key, k -> new ConcurrentHashMap<>());
+        map.putAll(valueHolderMap);
+    }
+
     public void invalidate(String key, String field) {
         ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.getIfPresent(key);
         if (map != null) {
