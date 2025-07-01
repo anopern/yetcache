@@ -10,7 +10,7 @@ import lombok.Data;
  * @since 2025/7/1
  */
 @Data
-public abstract class AbstractKeyConverter<K> implements KeyConverter<K> {
+public abstract class AbstractKeyConverter {
     protected final String keyPrefix;
     protected final TenantMode tenantMode;
     protected final TenantProvider tenantProvider;

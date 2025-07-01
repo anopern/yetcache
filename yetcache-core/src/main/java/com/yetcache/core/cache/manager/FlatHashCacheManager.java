@@ -11,7 +11,6 @@ import com.yetcache.core.support.field.FieldConverterFactory;
 import com.yetcache.core.support.key.*;
 import com.yetcache.core.support.tenant.TenantProvider;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.K;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -59,7 +58,7 @@ public final class FlatHashCacheManager {
 
         MultiTierFlatHashCacheConfig config = CacheConfigMerger.merge(properties.getGlobal(), raw);
         TenantProvider providerToUse = config.getTenantMode() == TenantMode.NONE ? null : this.tenantProvider;
-        NoneBizKeyKeyConverter<K> keyConverter = KeyConverterFactory.createNoneBizKey(config.getKey(),
+        FlatHashKeyConverter keyConverter = KeyConverterFactory.createNoneBizKey(config.getKey(),
                 config.getTenantMode(), providerToUse);
 
         if (null == fieldConverter) {

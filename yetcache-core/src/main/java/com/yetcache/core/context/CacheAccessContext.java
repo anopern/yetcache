@@ -81,6 +81,13 @@ public class CacheAccessContext {
     public static void setSourceNormal() {
         CONTEXT.get().setSource(CacheAccessSources.NORMAL.name());
     }
+    public static void setSourceRefresh() {
+        CONTEXT.get().setSource(CacheAccessSources.REFRESH.name());
+    }
+
+    public static void setSourcePreload() {
+        CONTEXT.get().setSource(CacheAccessSources.PRELOAD.name());
+    }
 
     public static void setFlatHashTrace(FlatHashCacheAccessTrace<?> trace) {
         CONTEXT.get().setFlatHashTrace(trace);

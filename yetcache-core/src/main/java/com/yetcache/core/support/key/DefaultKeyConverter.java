@@ -7,7 +7,7 @@ import com.yetcache.core.support.tenant.TenantProvider;
  * @author walter.yan
  * @since 2025/6/28
  */
-public class DefaultKeyConverter<K> extends AbstractKeyConverter<K> {
+public class DefaultKeyConverter<K> extends AbstractKeyConverter implements KeyConverter<K> {
     protected final boolean useHashTag;
     protected final BizKeyConverter<K> bizKeyConverter;
 

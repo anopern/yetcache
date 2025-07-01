@@ -11,7 +11,7 @@ import com.yetcache.core.context.CacheAccessContext;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
 import com.yetcache.core.support.field.FieldConverter;
-import com.yetcache.core.support.key.NoneBizKeyKeyConverter;
+import com.yetcache.core.support.key.FlatHashKeyConverter;
 import com.yetcache.core.support.result.CacheLookupResult;
 import com.yetcache.core.support.trace.CacheBatchAccessStatus;
 import com.yetcache.core.support.trace.flashhash.DefaultFlatHashCacheAccessRecorder;
@@ -38,14 +38,14 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
     private final FlatHashCacheLoader<F, V> cacheLoader;
     private CaffeineFlatHashCache<V> localCache;
     private RedisFlatHashCache<V> remoteCache;
-    private NoneBizKeyKeyConverter<?> keyConverter;
+    private FlatHashKeyConverter keyConverter;
     private FieldConverter<F> fieldConverter;
 
     public MultiTierFlatHashCache(String cacheName,
                                   MultiTierFlatHashCacheConfig config,
                                   RedissonClient rClient,
                                   FlatHashCacheLoader<F, V> cacheLoader,
-                                  NoneBizKeyKeyConverter<?> keyConverter,
+                                  FlatHashKeyConverter keyConverter,
                                   FieldConverter<F> fieldConverter) {
         this.cacheName = cacheName;
         this.config = config;
@@ -74,6 +74,7 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
 
     @Override
     public V get(F bizField) {
+        CacheAccessContext.setSourceNormal();
         FlatHashCacheResult<F, V> result = getWithResult(bizField);
         log.debug("CacheResult: {}", result);
         CacheValueHolder<V> valueHolder = result.getValueHolder();
@@ -90,7 +91,7 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
             DefaultFlatHashCacheAccessRecorder<F> recorder = new DefaultFlatHashCacheAccessRecorder<>();
             recorder.recordStart(bizField);
 
-            String key = keyConverter.convert(null);
+            String key = keyConverter.convert();
             String field = fieldConverter.convert(bizField);
             FlatHashCacheResult<F, V> result = new FlatHashCacheResult<>();
 
@@ -132,7 +133,7 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
                 recorder.recordSourceLoadAllNoValue();
                 return end(recorder, result);
             }
-            String key = keyConverter.convert(null);
+            String key = keyConverter.convert();
             Map<String, CacheValueHolder<V>> remoteMap = new HashMap<>();
             Map<String, CacheValueHolder<V>> localMap = new HashMap<>();
             for (Map.Entry<F, V> entry : map.entrySet()) {
@@ -157,7 +158,7 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
                 }
             }
             if (CacheBatchAccessStatus.ALL_SUCCESS
-                    != CacheAccessContext.getContext().getFlatHashTrace().getBatchStatus()) {
+                    == CacheAccessContext.getContext().getFlatHashTrace().getBatchStatus()) {
                 if (remoteCache != null && !remoteMap.isEmpty()) {
                     remoteCache.putAll(key, remoteMap);
                 }
