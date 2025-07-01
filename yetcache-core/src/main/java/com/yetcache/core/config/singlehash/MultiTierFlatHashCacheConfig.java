@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MultiTierFlatHashCacheConfig extends BaseMultiTierCacheConfig {
-    protected String keyPrefix;
+    protected String key;
 
     protected CaffeineFlatHashCacheConfig local;
     protected RedisFlatHashCacheConfig remote;

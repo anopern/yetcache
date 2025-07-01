@@ -1,10 +1,8 @@
 package com.yetcache.core.context;
 
-import com.yetcache.core.support.trace.CacheAccessTrace;
+import com.yetcache.core.support.trace.flashhash.FlatHashCacheAccessTrace;
+import com.yetcache.core.support.trace.kv.KVCacheAccessTrace;
 import lombok.Data;
-import org.checkerframework.checker.units.qual.K;
-
-import javax.sound.midi.SoundbankResource;
 
 /**
  * @author walter.yan
@@ -20,7 +18,8 @@ public class CacheAccessContext {
         private String source;
         private String operator;
         private boolean forceRefresh;
-        private CacheAccessTrace<?, ?> trace;
+        private KVCacheAccessTrace<?> kvTrace;
+        private FlatHashCacheAccessTrace<?> flatHashTrace;
     }
 
     // 设置方法
@@ -83,12 +82,12 @@ public class CacheAccessContext {
         CONTEXT.get().setSource(CacheAccessSources.NORMAL.name());
     }
 
-    public static void setTrace(CacheAccessTrace<?, ?> trace) {
-        CONTEXT.get().setTrace(trace);
+    public static void setFlatHashTrace(FlatHashCacheAccessTrace<?> trace) {
+        CONTEXT.get().setFlatHashTrace(trace);
     }
 
     @SuppressWarnings("unchecked")
-    public static <K, F> CacheAccessTrace<K, F> getTrace() {
-        return (CacheAccessTrace<K, F>) CONTEXT.get().getTrace();
+    public static <F> FlatHashCacheAccessTrace<F> getFlatHashTrace() {
+        return (FlatHashCacheAccessTrace<F>) CONTEXT.get().getFlatHashTrace();
     }
 }

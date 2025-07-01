@@ -73,4 +73,4 @@ yetcache:
           ttl-secs: 120
     flat-hash:
       config-common-info-cache:
-        key-prefix: 'nd:config:common:info'
+        key: 'nd:config:common:info'

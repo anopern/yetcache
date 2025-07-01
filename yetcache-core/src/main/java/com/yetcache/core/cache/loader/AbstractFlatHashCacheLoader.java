@@ -15,7 +15,7 @@ public abstract class AbstractFlatHashCacheLoader<K, F, V> implements FlatHashCa
     }
 
     @Override
-    public Map<F, V> loadAll(K bizKey) {
+    public Map<F, V> loadAll() {
         return new HashMap<>();
     }
 }

@@ -110,7 +110,7 @@ public final class CacheConfigMerger {
         if (spec == null) spec = new MultiTierFlatHashCacheConfig();
 
         MultiTierFlatHashCacheConfig result = new MultiTierFlatHashCacheConfig();
-        result.setKeyPrefix(spec.getKeyPrefix());
+        result.setKey(spec.getKey());
         result.setUseHashTag(firstNonNull(spec.getUseHashTag(), global.getUseHashTag()));
         result.setTtlRandomPercent(firstNonNull(spec.getTtlRandomPercent(), global.getTtlRandomPercent()));
         result.setCacheTier(firstNonNull(spec.getCacheTier(), global.getCacheTier()));

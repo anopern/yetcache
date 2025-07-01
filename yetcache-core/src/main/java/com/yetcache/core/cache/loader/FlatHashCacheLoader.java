@@ -9,5 +9,5 @@ import java.util.Map;
 public interface FlatHashCacheLoader<K, F, V> {
     V load(K bizKey, F bizField);
 
-    Map<F, V> loadAll(K bizKey);
+    Map<F, V> loadAll();
 }

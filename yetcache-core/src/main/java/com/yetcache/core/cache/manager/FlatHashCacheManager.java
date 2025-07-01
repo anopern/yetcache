@@ -8,17 +8,13 @@ import com.yetcache.core.config.singlehash.MultiTierFlatHashCacheConfig;
 import com.yetcache.core.merger.CacheConfigMerger;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.field.FieldConverterFactory;
-import com.yetcache.core.support.key.BizKeyConverter;
-import com.yetcache.core.support.key.DefaultBizKeyConverter;
-import com.yetcache.core.support.key.KeyConverter;
-import com.yetcache.core.support.key.KeyConverterFactory;
+import com.yetcache.core.support.key.*;
 import com.yetcache.core.support.tenant.TenantProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -38,21 +34,13 @@ public final class FlatHashCacheManager {
     public <K, F, V> MultiTierFlatHashCache<K, F, V> create(String name,
                                                             RedissonClient rClient,
                                                             FlatHashCacheLoader<K, F, V> cacheLoader) {
-        return create(name, rClient, cacheLoader, null, null);
-    }
-
-    public <K, F, V> MultiTierFlatHashCache<K, F, V> create(String name,
-                                                            RedissonClient rClient,
-                                                            FlatHashCacheLoader<K, F, V> cacheLoader,
-                                                            BizKeyConverter<K> bizKeyConverter) {
-        return create(name, rClient, cacheLoader, bizKeyConverter, null);
+        return create(name, rClient, cacheLoader, null);
     }
 
     @SuppressWarnings("unchecked")
     public <K, F, V> MultiTierFlatHashCache<K, F, V> create(String name,
                                                             RedissonClient rClient,
                                                             FlatHashCacheLoader<K, F, V> cacheLoader,
-                                                            BizKeyConverter<K> bizKeyConverter,
                                                             FieldConverter<F> fieldConverter) {
         MultiTierFlatHashCache<?, ?, ?> existing = registry.get(name);
         if (existing != null) {
@@ -70,14 +58,9 @@ public final class FlatHashCacheManager {
 
         MultiTierFlatHashCacheConfig config = CacheConfigMerger.merge(properties.getGlobal(), raw);
         TenantProvider providerToUse = config.getTenantMode() == TenantMode.NONE ? null : this.tenantProvider;
-        KeyConverter<K> keyConverter;
-        if (null == bizKeyConverter) {
-            keyConverter = KeyConverterFactory.createNoneBizKey(config.getKeyPrefix(), config.getTenantMode(),
-                    providerToUse);
-        } else {
-            keyConverter = KeyConverterFactory.createDefault(config.getKeyPrefix(),
-                    config.getTenantMode(), config.getUseHashTag(), providerToUse, new DefaultBizKeyConverter<>());
-        }
+        NoneBizKeyKeyConverter<K> keyConverter = KeyConverterFactory.createNoneBizKey(config.getKey(),
+                config.getTenantMode(), providerToUse);
+
         if (null == fieldConverter) {
             fieldConverter = FieldConverterFactory.create();
         }

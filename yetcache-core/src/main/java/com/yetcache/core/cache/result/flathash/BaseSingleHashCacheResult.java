@@ -1,4 +1,4 @@
-package com.yetcache.core.cache.result.singlehash;
+package com.yetcache.core.cache.result.flathash;
 
 import com.yetcache.core.cache.result.BaseCacheResult;
 import lombok.Data;
