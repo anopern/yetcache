@@ -39,7 +39,7 @@ public interface FlatHashCacheAccessRecorder<F> extends CacheAccessRecorder {
 
     void recordSourceLoadFailed(F bizField);
 
-    void recorderExceptionBeforeLoop();
+    void recordExceptionBeforeLoop();
 
     void recordSourceLoadAllNoValue();
 }

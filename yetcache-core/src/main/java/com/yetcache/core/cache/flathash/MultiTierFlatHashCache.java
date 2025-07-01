@@ -74,7 +74,6 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
 
     @Override
     public V get(F bizField) {
-        CacheAccessContext.setSourceNormal();
         FlatHashCacheResult<F, V> result = getWithResult(bizField);
         log.debug("CacheResult: {}", result);
         CacheValueHolder<V> valueHolder = result.getValueHolder();
@@ -172,7 +171,7 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
             return end(recorder, result);
         } catch (Exception e) {
             log.warn("FlatHash refreshAll load fail(exception before loop)，cacheName={}", cacheName, e);
-            recorder.recorderExceptionBeforeLoop();
+            recorder.recordExceptionBeforeLoop();
             return end(recorder, result);
         } finally {
             CacheAccessContext.clear();

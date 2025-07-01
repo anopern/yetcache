@@ -9,12 +9,10 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
+        <module>yetcache-agent</module>
+        <module>yetcache-agent-starter</module>
         <module>yetcache-core</module>
         <module>yetcache-example</module>
-        <module>yetcache-scheduler</module>
-        <module>yetcache-agent</module>
-        <module>yetcache-spring-boot</module>
-        <module>yetcache-ops</module>
     </modules>
 
     <properties>

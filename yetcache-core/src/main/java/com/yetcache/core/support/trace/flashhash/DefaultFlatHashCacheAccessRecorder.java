@@ -100,7 +100,7 @@ public class DefaultFlatHashCacheAccessRecorder<F> implements FlatHashCacheAcces
     }
 
     @Override
-    public void recorderExceptionBeforeLoop() {
+    public void recordExceptionBeforeLoop() {
         getTrace().setBatchStatus(CacheBatchAccessStatus.EXCEPTION_BEFORE_LOOP);
     }
 

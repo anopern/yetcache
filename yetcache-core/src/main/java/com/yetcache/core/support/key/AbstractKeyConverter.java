@@ -15,7 +15,7 @@ public abstract class AbstractKeyConverter {
     protected final TenantMode tenantMode;
     protected final TenantProvider tenantProvider;
 
-    protected String getKeyPrefixWithTenant() {
+    protected String resolvePrefix() {
         StringBuilder sb = new StringBuilder(keyPrefix);
         String tenantCode = resolveTenantCode();
         if (tenantCode != null) {

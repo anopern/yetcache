@@ -16,9 +16,9 @@ public class KeyConverterFactory {
         return new DefaultKeyConverter<>(keyPrefix, tenantMode, useHashTag, tenantProvider, bizKeyConverter);
     }
 
-    public static  FlatHashKeyConverter createNoneBizKey(String keyPrefix,
-                                                               TenantMode tenantMode,
-                                                               TenantProvider tenantProvider) {
+    public static FlatHashKeyConverter createNoneBizKey(String keyPrefix,
+                                                        TenantMode tenantMode,
+                                                        TenantProvider tenantProvider) {
         return new FlatHashKeyConverter(keyPrefix, tenantMode, tenantProvider);
     }
 }

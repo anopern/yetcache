@@ -28,7 +28,7 @@ public class DefaultKeyConverter<K> extends AbstractKeyConverter implements KeyC
         if (bizKey == null) {
             throw new IllegalArgumentException("Cache key cannot be null");
         }
-        StringBuilder sb = new StringBuilder(getKeyPrefixWithTenant());
+        StringBuilder sb = new StringBuilder(resolvePrefix());
 
         String bizKeyPart = bizKeyConverter.convert(bizKey);
         if (useHashTag) {

@@ -1,11 +1,11 @@
 package com.yetcache.example.cache;
 
+import com.yetcache.agent.BaseKVCacheAgent;
 import com.yetcache.core.cache.kv.MultiTierKVCache;
-import com.yetcache.core.cache.loader.KVCacheLoader;
+import com.yetcache.core.support.tenant.TenantProvider;
 import com.yetcache.example.entity.User;
 import com.yetcache.example.enums.EnumCaches;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,18 +13,17 @@ import org.springframework.stereotype.Component;
  * @since 2025/6/28
  */
 @Component
-public final class UserCacheAgent extends BaseKVCacheAgent {
-    @Autowired
-    @Qualifier("idKeyUserCacheLoader")
-    private KVCacheLoader<Long, User> idKeyCacheLoader;
-    private MultiTierKVCache<Long, User> idKeyCache;
-
-    @Override
-    protected void createCache() {
-        idKeyCache = kVCacheManager.create(EnumCaches.USER_ID_KEY_CACHE.getName(), rClient, idKeyCacheLoader, null);
+public final class UserCacheAgent extends BaseKVCacheAgent<Long, User> {
+    public UserCacheAgent(RedissonClient rClient, TenantProvider tenantProvider, MultiTierKVCache<Long, User> cache) {
+        super(rClient, tenantProvider, cache);
     }
 
-    public User get(Long id) {
-        return idKeyCache.get(id);
+    public User getById(Long id) {
+        return delegate.get(id);
+    }
+
+    @Override
+    public String getCacheName() {
+        return EnumCaches.USER_ID_KEY_CACHE.getName();
     }
 }

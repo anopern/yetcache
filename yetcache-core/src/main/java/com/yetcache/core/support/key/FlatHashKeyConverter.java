@@ -14,6 +14,6 @@ public class FlatHashKeyConverter extends AbstractKeyConverter {
     }
 
     public String convert() {
-        return getKeyPrefixWithTenant();
+        return resolvePrefix();
     }
 }

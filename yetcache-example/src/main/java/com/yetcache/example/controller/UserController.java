@@ -22,6 +22,6 @@ public class UserController {
 
     @PostMapping("/getById")
     public User getById(@RequestBody User dto) {
-        return userCacheAgent.get(dto.getId());
+        return userCacheAgent.getById(dto.getId());
     }
 }

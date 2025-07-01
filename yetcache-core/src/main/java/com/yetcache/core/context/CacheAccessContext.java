@@ -18,6 +18,7 @@ public class CacheAccessContext {
         private String source;
         private String operator;
         private boolean forceRefresh;
+        private boolean broadcastAfterRefresh;
         private KVCacheAccessTrace<?> kvTrace;
         private FlatHashCacheAccessTrace<?> flatHashTrace;
     }
@@ -81,6 +82,7 @@ public class CacheAccessContext {
     public static void setSourceNormal() {
         CONTEXT.get().setSource(CacheAccessSources.NORMAL.name());
     }
+
     public static void setSourceRefresh() {
         CONTEXT.get().setSource(CacheAccessSources.REFRESH.name());
     }
@@ -96,5 +98,9 @@ public class CacheAccessContext {
     @SuppressWarnings("unchecked")
     public static <F> FlatHashCacheAccessTrace<F> getFlatHashTrace() {
         return (FlatHashCacheAccessTrace<F>) CONTEXT.get().getFlatHashTrace();
+    }
+
+    public static void setBroadcastAfterRefresh(boolean broadcastAfterRefresh) {
+        CONTEXT.get().setBroadcastAfterRefresh(broadcastAfterRefresh);
     }
 }

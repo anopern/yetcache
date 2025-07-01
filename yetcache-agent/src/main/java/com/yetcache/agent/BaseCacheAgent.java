@@ -1,4 +1,4 @@
-package com.yetcache.example.cache;
+package com.yetcache.agent;
 
 import com.yetcache.core.support.tenant.TenantProvider;
 import lombok.Data;
@@ -13,15 +13,13 @@ import javax.annotation.PostConstruct;
  */
 @Data
 public abstract class BaseCacheAgent {
-    @Autowired
     protected RedissonClient rClient;
-    @Autowired(required = false)
     private TenantProvider tenantProvider;
 
-    @PostConstruct
-    public void init() {
-        createCache();
+    public BaseCacheAgent(RedissonClient rClient, TenantProvider tenantProvider) {
+        this.rClient = rClient;
+        this.tenantProvider = tenantProvider;
     }
 
-    protected abstract void createCache();
+    public abstract String getCacheName();
 }
