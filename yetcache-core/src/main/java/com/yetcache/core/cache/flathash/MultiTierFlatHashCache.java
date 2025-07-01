@@ -84,71 +84,88 @@ public class MultiTierFlatHashCache<K, F, V> extends AbstractMultiTierCache<F>
             CacheParamChecker.failIfNull(bizField, cacheName);
             DefaultCacheAccessRecorder<K, F> recorder = new DefaultCacheAccessRecorder<>();
             recorder.onStart(bizKey, bizField);
+
             String key = keyConverter.convert(bizKey);
             String field = fieldConverter.convert(bizField);
-            CacheResult<K, F, V> result = new CacheResult<>(CacheAccessContext.getTrace());
+            CacheResult<K, F, V> result = new CacheResult<>();
 
-            if (localPpCache != null && localPpCache.isBlocked(bizField)) {
-                recorder.localBlocked(bizField);
-                recorder.end();
-                result.setTrace(CacheAccessContext.getTrace());
-                return result;
+            // --- 封装后的三段核心逻辑 ---
+            if (tryBlockAndRecord(bizField, recorder)) {
+                return end(recorder, result);
             }
 
-            if (remotePpCache != null && remotePpCache.isBlocked(bizField)) {
-                recorder.remoteBlocked(bizField);
-                recorder.end();
-                result.setTrace(CacheAccessContext.getTrace());
-                return result;
+            if (tryCacheLookupAndRecord(key, field, bizField, recorder, result)) {
+                return end(recorder, result);
             }
 
-            CacheLookupResult<V> localResult = tryLocalGet(key, field);
-            if (localResult != null) {
-                if (localResult.isHit()) {
-                    recorder.localHit(bizField);
-                    result.setValueHolder(localResult.getValueHolder());
-                } else if (localResult.isPhysicalMiss()) {
-                    recorder.localPhysicalMiss(bizField);
-                } else if (localResult.isLogicalExpired()) {
-                    recorder.localLogicExpired(bizField);
-                }
+            if (Boolean.TRUE.equals(config.getEnableLoadFallbackOnMiss())) {
+                tryLoadAndRecord(bizKey, bizField, key, field, recorder, result);
             }
 
-            CacheLookupResult<V> remoteResult = tryRemoteGet(key, field);
-            if (remoteResult != null) {
-                if (remoteResult.isHit()) {
-                    recorder.remoteHit(bizField);
-                    result.setValueHolder(remoteResult.getValueHolder());
-                } else if (remoteResult.isPhysicalMiss()) {
-                    recorder.remotePhysicalMiss(bizField);
-                } else if (remoteResult.isLogicalExpired()) {
-                    recorder.remoteLogicExpired(bizField);
-                }
-            }
-
-            if (!Boolean.TRUE.equals(config.getEnableLoadFallbackOnMiss())) {
-                recorder.end();
-                return result;
-            }
-
-            CacheLoadResult<V> loadResult = tryLoad(bizKey, bizField);
-            if (loadResult.isLoaded()) {
-                recorder.sourceLoaded(bizField);
-            } else if (loadResult.isNoValue()) {
-                recorder.sourceLoadNoValue(bizField);
-            } else if (loadResult.isError()) {
-                recorder.sourceLoadError(bizField);
-            }
-            recorder.end();
-            return result;
+            return end(recorder, result);
         } finally {
             CacheAccessContext.clear();
         }
     }
 
-    private void recordLocal(CacheAccessRecorder<K, F> recorder, CacheLookupResult<CacheValueHolder<V>> result) {
-
+    private boolean tryBlockAndRecord(F bizField, DefaultCacheAccessRecorder<K, F> recorder) {
+        if (localPpCache != null && localPpCache.isBlocked(bizField)) {
+            recorder.localBlocked(bizField);
+            return true;
+        }
+        if (remotePpCache != null && remotePpCache.isBlocked(bizField)) {
+            recorder.remoteBlocked(bizField);
+            return true;
+        }
+        return false;
     }
+
+    private boolean tryCacheLookupAndRecord(String key, String field, F bizField,
+                                            DefaultCacheAccessRecorder<K, F> recorder,
+                                            CacheResult<K, F, V> result) {
+        CacheLookupResult<V> localResult = tryLocalGet(key, field);
+        if (localResult != null) {
+            if (localResult.isHit()) {
+                recorder.localHit(bizField);
+                result.setValueHolder(localResult.getValueHolder());
+                return true;
+            } else if (localResult.isLogicalExpired()) {
+                recorder.localLogicExpired(bizField);
+            } else {
+                recorder.localPhysicalMiss(bizField);
+            }
+        }
+
+        CacheLookupResult<V> remoteResult = tryRemoteGet(key, field);
+        if (remoteResult != null) {
+            if (remoteResult.isHit()) {
+                recorder.remoteHit(bizField);
+                result.setValueHolder(remoteResult.getValueHolder());
+                return true;
+            } else if (remoteResult.isLogicalExpired()) {
+                recorder.remoteLogicExpired(bizField);
+            } else {
+                recorder.remotePhysicalMiss(bizField);
+            }
+        }
+
+        return false;
+    }
+
+    private void tryLoadAndRecord(K bizKey, F bizField, String key, String field,
+                                  DefaultCacheAccessRecorder<K, F> recorder,
+                                  CacheResult<K, F, V> result) {
+        CacheLoadResult<V> loadResult = tryLoad(bizKey, bizField);
+        if (loadResult.isLoaded()) {
+            recorder.sourceLoaded(bizField);
+            result.setValueHolder(loadResult.getValueHolder());
+        } else if (loadResult.isNoValue()) {
+            recorder.sourceLoadNoValue(bizField);
+        } else {
+            recorder.sourceLoadError(bizField);
+        }
+    }
+
 
 //    @Override
 //    public FlatHashCacheGetResult<F, V> batGetWithResult(Collection<F> bizFields) {
@@ -274,12 +291,10 @@ public class MultiTierFlatHashCache<K, F, V> extends AbstractMultiTierCache<F>
         }
     }
 
-    private FlatHashCacheGetResult<F, V> end(FlatHashCacheGetResult<F, V> result, CacheValueHolder<V> holder) {
-        if (holder != null) {
-            result.setValueHolder(holder);
-        }
-        result.end();
+    private CacheResult<K, F, V> end(DefaultCacheAccessRecorder<K, F> recorder,
+                                     CacheResult<K, F, V> result) {
+        recorder.end();
+        result.setTrace(CacheAccessContext.getTrace());
         return result;
     }
-
 }
