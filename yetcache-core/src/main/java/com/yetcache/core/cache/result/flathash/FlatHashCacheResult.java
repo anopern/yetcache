@@ -1,5 +1,6 @@
 package com.yetcache.core.cache.result.flathash;
 
+import com.alibaba.fastjson2.JSON;
 import com.yetcache.core.cache.result.BaseCacheResultV2;
 import com.yetcache.core.support.trace.flashhash.FlatHashCacheAccessTrace;
 import lombok.Data;
@@ -15,4 +16,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class FlatHashCacheResult<F, V> extends BaseCacheResultV2<V> {
     protected FlatHashCacheAccessTrace<F> trace;
+
+    public String toString() {
+        return JSON.toJSONString(this);
+    }
 }

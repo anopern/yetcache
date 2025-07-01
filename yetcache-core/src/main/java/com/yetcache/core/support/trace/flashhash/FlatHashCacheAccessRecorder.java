@@ -9,11 +9,11 @@ import java.util.Collection;
  * @since 2025/7/1
  */
 public interface FlatHashCacheAccessRecorder<F> extends CacheAccessRecorder {
-    FlatHashCacheAccessTrace<F> recordStart();
+    void recordStart();
 
-    FlatHashCacheAccessTrace<F> recordStart(F bizField);
+    void recordStart(F bizField);
 
-    FlatHashCacheAccessTrace<F> recordStart(Collection<F> bizField);
+    void recordStart(Collection<F> bizField);
 
     void recordLocalPhysicalMiss(F bizField);
 
@@ -37,5 +37,9 @@ public interface FlatHashCacheAccessRecorder<F> extends CacheAccessRecorder {
 
     void recordSourceLoadNoValue(F bizField);
 
-    void recordSourceLoadError(F bizField);
+    void recordSourceLoadFailed(F bizField);
+
+    void recorderExceptionBeforeLoop();
+
+    void recordSourceLoadAllNoValue();
 }

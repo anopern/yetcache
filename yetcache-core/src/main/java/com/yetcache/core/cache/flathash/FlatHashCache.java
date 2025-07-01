@@ -1,6 +1,7 @@
 package com.yetcache.core.cache.flathash;
 
 import com.yetcache.core.cache.result.flathash.FlatHashCacheResult;
+import com.yetcache.core.support.trace.CacheBatchAccessStatus;
 
 /**
  * @author walter.yan
@@ -10,6 +11,8 @@ public interface FlatHashCache<F, V> {
     V get(F bizField);
 
     FlatHashCacheResult<F, V> getWithResult(F bizField);
+
+    CacheBatchAccessStatus refreshAll();
 
     FlatHashCacheResult<F, V> refreshAllWithResult();
 

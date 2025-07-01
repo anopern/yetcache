@@ -13,7 +13,8 @@ import com.yetcache.core.protect.RedisPenetrationProtectCache;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.NoneBizKeyKeyConverter;
 import com.yetcache.core.support.result.CacheLookupResult;
-import com.yetcache.core.support.trace.DefaultFlatHashCacheAccessRecorder;
+import com.yetcache.core.support.trace.CacheBatchAccessStatus;
+import com.yetcache.core.support.trace.flashhash.DefaultFlatHashCacheAccessRecorder;
 import com.yetcache.core.support.trace.flashhash.FlatHashCacheAccessRecorder;
 import com.yetcache.core.support.util.CacheParamChecker;
 import lombok.Data;
@@ -109,6 +110,18 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
     }
 
     @Override
+    public CacheBatchAccessStatus refreshAll() {
+        FlatHashCacheResult<F, V> result = refreshAllWithResult();
+        log.debug("refreshAll result: {}", result);
+        CacheBatchAccessStatus status = result.getTrace().getBatchStatus();
+        if (CacheBatchAccessStatus.ALL_SUCCESS.equals(status)) {
+            return status;
+        }
+        log.error("FlatHash refreshAll NOT all success, cacheName={}", cacheName);
+        return status;
+    }
+
+    @Override
     public FlatHashCacheResult<F, V> refreshAllWithResult() {
         FlatHashCacheAccessRecorder<F> recorder = new DefaultFlatHashCacheAccessRecorder<>();
         FlatHashCacheResult<F, V> result = new FlatHashCacheResult<>();
@@ -116,38 +129,49 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
             recorder.recordStart();
             Map<F, V> map = cacheLoader.loadAll();
             if (CollUtil.isEmpty(map)) {
-                recorder.recordSourceLoadNoValue(null); // 可选，标记无数据情况
+                recorder.recordSourceLoadAllNoValue();
                 return end(recorder, result);
             }
             String key = keyConverter.convert(null);
             Map<String, CacheValueHolder<V>> remoteMap = new HashMap<>();
             Map<String, CacheValueHolder<V>> localMap = new HashMap<>();
             for (Map.Entry<F, V> entry : map.entrySet()) {
-                F fieldBizKey = entry.getKey();
-                V value = entry.getValue();
-                if (fieldBizKey == null || value == null) {
-                    continue;
+                try {
+                    F fieldBizKey = entry.getKey();
+                    V value = entry.getValue();
+                    if (fieldBizKey == null || value == null) {
+                        continue;
+                    }
+
+                    String field = fieldConverter.convert(fieldBizKey);
+                    CacheValueHolder<V> remoteHolder = CacheValueHolder.wrap(value, config.getRemote().getTtlSecs());
+                    CacheValueHolder<V> localHolder = CacheValueHolder.wrap(value, config.getLocal().getTtlSecs());
+
+                    remoteMap.put(field, remoteHolder);
+                    localMap.put(field, localHolder);
+
+                    recorder.recordSourceLoaded(fieldBizKey); // 单条打点
+                } catch (Exception fe) {
+                    recorder.recordSourceLoadFailed(entry.getKey()); // field 级别记录
+                    log.warn("FlatHash refreshAll field load exception: field={}", entry.getKey(), fe);
                 }
-
-                String field = fieldConverter.convert(fieldBizKey);
-                CacheValueHolder<V> remoteHolder = CacheValueHolder.wrap(value, config.getRemote().getTtlSecs());
-                CacheValueHolder<V> localHolder = CacheValueHolder.wrap(value, config.getLocal().getTtlSecs());
-
-                remoteMap.put(field, remoteHolder);
-                localMap.put(field, localHolder);
-
-                recorder.recordSourceLoaded(fieldBizKey); // 单条打点
             }
-            if (remoteCache != null && !remoteMap.isEmpty()) {
-                remoteCache.putAll(key, remoteMap);
-            }
-            if (localCache != null && !localMap.isEmpty()) {
-                localCache.putAll(key, localMap);
+            if (CacheBatchAccessStatus.ALL_SUCCESS
+                    != CacheAccessContext.getContext().getFlatHashTrace().getBatchStatus()) {
+                if (remoteCache != null && !remoteMap.isEmpty()) {
+                    remoteCache.putAll(key, remoteMap);
+                }
+                if (localCache != null && !localMap.isEmpty()) {
+                    localCache.putAll(key, localMap);
+                }
+            } else {
+                log.warn("FlatHash refreshAll not all success, DO NOT refresh remote and local cache. cacheName={}",
+                        cacheName);
             }
             return end(recorder, result);
         } catch (Exception e) {
-            log.warn("FlatHash refreshAll error，cacheName={}", cacheName, e);
-            recorder.recordSourceLoadError(null); // null 表示批量行为
+            log.warn("FlatHash refreshAll load fail(exception before loop)，cacheName={}", cacheName, e);
+            recorder.recorderExceptionBeforeLoop();
             return end(recorder, result);
         } finally {
             CacheAccessContext.clear();
