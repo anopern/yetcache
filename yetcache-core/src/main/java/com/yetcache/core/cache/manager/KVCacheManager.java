@@ -1,7 +1,7 @@
 package com.yetcache.core.cache.manager;
 
 import com.yetcache.core.config.TenantMode;
-import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
+import com.yetcache.core.config.MultiTierKVCacheConfig;
 import com.yetcache.core.config.YetCacheProperties;
 import com.yetcache.core.support.key.BizKeyConverter;
 import com.yetcache.core.support.key.DefaultBizKeyConverter;

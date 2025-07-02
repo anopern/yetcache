@@ -1,12 +1,9 @@
 package com.yetcache.core.merger;
 
 import com.yetcache.core.config.*;
-import com.yetcache.core.config.kv.CaffeineKVCacheConfig;
-import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
-import com.yetcache.core.config.kv.RedisKVCacheConfig;
-import com.yetcache.core.config.singlehash.CaffeineFlatHashCacheConfig;
-import com.yetcache.core.config.singlehash.MultiTierFlatHashCacheConfig;
-import com.yetcache.core.config.singlehash.RedisFlatHashCacheConfig;
+import com.yetcache.core.config.MultiTierKVCacheConfig;
+import com.yetcache.core.config.CaffeineCacheConfig;
+import com.yetcache.core.config.MultiTierFlatHashCacheConfig;
 
 import java.util.Objects;
 
@@ -20,31 +17,6 @@ public final class CacheConfigMerger {
 
     private CacheConfigMerger() {
         throw new UnsupportedOperationException("Utility class");
-    }
-
-    public static CaffeineKVCacheConfig merge(CaffeineKVCacheConfig global, CaffeineKVCacheConfig spec) {
-        Objects.requireNonNull(global, "Global CaffeineCacheConfig must not be null");
-
-        if (spec == null) spec = new CaffeineKVCacheConfig();
-
-        CaffeineKVCacheConfig result = new CaffeineKVCacheConfig();
-        result.setTtlSecs(firstNonNull(spec.getTtlSecs(), global.getTtlSecs()));
-        result.setMaxSize(firstNonNull(spec.getMaxSize(), global.getMaxSize()));
-        result.setPenetrationProtect(merge(global.getPenetrationProtect(), spec.getPenetrationProtect()));
-
-        return result;
-    }
-
-    public static RedisKVCacheConfig merge(RedisKVCacheConfig global, RedisKVCacheConfig spec) {
-        Objects.requireNonNull(global, "Global RedisCacheConfig must not be null");
-
-        if (spec == null) spec = new RedisKVCacheConfig();
-
-        RedisKVCacheConfig result = new RedisKVCacheConfig();
-        result.setTtlSecs(firstNonNull(spec.getTtlSecs(), global.getTtlSecs()));
-        result.setPenetrationProtect(merge(global.getPenetrationProtect(), spec.getPenetrationProtect()));
-
-        return result;
     }
 
     public static MultiTierKVCacheConfig merge(GlobalConfig global, MultiTierKVCacheConfig spec) {
@@ -79,12 +51,12 @@ public final class CacheConfigMerger {
         return result;
     }
 
-    public static CaffeineFlatHashCacheConfig merge(CaffeineFlatHashCacheConfig global, CaffeineFlatHashCacheConfig spec) {
+    public static CaffeineCacheConfig merge(CaffeineCacheConfig global, CaffeineCacheConfig spec) {
         Objects.requireNonNull(global, "Global CaffeineCacheConfig must not be null");
 
-        if (spec == null) spec = new CaffeineFlatHashCacheConfig();
+        if (spec == null) spec = new CaffeineCacheConfig();
 
-        CaffeineFlatHashCacheConfig result = new CaffeineFlatHashCacheConfig();
+        CaffeineCacheConfig result = new CaffeineCacheConfig();
         result.setTtlSecs(firstNonNull(spec.getTtlSecs(), global.getTtlSecs()));
         result.setMaxSize(firstNonNull(spec.getMaxSize(), global.getMaxSize()));
         result.setPenetrationProtect(merge(global.getPenetrationProtect(), spec.getPenetrationProtect()));
@@ -92,12 +64,12 @@ public final class CacheConfigMerger {
         return result;
     }
 
-    public static RedisFlatHashCacheConfig merge(RedisFlatHashCacheConfig global, RedisFlatHashCacheConfig spec) {
+    public static RedisCacheConfig merge(RedisCacheConfig global, RedisCacheConfig spec) {
         Objects.requireNonNull(global, "Global RedisCacheConfig must not be null");
 
-        if (spec == null) spec = new RedisFlatHashCacheConfig();
+        if (spec == null) spec = new RedisCacheConfig();
 
-        RedisFlatHashCacheConfig result = new RedisFlatHashCacheConfig();
+        RedisCacheConfig result = new RedisCacheConfig();
         result.setTtlSecs(firstNonNull(spec.getTtlSecs(), global.getTtlSecs()));
         result.setPenetrationProtect(merge(global.getPenetrationProtect(), spec.getPenetrationProtect()));
 

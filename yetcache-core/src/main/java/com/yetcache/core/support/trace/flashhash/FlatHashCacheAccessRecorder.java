@@ -9,7 +9,6 @@ import java.util.Collection;
  * @since 2025/7/1
  */
 public interface FlatHashCacheAccessRecorder<F> extends CacheAccessRecorder {
-    void recordStart();
 
     void recordStart(F bizField);
 

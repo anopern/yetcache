@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import javax.annotation.PostConstruct;
 @ConfigurationProperties(prefix = "yetcache")
 @Slf4j
 @Component
+@ConfigurationPropertiesBinding
 public class YetCacheProperties {
     @NestedConfigurationProperty
     private GlobalConfig global = new GlobalConfig();

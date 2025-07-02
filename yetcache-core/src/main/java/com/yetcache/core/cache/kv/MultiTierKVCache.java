@@ -5,7 +5,7 @@ import com.yetcache.core.cache.result.kv.*;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.result.SourceLoadStatus;
 import com.yetcache.core.cache.loader.KVCacheLoader;
-import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
+import com.yetcache.core.config.MultiTierKVCacheConfig;
 import com.yetcache.core.config.PenetrationProtectConfig;
 import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;

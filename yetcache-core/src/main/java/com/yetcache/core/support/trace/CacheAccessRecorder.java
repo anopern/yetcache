@@ -5,5 +5,7 @@ package com.yetcache.core.support.trace;
  * @since 2025/6/30
  */
 public interface CacheAccessRecorder {
+    void recordStart();
 
+    void recordEnd();
 }

@@ -1,10 +1,10 @@
-package com.yetcache.core.config.singlehash;
+package com.yetcache.core.config;
 
-import com.yetcache.core.config.BaseMultiTierCacheConfig;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 
 /**
  * @author walter.yan
@@ -14,11 +14,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MultiTierFlatHashCacheConfig extends BaseMultiTierCacheConfig {
-    protected String key;
-
-    protected CaffeineFlatHashCacheConfig local;
-    protected RedisFlatHashCacheConfig remote;
+@ConfigurationPropertiesBinding
+public class MultiTierDynamicHashCacheConfig extends BaseMultiTierCacheConfig {
+    protected String keyPrefix;
 
     protected Boolean enableLoadFallbackOnMiss = false;
 }

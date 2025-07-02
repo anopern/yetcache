@@ -1,6 +1,5 @@
-package com.yetcache.core.config.kv;
+package com.yetcache.core.config;
 
-import com.yetcache.core.config.BaseCacheConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
@@ -12,5 +11,5 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesBindin
 @EqualsAndHashCode(callSuper = true)
 @Data
 @ConfigurationPropertiesBinding
-public class RedisKVCacheConfig extends BaseCacheConfig {
+public class RedisCacheConfig extends BaseCacheConfig {
 }

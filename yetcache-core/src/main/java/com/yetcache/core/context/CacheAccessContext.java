@@ -1,5 +1,6 @@
 package com.yetcache.core.context;
 
+import com.yetcache.core.support.trace.dynamichash.DynamicHashCacheAccessTrace;
 import com.yetcache.core.support.trace.flashhash.FlatHashCacheAccessTrace;
 import com.yetcache.core.support.trace.kv.KVCacheAccessTrace;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class CacheAccessContext {
         private boolean broadcastAfterRefresh;
         private KVCacheAccessTrace<?> kvTrace;
         private FlatHashCacheAccessTrace<?> flatHashTrace;
+        private DynamicHashCacheAccessTrace<?, ?> dynamicHashTrace;
     }
 
     // 设置方法
@@ -95,10 +97,19 @@ public class CacheAccessContext {
         CONTEXT.get().setFlatHashTrace(trace);
     }
 
+    public static void setDynamicHashTrace(DynamicHashCacheAccessTrace<?, ?> trace) {
+        CONTEXT.get().setDynamicHashTrace(trace);
+    }
+
     @SuppressWarnings("unchecked")
     public static <F> FlatHashCacheAccessTrace<F> getFlatHashTrace() {
         return (FlatHashCacheAccessTrace<F>) CONTEXT.get().getFlatHashTrace();
     }
+
+    public static <K, F> DynamicHashCacheAccessTrace<K, F> getDynamicHashTrace() {
+        return (DynamicHashCacheAccessTrace<K, F>) CONTEXT.get().getDynamicHashTrace();
+    }
+
 
     public static void setBroadcastAfterRefresh(boolean broadcastAfterRefresh) {
         CONTEXT.get().setBroadcastAfterRefresh(broadcastAfterRefresh);

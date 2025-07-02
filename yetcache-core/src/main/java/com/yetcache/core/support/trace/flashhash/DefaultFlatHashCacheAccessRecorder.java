@@ -109,6 +109,7 @@ public class DefaultFlatHashCacheAccessRecorder<F> implements FlatHashCacheAcces
         getTrace().setBatchStatus(CacheBatchAccessStatus.ALL_FAILED);
     }
 
+    @Override
     public void recordEnd() {
         // 若 trace 中已被外部 catch 显式设置（如 EXCEPTION_BEFORE_LOOP），则不覆盖
         if (getTrace().getBatchStatus() == null || getTrace().getBatchStatus() == CacheBatchAccessStatus.NOT_EXECUTED) {

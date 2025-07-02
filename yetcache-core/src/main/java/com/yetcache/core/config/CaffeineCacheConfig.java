@@ -1,4 +1,4 @@
-package com.yetcache.core.config.singlehash;
+package com.yetcache.core.config;
 
 import com.yetcache.core.config.BaseCacheConfig;
 import lombok.Data;
@@ -12,6 +12,6 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesBindin
 @EqualsAndHashCode(callSuper = true)
 @Data
 @ConfigurationPropertiesBinding
-public class CaffeineFlatHashCacheConfig extends BaseCacheConfig {
+public class CaffeineCacheConfig extends BaseCacheConfig {
     protected Integer maxSize;
 }

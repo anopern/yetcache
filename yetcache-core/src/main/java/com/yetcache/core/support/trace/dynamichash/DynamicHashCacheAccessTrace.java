@@ -1,8 +1,7 @@
-package com.yetcache.core.support.trace.flashhash;
+package com.yetcache.core.support.trace.dynamichash;
 
 import com.yetcache.core.cache.result.CacheAccessStatus;
 import com.yetcache.core.cache.result.SourceLoadStatus;
-import com.yetcache.core.config.CacheTier;
 import com.yetcache.core.support.trace.BaseCacheAccessTrace;
 import com.yetcache.core.support.trace.CacheBatchAccessStatus;
 import lombok.Data;
@@ -17,10 +16,9 @@ import java.util.Map;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class FlatHashCacheAccessTrace<F> extends BaseCacheAccessTrace {
+public class DynamicHashCacheAccessTrace<K, F> extends BaseCacheAccessTrace {
     private CacheBatchAccessStatus batchStatus;
-
-    protected Map<F, CacheAccessStatus> localStatusMap = new HashMap<>();
-    protected Map<F, CacheAccessStatus> remoteStatusMap = new HashMap<>();
-    protected Map<F, SourceLoadStatus> loadStatusMap = new HashMap<>();
+    protected Map<K, Map<F, CacheAccessStatus>> localStatusMap = new HashMap<>();
+    protected Map<K, Map<F, CacheAccessStatus>> remoteStatusMap = new HashMap<>();
+    protected Map<K, Map<F, SourceLoadStatus>> loadStatusMap = new HashMap<>();
 }

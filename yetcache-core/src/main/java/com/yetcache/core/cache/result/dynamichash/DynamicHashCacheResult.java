@@ -1,4 +1,4 @@
-package com.yetcache.core.cache.result.flathash;
+package com.yetcache.core.cache.result.dynamichash;
 
 import com.alibaba.fastjson2.JSON;
 import com.yetcache.core.cache.result.BaseCacheResultV2;
@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
-public class FlatHashCacheResult<F, V> extends BaseCacheResultV2<V> {
+public class DynamicHashCacheResult<F, V> extends BaseCacheResultV2<V> {
     protected FlatHashCacheAccessTrace<F> trace;
 
     @Override

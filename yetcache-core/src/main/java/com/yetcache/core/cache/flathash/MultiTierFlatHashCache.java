@@ -2,11 +2,13 @@ package com.yetcache.core.cache.flathash;
 
 import cn.hutool.core.collection.CollUtil;
 import com.yetcache.core.cache.AbstractMultiTierCache;
+import com.yetcache.core.cache.CaffeineHashCache;
+import com.yetcache.core.cache.RedisHashCache;
 import com.yetcache.core.cache.loader.FlatHashCacheLoader;
 import com.yetcache.core.cache.result.flathash.FlatHashCacheResult;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.PenetrationProtectConfig;
-import com.yetcache.core.config.singlehash.MultiTierFlatHashCacheConfig;
+import com.yetcache.core.config.MultiTierFlatHashCacheConfig;
 import com.yetcache.core.context.CacheAccessContext;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
@@ -33,11 +35,10 @@ import java.util.*;
 @Slf4j
 public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
         implements FlatHashCache<F, V> {
-    private String cacheName;
     private final MultiTierFlatHashCacheConfig config;
     private final FlatHashCacheLoader<F, V> cacheLoader;
-    private CaffeineFlatHashCache<V> localCache;
-    private RedisFlatHashCache<V> remoteCache;
+    private CaffeineHashCache<V> localCache;
+    private RedisHashCache<V> remoteCache;
     private FlatHashKeyConverter keyConverter;
     private FieldConverter<F> fieldConverter;
 
@@ -55,7 +56,7 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
 
         if (config.getCacheTier().useLocal()) {
             config.getLocal().setTtlRandomPercent(config.getTtlRandomPercent());
-            this.localCache = new CaffeineFlatHashCache<>(config.getLocal());
+            this.localCache = new CaffeineHashCache<>(config.getLocal());
 
             PenetrationProtectConfig ppConfig = config.getLocal().getPenetrationProtect();
             this.localPpCache = new CaffeinePenetrationProtectCache<>(ppConfig.getPrefix(), cacheName,
@@ -64,7 +65,7 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
 
         if (config.getCacheTier().useRemote()) {
             config.getRemote().setTtlRandomPercent(config.getTtlRandomPercent());
-            this.remoteCache = new RedisFlatHashCache<>(config.getRemote(), rClient);
+            this.remoteCache = new RedisHashCache<>(config.getRemote(), rClient);
 
             PenetrationProtectConfig ppConfig = config.getRemote().getPenetrationProtect();
             this.remotePpCache = new RedisPenetrationProtectCache<>(rClient, ppConfig.getPrefix(), cacheName,

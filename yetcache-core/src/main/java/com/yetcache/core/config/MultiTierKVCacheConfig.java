@@ -1,10 +1,10 @@
-package com.yetcache.core.config.kv;
+package com.yetcache.core.config;
 
-import com.yetcache.core.config.BaseMultiTierCacheConfig;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 
 /**
  * @author walter.yan
@@ -14,12 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ConfigurationPropertiesBinding
 public class MultiTierKVCacheConfig extends BaseMultiTierCacheConfig {
-
     protected String keyPrefix;
-
-    protected CaffeineKVCacheConfig local;
-    protected RedisKVCacheConfig remote;
-
-    protected Boolean enableLoadFallbackOnMiss = true;
 }

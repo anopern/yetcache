@@ -4,7 +4,7 @@ import com.yetcache.core.cache.flathash.MultiTierFlatHashCache;
 import com.yetcache.core.cache.loader.FlatHashCacheLoader;
 import com.yetcache.core.config.TenantMode;
 import com.yetcache.core.config.YetCacheProperties;
-import com.yetcache.core.config.singlehash.MultiTierFlatHashCacheConfig;
+import com.yetcache.core.config.MultiTierFlatHashCacheConfig;
 import com.yetcache.core.merger.CacheConfigMerger;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.field.FieldConverterFactory;

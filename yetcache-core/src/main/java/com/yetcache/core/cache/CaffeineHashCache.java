@@ -1,9 +1,9 @@
-package com.yetcache.core.cache.flathash;
+package com.yetcache.core.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.yetcache.core.cache.support.CacheValueHolder;
-import com.yetcache.core.config.singlehash.CaffeineFlatHashCacheConfig;
+import com.yetcache.core.config.CaffeineCacheConfig;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -19,11 +19,11 @@ import static com.yetcache.core.util.CacheConstants.DEFAULT_LOCAL_LIMIT;
  * @author walter.yan
  * @since 2025/6/29
  */
-public class CaffeineFlatHashCache<V> {
-    private final CaffeineFlatHashCacheConfig config;
+public class CaffeineHashCache<V> {
+    private final CaffeineCacheConfig config;
     private final Cache<String, ConcurrentHashMap<String, CacheValueHolder<V>>> cache;
 
-    public CaffeineFlatHashCache(CaffeineFlatHashCacheConfig config) {
+    public CaffeineHashCache(CaffeineCacheConfig config) {
         this.config = config;
         this.cache = Caffeine.newBuilder()
                 .expireAfterWrite(DEFAULT_EXPIRE, TimeUnit.SECONDS)
