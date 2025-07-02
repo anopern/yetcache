@@ -63,9 +63,11 @@ public final class KVCacheManager {
 
         TenantProvider providerToUse = config.getTenantMode() == TenantMode.NONE ? null : this.tenantProvider;
 
+        if (null == bizKeyConverter) {
+            bizKeyConverter = new DefaultBizKeyConverter<>();
+        }
         KeyConverter<K> keyConverter = KeyConverterFactory.createDefault(config.getKeyPrefix(),
-                config.getTenantMode(), config.getUseHashTag(), providerToUse,
-                Objects.requireNonNullElseGet(bizKeyConverter, DefaultBizKeyConverter::new));
+                config.getTenantMode(), config.getUseHashTag(), providerToUse, bizKeyConverter);
         MultiTierKVCache<K, V> newCache = new MultiTierKVCache<>(name, config, rClient, cacheLoader, keyConverter);
         registry.register(name, newCache);
         log.info("KVCache [{}] created and registered", name);
