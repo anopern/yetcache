@@ -10,6 +10,6 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesBindin
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ConfigurationPropertiesBinding
+
 public class RedisCacheConfig extends BaseCacheConfig {
 }

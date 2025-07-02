@@ -1,6 +1,7 @@
 package com.yetcache.agent.regitry;
 
 import com.yetcache.agent.BaseConfigCacheAgent;
+import com.yetcache.agent.BaseDynamicHashCacheAgent;
 import com.yetcache.agent.BaseKVCacheAgent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -30,6 +31,11 @@ public class CacheAgentAutoRegistrar implements ApplicationListener<ApplicationR
         Map<String, BaseConfigCacheAgent> flatHashAgentBeans = applicationContext.getBeansOfType(
                 BaseConfigCacheAgent.class);
         for (BaseConfigCacheAgent<?, ?> agent : flatHashAgentBeans.values()) {
+            registry.register(agent);
+        }
+        Map<String, BaseDynamicHashCacheAgent> dynamicHashAgentBeans = applicationContext.getBeansOfType(
+                BaseDynamicHashCacheAgent.class);
+        for (BaseDynamicHashCacheAgent<?, ?, ?> agent : dynamicHashAgentBeans.values()) {
             registry.register(agent);
         }
     }

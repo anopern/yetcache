@@ -7,7 +7,7 @@ package com.yetcache.example.enums;
 public enum EnumCaches {
     USER_ID_KEY_CACHE("user-id-key-cache", ""),
     CONFIG_COMMON_INFO_CACHE("config-common-info-cache", ""),
-    ;
+    STOCK_HOLD_INFO_CACHE("stock-hold-info-cache", "");;
 
     private final String name;
     private final String desc;

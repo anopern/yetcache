@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
  * @author walter.yan
  * @since 2025/6/28
  */
-@Component
 public final class UserCacheAgent extends BaseKVCacheAgent<Long, User> {
     public UserCacheAgent(RedissonClient rClient, TenantProvider tenantProvider, MultiTierKVCache<Long, User> cache) {
         super(rClient, tenantProvider, cache);

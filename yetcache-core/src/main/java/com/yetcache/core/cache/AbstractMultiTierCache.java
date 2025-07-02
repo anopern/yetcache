@@ -9,8 +9,8 @@ import lombok.Data;
  * @since 2025/6/30
  */
 @Data
-public abstract class AbstractMultiTierCache<K> {
+public abstract class AbstractMultiTierCache {
     protected String cacheName;
-    protected CaffeinePenetrationProtectCache<K> localPpCache;
-    protected RedisPenetrationProtectCache<K> remotePpCache;
+    protected CaffeinePenetrationProtectCache localPpCache;
+    protected RedisPenetrationProtectCache remotePpCache;
 }

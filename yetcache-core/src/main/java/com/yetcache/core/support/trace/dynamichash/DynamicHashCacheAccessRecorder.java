@@ -35,7 +35,7 @@ public interface DynamicHashCacheAccessRecorder<K, F> extends CacheAccessRecorde
 
     void recordSourceLoadNoValue(K bizKey, F bizField);
 
-    void recordSourceLoadFailed(K bizKey, F bizField);
+    void recordSourceLoadFailed(K bizKey, F bizField, Exception e);
 
     void recordExceptionBeforeLoop();
 

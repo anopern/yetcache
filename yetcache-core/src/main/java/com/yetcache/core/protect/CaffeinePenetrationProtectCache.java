@@ -12,25 +12,24 @@ import java.time.Duration;
  * @since 2025/6/28
  */
 @Slf4j
-public class CaffeinePenetrationProtectCache<K> extends AbstractPenetrationProtectCache<K> {
+public class CaffeinePenetrationProtectCache extends AbstractPenetrationProtectCache {
     private final Cache<String, Boolean> cache;
 
-    public CaffeinePenetrationProtectCache(String keyPrefix, String cacheName, long ttlSeconds, long maxSize) {
+    public CaffeinePenetrationProtectCache(String keyPrefix, String cacheName, long ttlSecs, long maxSize) {
         super(keyPrefix, cacheName);
         this.cache = Caffeine.newBuilder()
-                .expireAfterWrite(Duration.ofSeconds(ttlSeconds))
+                .expireAfterWrite(Duration.ofSeconds(ttlSecs))
                 .maximumSize(maxSize)
                 .build();
     }
 
-
     @Override
-    public void markMiss(K k) {
-        cache.put(buildKey(k), true);
+    public void markMiss(String logicalKey) {
+        cache.put(buildKey(logicalKey), true);
     }
 
     @Override
-    public boolean isBlocked(K k) {
-        return cache.getIfPresent(buildKey(k)) != null;
+    public boolean isBlocked(String logicalKey) {
+        return cache.getIfPresent(buildKey(logicalKey)) != null;
     }
 }

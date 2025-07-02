@@ -1,7 +1,7 @@
 package com.yetcache.core.cache.flathash;
 
 import cn.hutool.core.collection.CollUtil;
-import com.yetcache.core.cache.AbstractMultiTierCache;
+import com.yetcache.core.cache.AbstractMultiTierHashCache;
 import com.yetcache.core.cache.CaffeineHashCache;
 import com.yetcache.core.cache.RedisHashCache;
 import com.yetcache.core.cache.loader.FlatHashCacheLoader;
@@ -19,6 +19,7 @@ import com.yetcache.core.support.trace.CacheBatchAccessStatus;
 import com.yetcache.core.support.trace.flashhash.DefaultFlatHashCacheAccessRecorder;
 import com.yetcache.core.support.trace.flashhash.FlatHashCacheAccessRecorder;
 import com.yetcache.core.support.util.CacheParamChecker;
+import com.yetcache.core.util.CacheKeyUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -33,38 +34,35 @@ import java.util.*;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Slf4j
-public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
+public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierHashCache<F, V>
         implements FlatHashCache<F, V> {
     private final MultiTierFlatHashCacheConfig config;
-    private final FlatHashCacheLoader<F, V> cacheLoader;
-    private CaffeineHashCache<V> localCache;
-    private RedisHashCache<V> remoteCache;
     private FlatHashKeyConverter keyConverter;
-    private FieldConverter<F> fieldConverter;
+    private final FlatHashCacheLoader<F, V> loader;
 
     public MultiTierFlatHashCache(String cacheName,
                                   MultiTierFlatHashCacheConfig config,
                                   RedissonClient rClient,
-                                  FlatHashCacheLoader<F, V> cacheLoader,
                                   FlatHashKeyConverter keyConverter,
-                                  FieldConverter<F> fieldConverter) {
+                                  FieldConverter<F> fieldConverter,
+                                  FlatHashCacheLoader<F, V> loader) {
         this.cacheName = cacheName;
         this.config = config;
-        this.cacheLoader = cacheLoader;
+        this.loader = loader;
         this.keyConverter = keyConverter;
         this.fieldConverter = fieldConverter;
 
         if (config.getCacheTier().useLocal()) {
             this.localCache = new CaffeineHashCache<>(config.getLocal());
             PenetrationProtectConfig ppConfig = config.getLocal().getPenetrationProtect();
-            this.localPpCache = new CaffeinePenetrationProtectCache<>(ppConfig.getPrefix(), cacheName,
+            this.localPpCache = new CaffeinePenetrationProtectCache(ppConfig.getPrefix(), cacheName,
                     ppConfig.getTtlSecs(), ppConfig.getMaxSize());
         }
 
         if (config.getCacheTier().useRemote()) {
             this.remoteCache = new RedisHashCache<>(config.getRemote(), rClient);
             PenetrationProtectConfig ppConfig = config.getRemote().getPenetrationProtect();
-            this.remotePpCache = new RedisPenetrationProtectCache<>(rClient, ppConfig.getPrefix(), cacheName,
+            this.remotePpCache = new RedisPenetrationProtectCache(rClient, ppConfig.getPrefix(), cacheName,
                     ppConfig.getTtlSecs(), ppConfig.getMaxSize());
         }
     }
@@ -92,7 +90,7 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
             FlatHashCacheResult<F, V> result = new FlatHashCacheResult<>();
 
             // --- 封装后的三段核心逻辑 ---
-            if (tryBlockAndRecord(bizField, recorder)) {
+            if (tryBlockAndRecord(key, field, bizField, recorder)) {
                 return end(recorder, result);
             }
 
@@ -124,7 +122,7 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
         FlatHashCacheResult<F, V> result = new FlatHashCacheResult<>();
         try {
             recorder.recordStart();
-            Map<F, V> map = cacheLoader.loadAll();
+            Map<F, V> map = loader.loadAll();
             if (CollUtil.isEmpty(map)) {
                 recorder.recordSourceLoadAllNoValue();
                 return end(recorder, result);
@@ -175,12 +173,13 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
         }
     }
 
-    private boolean tryBlockAndRecord(F bizField, FlatHashCacheAccessRecorder<F> recorder) {
-        if (localPpCache != null && localPpCache.isBlocked(bizField)) {
+    private boolean tryBlockAndRecord(String key, String field, F bizField, FlatHashCacheAccessRecorder<F> recorder) {
+        String logicKey = CacheKeyUtil.joinLogicalKey(key, field);
+        if (localPpCache != null && localPpCache.isBlocked(logicKey)) {
             recorder.recordLocalBlocked(bizField);
             return true;
         }
-        if (remotePpCache != null && remotePpCache.isBlocked(bizField)) {
+        if (remotePpCache != null && remotePpCache.isBlocked(logicKey)) {
             recorder.recordRemoteBlocked(bizField);
             return true;
         }
@@ -219,43 +218,6 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
         return false;
     }
 
-    private CacheLookupResult<V> tryLocalGet(String key, String field) {
-        if (localCache == null) {
-            return null;
-        }
-        CacheLookupResult<V> result = new CacheLookupResult<>();
-        CacheValueHolder<V> holder = localCache.getIfPresent(key, field);
-        if (holder == null) {
-            result.physicalMiss();
-        } else {
-            if (holder.isNotLogicExpired()) {
-                result.hit();
-                result.setValueHolder(holder);
-            } else {
-                result.logicalExpired();
-            }
-        }
-        return result;
-    }
-
-    private CacheLookupResult<V> tryRemoteGet(String key, String field) {
-        if (remoteCache == null) {
-            return null;
-        }
-        CacheLookupResult<V> result = new CacheLookupResult<>();
-        CacheValueHolder<V> holder = remoteCache.getIfPresent(key, field);
-        if (holder == null) {
-            result.physicalMiss();
-        } else {
-            if (holder.isNotLogicExpired()) {
-                result.hit();
-                result.setValueHolder(holder);
-            } else {
-                result.logicalExpired();
-            }
-        }
-        return result;
-    }
 
     private FlatHashCacheResult<F, V> end(FlatHashCacheAccessRecorder<F> recorder,
                                           FlatHashCacheResult<F, V> result) {

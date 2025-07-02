@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesBindin
  * @since 2025/6/28
  */
 @Data
-@ConfigurationPropertiesBinding
+
 public class PenetrationProtectConfig {
     protected String prefix = "__pt__";
     protected Boolean enabled;

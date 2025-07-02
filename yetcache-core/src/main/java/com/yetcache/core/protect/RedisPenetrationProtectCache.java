@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
  * @author walter.yan
  * @since 2025/6/28
  */
-public class RedisPenetrationProtectCache<K> extends AbstractPenetrationProtectCache<K> {
+public class RedisPenetrationProtectCache extends AbstractPenetrationProtectCache {
     private final RedissonClient rClient;
     private final long ttlSeconds;
     private final long maxSize;
@@ -23,14 +23,14 @@ public class RedisPenetrationProtectCache<K> extends AbstractPenetrationProtectC
     }
 
     @Override
-    public void markMiss(K bizKey) {
-        RBucket<Integer> bucket = rClient.getBucket(buildKey(bizKey));
+    public void markMiss(String logicKey) {
+        RBucket<Integer> bucket = rClient.getBucket(buildKey(logicKey));
         bucket.set(1, ttlSeconds, TimeUnit.SECONDS);
     }
 
     @Override
-    public boolean isBlocked(K bizKey) {
-        RBucket<Integer> bucket = rClient.getBucket(buildKey(bizKey));
+    public boolean isBlocked(String logicKey) {
+        RBucket<Integer> bucket = rClient.getBucket(buildKey(logicKey));
         return bucket.isExists();
     }
 }

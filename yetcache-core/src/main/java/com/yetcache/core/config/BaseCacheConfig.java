@@ -1,7 +1,6 @@
 package com.yetcache.core.config;
 
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 
 /**
  * @author walter.yan
@@ -9,7 +8,6 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesBindin
  */
 
 @Data
-@ConfigurationPropertiesBinding
 public class BaseCacheConfig {
     protected Long ttlSecs;
     protected Double ttlRandomPercent;

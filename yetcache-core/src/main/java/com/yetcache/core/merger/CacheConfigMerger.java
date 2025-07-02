@@ -1,5 +1,6 @@
 package com.yetcache.core.merger;
 
+import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
 import com.yetcache.core.config.*;
 import com.yetcache.core.config.MultiTierKVCacheConfig;
 import com.yetcache.core.config.CaffeineCacheConfig;
@@ -83,6 +84,25 @@ public final class CacheConfigMerger {
 
         MultiTierFlatHashCacheConfig result = new MultiTierFlatHashCacheConfig();
         result.setKey(spec.getKey());
+        result.setUseHashTag(firstNonNull(spec.getUseHashTag(), global.getUseHashTag()));
+        result.setTtlRandomPercent(firstNonNull(spec.getTtlRandomPercent(), global.getTtlRandomPercent()));
+        result.setCacheTier(firstNonNull(spec.getCacheTier(), global.getCacheTier()));
+        result.setTenantMode(firstNonNull(spec.getTenantMode(), global.getTenantMode()));
+
+        // Local + Remote 合并，重用 KVConfig 的结构
+        result.setLocal(CacheConfigMerger.merge(global.getFlatHashLocal(), spec.getLocal()));
+        result.setRemote(CacheConfigMerger.merge(global.getFlatHashRemote(), spec.getRemote()));
+
+        return result;
+    }
+
+    public static MultiTierDynamicHashCacheConfig merge(GlobalConfig global, MultiTierDynamicHashCacheConfig spec) {
+        Objects.requireNonNull(global, "GlobalConfig must not be null");
+
+        if (spec == null) spec = new MultiTierDynamicHashCacheConfig();
+
+        MultiTierDynamicHashCacheConfig result = new MultiTierDynamicHashCacheConfig();
+        result.setKeyPrefix(spec.getKeyPrefix());
         result.setUseHashTag(firstNonNull(spec.getUseHashTag(), global.getUseHashTag()));
         result.setTtlRandomPercent(firstNonNull(spec.getTtlRandomPercent(), global.getTtlRandomPercent()));
         result.setCacheTier(firstNonNull(spec.getCacheTier(), global.getCacheTier()));

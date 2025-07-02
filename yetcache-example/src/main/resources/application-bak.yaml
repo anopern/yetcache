@@ -36,15 +36,54 @@ yetcache:
     cache-tier: BOTH
     tenant-mode: NONE
     use-hash-tag: true
-    dynamic-hash-local:
-      ttl-secs: 30
-      max-size: 20000
+    kv-local:
+      max-size: 2000
+      ttl-secs: 180
+#      penetration-protect:
+#        enabled: true
+#        ttl-secs: 30
+#        max-size: 10_000
       ttl-random-percent: 0.1
+    kv-remote:
+      ttl-secs: 600
       penetration-protect:
         enabled: true
+        ttl-secs: 60
+        max-size: 10_000
+    flat-hash-local:
+      max-size: 2000
+      ttl-secs: 180
+      penetration-protect:
+        enabled: true
+        max-size: 10_000
         ttl-secs: 30
-        max-size: 1000
+    flat-hash-remote:
+      ttl-secs: 600
+      penetration-protect:
+        enabled: true
+        ttl-secs: 60
+        max-size: 10_000
+    dynamic-hash-local:
+      penetration-protect:
+        enabled: true
+        max-size: 10_000
+        ttl-secs: 30
+    dynamic-hash-remote:
+      penetration-protect:
+        enabled: true
+        ttl-secs: 60
   caches:
+    kv:
+      user-id-key-cache:
+        key-prefix: 'nd:acc:user:idk'
+        local:
+          max-size: 2000
+          ttl-secs: 30
+        remote:
+          ttl-secs: 120
+    flat-hash:
+      config-common-info-cache:
+        key: 'nd:config:common:info'
     dynamic-hash:
       stock-hold-info-cache:
         key-prefix: 'nd:stock:hold:info'

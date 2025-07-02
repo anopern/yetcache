@@ -1,9 +1,11 @@
 package com.yetcache.core.cache.dynamichash;
 
-import com.yetcache.core.cache.AbstractMultiTierCache;
+import com.yetcache.core.cache.AbstractMultiTierHashCache;
 import com.yetcache.core.cache.CaffeineHashCache;
 import com.yetcache.core.cache.RedisHashCache;
+import com.yetcache.core.cache.loader.DynamicHashCacheLoader;
 import com.yetcache.core.cache.result.dynamichash.DynamicHashCacheResult;
+import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.MultiTierDynamicHashCacheConfig;
 import com.yetcache.core.config.PenetrationProtectConfig;
 import com.yetcache.core.context.CacheAccessContext;
@@ -11,10 +13,15 @@ import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
+import com.yetcache.core.support.result.CacheLookupResult;
 import com.yetcache.core.support.trace.dynamichash.DefaultDynamicHashCacheAccessRecorder;
-import com.yetcache.core.support.trace.flashhash.FlatHashCacheAccessRecorder;
+import com.yetcache.core.support.trace.dynamichash.DynamicHashCacheAccessRecorder;
 import com.yetcache.core.support.util.CacheParamChecker;
+import com.yetcache.core.util.CacheKeyUtil;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.redisson.api.RedissonClient;
+
 import java.util.List;
 import java.util.Map;
 
@@ -22,38 +29,37 @@ import java.util.Map;
  * @author walter.yan
  * @since 2025/6/29
  */
-public class MultiTierDynamicHashCache<K, F, V> extends AbstractMultiTierCache<K>
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class MultiTierDynamicHashCache<K, F, V> extends AbstractMultiTierHashCache<F, V>
         implements DynamicHashCache<K, F, V> {
     private final MultiTierDynamicHashCacheConfig config;
-    private final DynamicHashCache<K, F, V> cacheLoader;
-    private CaffeineHashCache<V> localCache;
-    private RedisHashCache<V> remoteCache;
     private KeyConverter<K> keyConverter;
-    private FieldConverter<F> fieldConverter;
+    private final DynamicHashCacheLoader<K, F, V> loader;
 
     public MultiTierDynamicHashCache(String cacheName,
                                      MultiTierDynamicHashCacheConfig config,
                                      RedissonClient rClient,
-                                     DynamicHashCache<K, F, V> cacheLoader,
                                      KeyConverter<K> keyConverter,
-                                     FieldConverter<F> fieldConverter) {
+                                     FieldConverter<F> fieldConverter,
+                                     DynamicHashCacheLoader<K, F, V> loader) {
         this.cacheName = cacheName;
         this.config = config;
-        this.cacheLoader = cacheLoader;
         this.keyConverter = keyConverter;
         this.fieldConverter = fieldConverter;
+        this.loader = loader;
 
         if (config.getCacheTier().useLocal()) {
             this.localCache = new CaffeineHashCache<>(config.getLocal());
             PenetrationProtectConfig ppConfig = config.getLocal().getPenetrationProtect();
-            this.localPpCache = new CaffeinePenetrationProtectCache<>(ppConfig.getPrefix(), cacheName,
+            this.localPpCache = new CaffeinePenetrationProtectCache(ppConfig.getPrefix(), cacheName,
                     ppConfig.getTtlSecs(), ppConfig.getMaxSize());
         }
 
         if (config.getCacheTier().useRemote()) {
             this.remoteCache = new RedisHashCache<>(config.getRemote(), rClient);
             PenetrationProtectConfig ppConfig = config.getRemote().getPenetrationProtect();
-            this.remotePpCache = new RedisPenetrationProtectCache<>(rClient, ppConfig.getPrefix(), cacheName,
+            this.remotePpCache = new RedisPenetrationProtectCache(rClient, ppConfig.getPrefix(), cacheName,
                     ppConfig.getTtlSecs(), ppConfig.getMaxSize());
         }
     }
@@ -69,40 +75,112 @@ public class MultiTierDynamicHashCache<K, F, V> extends AbstractMultiTierCache<K
             CacheParamChecker.failIfNull(bizKey, cacheName);
             CacheParamChecker.failIfNull(bizField, cacheName);
 
-            DefaultDynamicHashCacheAccessRecorder<K, F> recorder = new DefaultDynamicHashCacheAccessRecorder<>();
+            DynamicHashCacheAccessRecorder<K, F> recorder = new DefaultDynamicHashCacheAccessRecorder<>();
             recorder.recordStart(bizKey, bizField);
 
             String key = keyConverter.convert(bizKey);
             String field = fieldConverter.convert(bizField);
-
             DynamicHashCacheResult<K, F, V> result = new DynamicHashCacheResult<>();
 
-            if (tryBlockAndRecord(bizKey, bizField, recorder)) {
+            if (tryBlockAndRecord(key, field, bizKey, bizField, recorder)) {
                 return end(recorder, result);
             }
 
-            if (tryCacheLookupAndRecord(key, field, bizKey, bizField, recorder, result)) {
+            if (tryCacheLookupAndRecord(key, bizKey, field, bizField, recorder, result)) {
                 return end(recorder, result);
             }
 
-            // TODO: load fallback（如后期启用）
+            if (tryLoadAndRecord(key, bizKey, field, bizField, recorder, result)) {
+                return end(recorder, result);
+            }
+
             return end(recorder, result);
         } finally {
             CacheAccessContext.clear();
         }
     }
 
-    private boolean tryBlockAndRecord(F bizField, FlatHashCacheAccessRecorder<F> recorder) {
-        if (localPpCache != null && localPpCache.isBlocked(bizField)) {
-            recorder.recordLocalBlocked(bizField);
+    private boolean tryLoadAndRecord(String key, K bizKey, String field, F bizField,
+                                     DynamicHashCacheAccessRecorder<K, F> recorder,
+                                     DynamicHashCacheResult<K, F, V> result) {
+        try {
+            V value = loader.load(bizKey, bizField);
+            if (value == null) {
+                recorder.recordSourceLoadNoValue(bizKey, bizField);
+                markPenetrationProtect(key, field);
+                return true;
+            }
+
+            recorder.recordSourceLoaded(bizKey, bizField);
+
+            CacheValueHolder<V> remoteHolder = CacheValueHolder.wrap(value, config.getRemote().getTtlSecs());
+            CacheValueHolder<V> localHolder = CacheValueHolder.wrap(value, config.getLocal().getTtlSecs());
+
+            if (remoteCache != null) {
+                remoteCache.put(key, field, remoteHolder);
+            }
+            if (localCache != null) {
+                localCache.put(key, field, localHolder);
+            }
+
+            result.setValueHolder(localHolder); // 返回本地 holder 以提升命中率
+            return true;
+
+        } catch (Exception e) {
+            recorder.recordSourceLoadFailed(bizKey, bizField, e);
+            return false;
+        }
+    }
+
+
+
+
+    private boolean tryCacheLookupAndRecord(String key, K bizKey, String field, F bizField,
+                                            DynamicHashCacheAccessRecorder<K, F> recorder,
+                                            DynamicHashCacheResult<K, F, V> result) {
+        CacheLookupResult<V> localResult = tryLocalGet(key, field);
+        if (localResult != null) {
+            if (localResult.isHit()) {
+                recorder.recordLocalHit(bizKey, bizField);
+                result.setValueHolder(localResult.getValueHolder());
+                return true;
+            } else if (localResult.isLogicalExpired()) {
+                recorder.markLocalLogicExpired(bizKey, bizField);
+            } else {
+                recorder.recordLocalPhysicalMiss(bizKey, bizField);
+            }
+        }
+
+        CacheLookupResult<V> remoteResult = tryRemoteGet(key, field);
+        if (remoteResult != null) {
+            if (remoteResult.isHit()) {
+                recorder.recordRemoteHit(bizKey, bizField);
+                result.setValueHolder(remoteResult.getValueHolder());
+                return true;
+            } else if (remoteResult.isLogicalExpired()) {
+                recorder.recordRemoteLogicExpired(bizKey, bizField);
+            } else {
+                recorder.recordRemotePhysicalMiss(bizKey, bizField);
+            }
+        }
+
+        return false;
+    }
+
+
+    private boolean tryBlockAndRecord(String key, String field, K bizKey, F bizField, DynamicHashCacheAccessRecorder<K, F> recorder) {
+        String logicKey = CacheKeyUtil.joinLogicalKey(key, field);
+        if (localPpCache != null && localPpCache.isBlocked(logicKey)) {
+            recorder.recordLocalBlocked(bizKey, bizField);
             return true;
         }
-        if (remotePpCache != null && remotePpCache.isBlocked(bizField)) {
-            recorder.recordRemoteBlocked(bizField);
+        if (remotePpCache != null && remotePpCache.isBlocked(logicKey)) {
+            recorder.recordRemoteBlocked(bizKey, bizField);
             return true;
         }
         return false;
     }
+
     @Override
     public DynamicHashCacheResult<K, F, V> refreshWithResult(K bizKey, F bizField) {
         return null;
@@ -111,5 +189,12 @@ public class MultiTierDynamicHashCache<K, F, V> extends AbstractMultiTierCache<K
     @Override
     public DynamicHashCacheResult<K, F, V> batchRefreshWithResult(Map<K, List<F>> bizKeyMap) {
         return null;
+    }
+
+    private DynamicHashCacheResult<K, F, V> end(DynamicHashCacheAccessRecorder<K, F> recorder,
+                                                DynamicHashCacheResult<K, F, V> result) {
+        recorder.recordEnd();
+        result.setTrace(CacheAccessContext.getDynamicHashTrace());
+        return result;
     }
 }

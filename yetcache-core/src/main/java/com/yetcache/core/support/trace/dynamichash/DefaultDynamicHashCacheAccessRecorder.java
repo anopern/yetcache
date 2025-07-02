@@ -103,8 +103,9 @@ public class DefaultDynamicHashCacheAccessRecorder<K, F> implements DynamicHashC
     }
 
     @Override
-    public void recordSourceLoadFailed(K bizKey, F bizField) {
+    public void recordSourceLoadFailed(K bizKey, F bizField, Exception e) {
         getTrace().getLoadStatusMap().get(bizKey).put(bizField, SourceLoadStatus.ERROR);
+        getTrace().setException(e);
         hasAnyFieldFail = true;
     }
 

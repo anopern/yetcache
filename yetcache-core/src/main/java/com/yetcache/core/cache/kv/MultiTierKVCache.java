@@ -1,5 +1,6 @@
 package com.yetcache.core.cache.kv;
 
+import com.yetcache.core.cache.AbstractMultiTierCache;
 import com.yetcache.core.cache.result.CacheAccessStatus;
 import com.yetcache.core.cache.result.kv.*;
 import com.yetcache.core.cache.support.CacheValueHolder;
@@ -12,6 +13,7 @@ import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
 import com.yetcache.core.support.util.CacheParamChecker;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
@@ -22,17 +24,15 @@ import java.util.Map;
  * @author walter.yan
  * @since 2025/6/25
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Slf4j
-public class MultiTierKVCache<K, V> implements KVCache<K, V> {
-    private String cacheName;
+public class MultiTierKVCache<K, V> extends AbstractMultiTierCache implements KVCache<K, V> {
     private final MultiTierKVCacheConfig config;
     private final KVCacheLoader<K, V> cacheLoader;
     private CaffeineKVCache<V> localCache;
     private RedisKVCache<V> redisCache;
     private KeyConverter<K> keyConverter;
-    private CaffeinePenetrationProtectCache<K> localPpCache;
-    private RedisPenetrationProtectCache<K> remotePpCache;
 
     public MultiTierKVCache(String cacheName,
                             MultiTierKVCacheConfig config,
@@ -49,7 +49,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
             this.localCache = new CaffeineKVCache<>(config.getLocal());
 
             PenetrationProtectConfig ppConfig = config.getLocal().getPenetrationProtect();
-            this.localPpCache = new CaffeinePenetrationProtectCache<>(ppConfig.getPrefix(), cacheName,
+            this.localPpCache = new CaffeinePenetrationProtectCache(ppConfig.getPrefix(), cacheName,
                     ppConfig.getTtlSecs(), ppConfig.getMaxSize());
         }
 
@@ -58,7 +58,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
             this.redisCache = new RedisKVCache<>(config.getRemote(), rClient);
 
             PenetrationProtectConfig ppConfig = config.getRemote().getPenetrationProtect();
-            this.remotePpCache = new RedisPenetrationProtectCache<>(rClient, ppConfig.getPrefix(), cacheName,
+            this.remotePpCache = new RedisPenetrationProtectCache(rClient, ppConfig.getPrefix(), cacheName,
                     ppConfig.getTtlSecs(), ppConfig.getMaxSize());
         }
     }
@@ -97,26 +97,26 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
         CacheValueHolder<V> localHolder;
         CacheValueHolder<V> remoteHolder;
         KVCacheGetResult<K, V> getResult = new KVCacheGetResult<>(cacheName, config.getCacheTier(), bizKey, key, startMills);
-        if (null != localPpCache) {
-            boolean blocked = localPpCache.isBlocked(bizKey);
-            if (blocked) {
-                getResult.setLocalStatus(CacheAccessStatus.BLOCKED);
-                getResult.end();
-                return getResult;
-            }
-        }
-        if (null != remotePpCache) {
-            boolean blocked = remotePpCache.isBlocked(bizKey);
-            if (blocked) {
-                getResult.setLocalStatus(CacheAccessStatus.PHYSICAL_MISS);
-                getResult.setRemoteStatus(CacheAccessStatus.BLOCKED);
-                if (null != localPpCache) {
-                    localPpCache.markMiss(bizKey);
-                }
-                getResult.end();
-                return getResult;
-            }
-        }
+//        if (null != localPpCache) {
+//            boolean blocked = localPpCache.isBlocked(bizKey);
+//            if (blocked) {
+//                getResult.setLocalStatus(CacheAccessStatus.BLOCKED);
+//                getResult.end();
+//                return getResult;
+//            }
+//        }
+//        if (null != remotePpCache) {
+//            boolean blocked = remotePpCache.isBlocked(bizKey);
+//            if (blocked) {
+//                getResult.setLocalStatus(CacheAccessStatus.PHYSICAL_MISS);
+//                getResult.setRemoteStatus(CacheAccessStatus.BLOCKED);
+//                if (null != localPpCache) {
+//                    localPpCache.markMiss(bizKey);
+//                }
+//                getResult.end();
+//                return getResult;
+//            }
+//        }
 
         // === 1. 本地缓存 ===
         if (localCache != null) {
@@ -174,10 +174,10 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
             } else {
                 getResult.setLoadStatus(SourceLoadStatus.NO_VALUE);
                 if (null != localPpCache) {
-                    localPpCache.markMiss(bizKey);
+                    localPpCache.markMiss(key);
                 }
                 if (null != remotePpCache) {
-                    remotePpCache.markMiss(bizKey);
+                    remotePpCache.markMiss(key);
                 }
             }
         } catch (Exception e) {

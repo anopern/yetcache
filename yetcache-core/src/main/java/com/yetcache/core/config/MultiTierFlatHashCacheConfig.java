@@ -17,7 +17,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesBindin
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@ConfigurationPropertiesBinding
+
 public class MultiTierFlatHashCacheConfig extends BaseMultiTierCacheConfig {
     protected String key;
 }
