@@ -6,10 +6,14 @@ import com.yetcache.core.cache.RedisHashCache;
 import com.yetcache.core.cache.result.dynamichash.DynamicHashCacheResult;
 import com.yetcache.core.config.MultiTierDynamicHashCacheConfig;
 import com.yetcache.core.config.PenetrationProtectConfig;
+import com.yetcache.core.context.CacheAccessContext;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
+import com.yetcache.core.support.trace.dynamichash.DefaultDynamicHashCacheAccessRecorder;
+import com.yetcache.core.support.trace.flashhash.FlatHashCacheAccessRecorder;
+import com.yetcache.core.support.util.CacheParamChecker;
 import org.redisson.api.RedissonClient;
 import java.util.List;
 import java.util.Map;
@@ -61,9 +65,44 @@ public class MultiTierDynamicHashCache<K, F, V> extends AbstractMultiTierCache<K
 
     @Override
     public DynamicHashCacheResult<K, F, V> getWithResult(K bizKey, F bizField) {
-        return null;
+        try {
+            CacheParamChecker.failIfNull(bizKey, cacheName);
+            CacheParamChecker.failIfNull(bizField, cacheName);
+
+            DefaultDynamicHashCacheAccessRecorder<K, F> recorder = new DefaultDynamicHashCacheAccessRecorder<>();
+            recorder.recordStart(bizKey, bizField);
+
+            String key = keyConverter.convert(bizKey);
+            String field = fieldConverter.convert(bizField);
+
+            DynamicHashCacheResult<K, F, V> result = new DynamicHashCacheResult<>();
+
+            if (tryBlockAndRecord(bizKey, bizField, recorder)) {
+                return end(recorder, result);
+            }
+
+            if (tryCacheLookupAndRecord(key, field, bizKey, bizField, recorder, result)) {
+                return end(recorder, result);
+            }
+
+            // TODO: load fallback（如后期启用）
+            return end(recorder, result);
+        } finally {
+            CacheAccessContext.clear();
+        }
     }
 
+    private boolean tryBlockAndRecord(F bizField, FlatHashCacheAccessRecorder<F> recorder) {
+        if (localPpCache != null && localPpCache.isBlocked(bizField)) {
+            recorder.recordLocalBlocked(bizField);
+            return true;
+        }
+        if (remotePpCache != null && remotePpCache.isBlocked(bizField)) {
+            recorder.recordRemoteBlocked(bizField);
+            return true;
+        }
+        return false;
+    }
     @Override
     public DynamicHashCacheResult<K, F, V> refreshWithResult(K bizKey, F bizField) {
         return null;
