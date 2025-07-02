@@ -57,6 +57,13 @@ public final class FlatHashCacheManager {
         }
 
         MultiTierFlatHashCacheConfig config = CacheConfigMerger.merge(properties.getGlobal(), raw);
+        // 在 merge 之后，填充 default 的 ttlRandomPercent（只做一次性补全）
+        if (config.getLocal() != null && config.getLocal().getTtlRandomPercent() == null) {
+            config.getLocal().setTtlRandomPercent(config.getTtlRandomPercent());
+        }
+        if (config.getRemote() != null && config.getRemote().getTtlRandomPercent() == null) {
+            config.getRemote().setTtlRandomPercent(config.getTtlRandomPercent());
+        }
         TenantProvider providerToUse = config.getTenantMode() == TenantMode.NONE ? null : this.tenantProvider;
         FlatHashKeyConverter keyConverter = KeyConverterFactory.createNoneBizKey(config.getKey(),
                 config.getTenantMode(), providerToUse);

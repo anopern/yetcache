@@ -55,18 +55,14 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierCache<F>
         this.fieldConverter = fieldConverter;
 
         if (config.getCacheTier().useLocal()) {
-            config.getLocal().setTtlRandomPercent(config.getTtlRandomPercent());
             this.localCache = new CaffeineHashCache<>(config.getLocal());
-
             PenetrationProtectConfig ppConfig = config.getLocal().getPenetrationProtect();
             this.localPpCache = new CaffeinePenetrationProtectCache<>(ppConfig.getPrefix(), cacheName,
                     ppConfig.getTtlSecs(), ppConfig.getMaxSize());
         }
 
         if (config.getCacheTier().useRemote()) {
-            config.getRemote().setTtlRandomPercent(config.getTtlRandomPercent());
             this.remoteCache = new RedisHashCache<>(config.getRemote(), rClient);
-
             PenetrationProtectConfig ppConfig = config.getRemote().getPenetrationProtect();
             this.remotePpCache = new RedisPenetrationProtectCache<>(rClient, ppConfig.getPrefix(), cacheName,
                     ppConfig.getTtlSecs(), ppConfig.getMaxSize());
