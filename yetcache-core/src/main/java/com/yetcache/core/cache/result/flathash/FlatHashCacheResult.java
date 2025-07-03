@@ -1,7 +1,7 @@
 package com.yetcache.core.cache.result.flathash;
 
 import com.alibaba.fastjson2.JSON;
-import com.yetcache.core.cache.result.BaseCacheResultV2;
+import com.yetcache.core.cache.result.BaseCacheGetResult;
 import com.yetcache.core.support.trace.flashhash.FlatHashCacheAccessTrace;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
-public class FlatHashCacheResult<F, V> extends BaseCacheResultV2<V> {
+public class FlatHashCacheResult<F, V> extends BaseCacheGetResult<V> {
     protected FlatHashCacheAccessTrace<F> trace;
 
     @Override

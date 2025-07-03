@@ -34,12 +34,13 @@ public final class FlatHashCacheManager {
     public <F, V> MultiTierFlatHashCache<F, V> create(String name,
                                                       RedissonClient rClient,
                                                       FlatHashCacheLoader<F, V> cacheLoader) {
-        return create(name, rClient, cacheLoader, null);
+        return create(name, rClient, null, cacheLoader, null);
     }
 
     @SuppressWarnings("unchecked")
     public <F, V> MultiTierFlatHashCache<F, V> create(String name,
                                                       RedissonClient rClient,
+                                                      KeyConverter<Void> keyConverter,
                                                       FlatHashCacheLoader<F, V> cacheLoader,
                                                       FieldConverter<F> fieldConverter) {
         MultiTierFlatHashCache<?, ?> existing = registry.get(name);
@@ -65,9 +66,10 @@ public final class FlatHashCacheManager {
             config.getRemote().setTtlRandomPercent(config.getTtlRandomPercent());
         }
         TenantProvider providerToUse = config.getTenantMode() == TenantMode.NONE ? null : this.tenantProvider;
-        FlatHashKeyConverter keyConverter = KeyConverterFactory.createNoneBizKey(config.getKey(),
-                config.getTenantMode(), providerToUse);
-
+        if (null == keyConverter) {
+            keyConverter = KeyConverterFactory.createDefault(config.getKey(),
+                    config.getTenantMode(), config.getUseHashTag(), providerToUse);
+        }
         if (null == fieldConverter) {
             fieldConverter = FieldConverterFactory.create();
         }

@@ -4,7 +4,7 @@ import com.yetcache.core.cache.AbstractMultiTierHashCache;
 import com.yetcache.core.cache.CaffeineHashCache;
 import com.yetcache.core.cache.RedisHashCache;
 import com.yetcache.core.cache.loader.DynamicHashCacheLoader;
-import com.yetcache.core.cache.result.dynamichash.DynamicHashCacheResult;
+import com.yetcache.core.cache.result.dynamichash.DynamicHashCacheGetResult;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.MultiTierDynamicHashCacheConfig;
 import com.yetcache.core.config.PenetrationProtectConfig;
@@ -70,7 +70,7 @@ public class MultiTierDynamicHashCache<K, F, V> extends AbstractMultiTierHashCac
     }
 
     @Override
-    public DynamicHashCacheResult<K, F, V> getWithResult(K bizKey, F bizField) {
+    public DynamicHashCacheGetResult<K, F, V> getWithResult(K bizKey, F bizField) {
         try {
             CacheParamChecker.failIfNull(bizKey, cacheName);
             CacheParamChecker.failIfNull(bizField, cacheName);
@@ -80,7 +80,7 @@ public class MultiTierDynamicHashCache<K, F, V> extends AbstractMultiTierHashCac
 
             String key = keyConverter.convert(bizKey);
             String field = fieldConverter.convert(bizField);
-            DynamicHashCacheResult<K, F, V> result = new DynamicHashCacheResult<>();
+            DynamicHashCacheGetResult<K, F, V> result = new DynamicHashCacheGetResult<>();
 
             if (tryBlockAndRecord(key, field, bizKey, bizField, recorder)) {
                 return end(recorder, result);
@@ -100,9 +100,28 @@ public class MultiTierDynamicHashCache<K, F, V> extends AbstractMultiTierHashCac
         }
     }
 
+    @Override
+    public DynamicHashCacheGetResult<K, F, V> refreshWithResult(K bizKey, F bizField) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DynamicHashCacheGetResult<K, F, V> batchRefreshWithResult(Map<K, List<F>> bizKeyMap) {
+        DynamicHashCacheGetResult<K, F, V> result = new DynamicHashCacheGetResult<>();
+        DynamicHashCacheAccessRecorder<K, F> recorder = new DefaultDynamicHashCacheAccessRecorder<>();
+        recorder.recordStart(bizKeyMap);
+
+        try {
+            Map<K, Map<F, V>> values = loader.batchLoad(bizKeyMap);
+            return end(recorder, result);
+        } finally {
+            CacheAccessContext.clear();
+        }
+    }
+
     private boolean tryLoadAndRecord(String key, K bizKey, String field, F bizField,
                                      DynamicHashCacheAccessRecorder<K, F> recorder,
-                                     DynamicHashCacheResult<K, F, V> result) {
+                                     DynamicHashCacheGetResult<K, F, V> result) {
         try {
             V value = loader.load(bizKey, bizField);
             if (value == null) {
@@ -132,12 +151,9 @@ public class MultiTierDynamicHashCache<K, F, V> extends AbstractMultiTierHashCac
         }
     }
 
-
-
-
     private boolean tryCacheLookupAndRecord(String key, K bizKey, String field, F bizField,
                                             DynamicHashCacheAccessRecorder<K, F> recorder,
-                                            DynamicHashCacheResult<K, F, V> result) {
+                                            DynamicHashCacheGetResult<K, F, V> result) {
         CacheLookupResult<V> localResult = tryLocalGet(key, field);
         if (localResult != null) {
             if (localResult.isHit()) {
@@ -167,7 +183,6 @@ public class MultiTierDynamicHashCache<K, F, V> extends AbstractMultiTierHashCac
         return false;
     }
 
-
     private boolean tryBlockAndRecord(String key, String field, K bizKey, F bizField, DynamicHashCacheAccessRecorder<K, F> recorder) {
         String logicKey = CacheKeyUtil.joinLogicalKey(key, field);
         if (localPpCache != null && localPpCache.isBlocked(logicKey)) {
@@ -181,18 +196,8 @@ public class MultiTierDynamicHashCache<K, F, V> extends AbstractMultiTierHashCac
         return false;
     }
 
-    @Override
-    public DynamicHashCacheResult<K, F, V> refreshWithResult(K bizKey, F bizField) {
-        return null;
-    }
-
-    @Override
-    public DynamicHashCacheResult<K, F, V> batchRefreshWithResult(Map<K, List<F>> bizKeyMap) {
-        return null;
-    }
-
-    private DynamicHashCacheResult<K, F, V> end(DynamicHashCacheAccessRecorder<K, F> recorder,
-                                                DynamicHashCacheResult<K, F, V> result) {
+    private DynamicHashCacheGetResult<K, F, V> end(DynamicHashCacheAccessRecorder<K, F> recorder,
+                                                   DynamicHashCacheGetResult<K, F, V> result) {
         recorder.recordEnd();
         result.setTrace(CacheAccessContext.getDynamicHashTrace());
         return result;

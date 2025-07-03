@@ -3,6 +3,7 @@ package com.yetcache.core.support.trace.dynamichash;
 import com.yetcache.core.support.trace.CacheAccessRecorder;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,7 +14,7 @@ public interface DynamicHashCacheAccessRecorder<K, F> extends CacheAccessRecorde
 
     void recordStart(K bizKey, F bizField);
 
-    void recordStart(Map<K, Collection<F>> bizKeyMap);
+    void recordStart(Map<K, List<F>> bizKeyMap);
 
     void recordLocalPhysicalMiss(K bizKey, F bizField);
 

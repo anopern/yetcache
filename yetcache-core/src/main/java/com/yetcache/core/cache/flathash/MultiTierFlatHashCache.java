@@ -13,7 +13,7 @@ import com.yetcache.core.context.CacheAccessContext;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
 import com.yetcache.core.support.field.FieldConverter;
-import com.yetcache.core.support.key.FlatHashKeyConverter;
+import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.support.result.CacheLookupResult;
 import com.yetcache.core.support.trace.CacheBatchAccessStatus;
 import com.yetcache.core.support.trace.flashhash.DefaultFlatHashCacheAccessRecorder;
@@ -37,13 +37,13 @@ import java.util.*;
 public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierHashCache<F, V>
         implements FlatHashCache<F, V> {
     private final MultiTierFlatHashCacheConfig config;
-    private FlatHashKeyConverter keyConverter;
+    private KeyConverter<Void> keyConverter;
     private final FlatHashCacheLoader<F, V> loader;
 
     public MultiTierFlatHashCache(String cacheName,
                                   MultiTierFlatHashCacheConfig config,
                                   RedissonClient rClient,
-                                  FlatHashKeyConverter keyConverter,
+                                  KeyConverter<Void> keyConverter,
                                   FieldConverter<F> fieldConverter,
                                   FlatHashCacheLoader<F, V> loader) {
         this.cacheName = cacheName;
@@ -85,7 +85,7 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierHashCache<F, 
             DefaultFlatHashCacheAccessRecorder<F> recorder = new DefaultFlatHashCacheAccessRecorder<>();
             recorder.recordStart(bizField);
 
-            String key = keyConverter.convert();
+            String key = keyConverter.convert(null);
             String field = fieldConverter.convert(bizField);
             FlatHashCacheResult<F, V> result = new FlatHashCacheResult<>();
 
@@ -127,7 +127,7 @@ public class MultiTierFlatHashCache<F, V> extends AbstractMultiTierHashCache<F, 
                 recorder.recordSourceLoadAllNoValue();
                 return end(recorder, result);
             }
-            String key = keyConverter.convert();
+            String key = keyConverter.convert(null);
             Map<String, CacheValueHolder<V>> remoteMap = new HashMap<>();
             Map<String, CacheValueHolder<V>> localMap = new HashMap<>();
             for (Map.Entry<F, V> entry : map.entrySet()) {

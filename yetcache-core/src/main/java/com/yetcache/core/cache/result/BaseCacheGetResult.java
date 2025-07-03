@@ -8,6 +8,6 @@ import lombok.Data;
  * @since 2025/7/1
  */
 @Data
-public class BaseCacheResultV2<V> {
+public class BaseCacheGetResult<V> {
     protected CacheValueHolder<V> valueHolder;
 }

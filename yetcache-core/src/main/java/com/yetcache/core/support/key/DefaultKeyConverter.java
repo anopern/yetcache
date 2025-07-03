@@ -9,14 +9,11 @@ import com.yetcache.core.support.tenant.TenantProvider;
  */
 public class DefaultKeyConverter<K> extends AbstractKeyConverter implements KeyConverter<K> {
     protected final boolean useHashTag;
-    protected final BizKeyConverter<K> bizKeyConverter;
 
     public DefaultKeyConverter(String keyPrefix, TenantMode tenantMode,
-                               boolean useHashTag, TenantProvider tenantProvider,
-                               BizKeyConverter<K> bizKeyConverter) {
+                               boolean useHashTag, TenantProvider tenantProvider) {
         super(keyPrefix, tenantMode, tenantProvider);
         this.useHashTag = useHashTag;
-        this.bizKeyConverter = bizKeyConverter;
 
         if ((tenantMode == TenantMode.REQUIRED || tenantMode == TenantMode.OPTIONAL) && tenantProvider == null) {
             throw new IllegalArgumentException("TenantProvider must be provided when tenantMode != NONE");
@@ -30,11 +27,11 @@ public class DefaultKeyConverter<K> extends AbstractKeyConverter implements KeyC
         }
         StringBuilder sb = new StringBuilder(resolvePrefix());
 
-        String bizKeyPart = bizKeyConverter.convert(bizKey);
+        String bizKeyStr = String.valueOf(bizKey); // 仅此处做 key.toString
         if (useHashTag) {
-            sb.append("{").append(bizKeyPart).append("}");
+            sb.append("{").append(bizKeyStr).append("}");
         } else {
-            sb.append(bizKeyPart);
+            sb.append(bizKeyStr);
         }
 
         return sb.toString();

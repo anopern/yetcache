@@ -16,7 +16,7 @@ import java.util.Map;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class DynamicHashCacheAccessTrace<K, F> extends BaseCacheAccessTrace {
+public class DynamicHashCacheBatchAccessTrace<K, F> extends BaseCacheAccessTrace {
     private CacheBatchAccessStatus batchStatus;
     protected Map<K, Map<F, CacheAccessStatus>> localStatusMap = new HashMap<>();
     protected Map<K, Map<F, CacheAccessStatus>> remoteStatusMap = new HashMap<>();

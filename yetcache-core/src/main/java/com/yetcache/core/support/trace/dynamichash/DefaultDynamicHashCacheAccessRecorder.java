@@ -1,18 +1,13 @@
 package com.yetcache.core.support.trace.dynamichash;
 
 
+import com.google.common.collect.Lists;
 import com.yetcache.core.cache.result.CacheAccessStatus;
 import com.yetcache.core.cache.result.SourceLoadStatus;
 import com.yetcache.core.context.CacheAccessContext;
 import com.yetcache.core.support.trace.CacheBatchAccessStatus;
-import com.yetcache.core.support.trace.flashhash.FlatHashCacheAccessRecorder;
-import com.yetcache.core.support.trace.flashhash.FlatHashCacheAccessTrace;
-import org.checkerframework.checker.units.qual.K;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author walter.yan
@@ -25,7 +20,7 @@ public class DefaultDynamicHashCacheAccessRecorder<K, F> implements DynamicHashC
 
     @Override
     public void recordStart() {
-        DynamicHashCacheAccessTrace<K, F> trace = new DynamicHashCacheAccessTrace<>();
+        DynamicHashCacheBatchAccessTrace<K, F> trace = new DynamicHashCacheBatchAccessTrace<>();
         trace.setBatchStatus(CacheBatchAccessStatus.NOT_EXECUTED);
         CacheAccessContext.setDynamicHashTrace(trace);
         trace.setStartMills(System.currentTimeMillis());
@@ -33,13 +28,13 @@ public class DefaultDynamicHashCacheAccessRecorder<K, F> implements DynamicHashC
 
     @Override
     public void recordStart(K bizKey, F bizField) {
-        Map<K, Collection<F>> map = new HashMap<>();
-        map.put(bizKey, Collections.singletonList(bizField));
+        Map<K, List<F>> map = new HashMap<>();
+        map.put(bizKey, Lists.newArrayList(bizField));
         recordStart(map);
     }
 
     @Override
-    public void recordStart(Map<K, Collection<F>> bizKeyMap) {
+    public void recordStart(Map<K, List<F>> bizKeyMap) {
         recordStart();
         for (K bizKey : bizKeyMap.keySet()) {
             for (F bizField : bizKeyMap.get(bizKey)) {
@@ -135,7 +130,7 @@ public class DefaultDynamicHashCacheAccessRecorder<K, F> implements DynamicHashC
         getTrace().setEndMills(System.currentTimeMillis());
     }
 
-    private DynamicHashCacheAccessTrace<K, F> getTrace() {
+    private DynamicHashCacheBatchAccessTrace<K, F> getTrace() {
         return CacheAccessContext.getDynamicHashTrace();
     }
 }
