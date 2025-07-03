@@ -1,8 +1,7 @@
-package com.yetcache.core.cache.result.dynamichash;
+package com.yetcache.core.support.trace.dynamichash;
 
 import com.alibaba.fastjson2.JSON;
 import com.yetcache.core.cache.result.BaseCacheGetResult;
-import com.yetcache.core.support.trace.dynamichash.DynamicHashCacheBatchAccessTrace;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -15,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class DynamicHashCacheGetResult<K, F, V> extends BaseCacheGetResult<V> {
-    protected DynamicHashCacheBatchAccessTrace<K, F> trace;
+    protected HashCacheAccessGetTrace<K, F> trace;
 
     @Override
     public String toString() {

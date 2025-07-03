@@ -1,7 +1,7 @@
 package com.yetcache.core.support.trace.kv;
 
-import com.yetcache.core.cache.result.SourceLoadStatus;
-import com.yetcache.core.support.trace.BaseCacheAccessTrace;
+import com.yetcache.core.support.trace.dynamichash.SourceLoadStatus;
+import com.yetcache.core.support.trace.dynamichash.BaseCacheAccessTrace;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

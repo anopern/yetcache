@@ -1,8 +1,6 @@
 package com.yetcache.core.cache.result.kv;
 
-import com.yetcache.core.cache.result.kv.BaseKVCacheResult;
-import com.yetcache.core.config.CacheTier;
-import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.cache.result.BaseCacheGetResult;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -12,32 +10,5 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class KVCacheGetResult<K, V> extends BaseKVCacheResult<K> {
-    protected CacheValueHolder<V> valueHolder;
-
-    public KVCacheGetResult() {
-    }
-
-    public KVCacheGetResult(String cacheName, CacheTier cacheTier, K bizKey, String key, Long startMills) {
-        this.cacheName = cacheName;
-        this.cacheTier = cacheTier;
-        this.bizKey = bizKey;
-        this.key = key;
-        this.startMills = startMills;
-    }
-
-    public String toString() {
-        return "CacheGetResult{" +
-                "cacheName='" + cacheName + '\'' +
-                ", cacheTier=" + cacheTier +
-                ", bizKey=" + bizKey +
-                ", key='" + key + '\'' +
-                ", durationMills=" + durationMillis() +
-                ", startMills=" + startMills +
-                ", endMills=" + endMills +
-                ", localStatus=" + localStatus +
-                ", remoteStatus=" + remoteStatus +
-                ", loadStatus=" + loadStatus +
-                ", exception=" + exception + "}";
-    }
+public class KVCacheGetResult<V> extends BaseCacheGetResult<V> {
 }

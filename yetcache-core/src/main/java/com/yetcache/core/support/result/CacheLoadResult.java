@@ -1,6 +1,6 @@
 package com.yetcache.core.support.result;
 
-import com.yetcache.core.cache.result.SourceLoadStatus;
+import com.yetcache.core.support.trace.dynamichash.SourceLoadStatus;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import lombok.Data;
 

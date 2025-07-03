@@ -27,7 +27,7 @@ public class RedisKVCache<V> {
         this.rClient = rClient;
     }
 
-    public CacheValueHolder<V> get(String key) {
+    public CacheValueHolder<V> getIfPresent(String key) {
         RBucket<CacheValueHolder<V>> bucket = rClient.getBucket(key);
         return bucket.get();
     }

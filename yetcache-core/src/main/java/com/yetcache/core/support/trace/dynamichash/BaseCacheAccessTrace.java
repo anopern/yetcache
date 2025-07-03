@@ -1,4 +1,4 @@
-package com.yetcache.core.support.trace;
+package com.yetcache.core.support.trace.dynamichash;
 
 import com.yetcache.core.config.CacheTier;
 import lombok.Data;
@@ -8,7 +8,7 @@ import lombok.Data;
  * @since 2025/6/30
  */
 @Data
-public class BaseCacheAccessTrace{
+public class BaseCacheAccessTrace {
     protected String cacheName;
     protected CacheTier cacheTier;
     protected Exception exception;

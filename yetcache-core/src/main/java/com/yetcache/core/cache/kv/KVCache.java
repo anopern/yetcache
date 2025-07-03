@@ -1,6 +1,5 @@
 package com.yetcache.core.cache.kv;
 
-import com.yetcache.core.cache.result.kv.BaseKVCacheResult;
 import com.yetcache.core.cache.result.kv.KVCacheGetResult;
 import com.yetcache.core.cache.result.kv.KVCachePutResult;
 import com.yetcache.core.cache.result.kv.KVCacheRefreshResult;
@@ -15,17 +14,7 @@ import java.util.Map;
 public interface KVCache<K, V> {
     V get(K bizKey);
 
-    Map<K, V> batchGet(List<K> bizKeys);
+    KVCacheGetResult<V> getWithResult(K bizKey);
 
-    void put(K bizKey, V value);
-
-//    void invalidate(K bizKey);
-
-    KVCacheGetResult<K, V> getWithResult(K bizKey);
-
-    KVCachePutResult<K, V> putWithResult(K bizKey, V value);
-
-//    BaseKVCacheResult<K> invalidateWithResult(K bizKey);
-
-    KVCacheRefreshResult<K, V> refresh(K bizKey); // 用于热点/单 key
+    KVCacheRefreshResult<K, V> refresh(K bizKey);
 }

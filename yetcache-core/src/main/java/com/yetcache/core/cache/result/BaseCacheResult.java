@@ -1,6 +1,8 @@
 package com.yetcache.core.cache.result;
 
 import com.yetcache.core.config.CacheTier;
+import com.yetcache.core.support.trace.dynamichash.CacheAccessGetStatus;
+import com.yetcache.core.support.trace.dynamichash.SourceLoadStatus;
 import lombok.Data;
 
 import java.util.HashMap;
@@ -33,15 +35,15 @@ public class BaseCacheResult<K, T extends BaseCacheResult<K, T>> {
      * 本地缓存命中状态（逻辑命中、逻辑过期、物理未命中等），来源于 CacheAccessStatus 枚举。
      * 仅在启用本地缓存时有效。
      */
-    protected CacheAccessStatus localStatus;
-    protected Map<K, CacheAccessStatus> localStatusMap = new HashMap<>();
+    protected CacheAccessGetStatus localStatus;
+    protected Map<K, CacheAccessGetStatus> localStatusMap = new HashMap<>();
 
     /**
      * 远程缓存命中状态，来源于 CacheAccessStatus 枚举。
      * 仅在启用远程缓存时有效（如 Redis）。
      */
-    protected CacheAccessStatus remoteStatus;
-    protected Map<K, CacheAccessStatus> remoteStatusMap = new HashMap<>();
+    protected CacheAccessGetStatus remoteStatus;
+    protected Map<K, CacheAccessGetStatus> remoteStatusMap = new HashMap<>();
 
     /**
      * 数据加载器的执行状态（是否触发加载、是否成功加载、是否触发穿透等），
@@ -77,7 +79,7 @@ public class BaseCacheResult<K, T extends BaseCacheResult<K, T>> {
         return endMills - startMills;
     }
 
-    public void recordLocalStatus(K bizField, CacheAccessStatus status) {
+    public void recordLocalStatus(K bizField, CacheAccessGetStatus status) {
         localStatusMap.put(bizField, status);
     }
 }

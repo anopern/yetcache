@@ -2,8 +2,6 @@ package com.yetcache.core.support.trace.dynamichash;
 
 
 import com.google.common.collect.Lists;
-import com.yetcache.core.cache.result.CacheAccessStatus;
-import com.yetcache.core.cache.result.SourceLoadStatus;
 import com.yetcache.core.context.CacheAccessContext;
 import com.yetcache.core.support.trace.CacheBatchAccessStatus;
 
@@ -38,8 +36,8 @@ public class DefaultDynamicHashCacheAccessRecorder<K, F> implements DynamicHashC
         recordStart();
         for (K bizKey : bizKeyMap.keySet()) {
             for (F bizField : bizKeyMap.get(bizKey)) {
-                getTrace().getLocalStatusMap().get(bizKey).put(bizField, CacheAccessStatus.PENDING);
-                getTrace().getRemoteStatusMap().get(bizKey).put(bizField, CacheAccessStatus.PENDING);
+                getTrace().getLocalStatusMap().get(bizKey).put(bizField, CacheAccessGetStatus.PENDING);
+                getTrace().getRemoteStatusMap().get(bizKey).put(bizField, CacheAccessGetStatus.PENDING);
                 getTrace().getLoadStatusMap().get(bizKey).put(bizField, SourceLoadStatus.PENDING);
             }
         }
@@ -47,43 +45,43 @@ public class DefaultDynamicHashCacheAccessRecorder<K, F> implements DynamicHashC
 
     @Override
     public void recordLocalPhysicalMiss(K bizKey, F bizField) {
-        getTrace().getLocalStatusMap().get(bizKey).put(bizField, CacheAccessStatus.PHYSICAL_MISS);
+        getTrace().getLocalStatusMap().get(bizKey).put(bizField, CacheAccessGetStatus.PHYSICAL_MISS);
     }
 
     @Override
     public void recordLocalHit(K bizKey, F bizField) {
-        getTrace().getLocalStatusMap().get(bizKey).put(bizField, CacheAccessStatus.HIT);
+        getTrace().getLocalStatusMap().get(bizKey).put(bizField, CacheAccessGetStatus.HIT);
     }
 
     @Override
     public void markLocalLogicExpired(K bizKey, F bizField) {
-        getTrace().getLocalStatusMap().get(bizKey).put(bizField, CacheAccessStatus.LOGIC_EXPIRED);
+        getTrace().getLocalStatusMap().get(bizKey).put(bizField, CacheAccessGetStatus.LOGIC_EXPIRED);
     }
 
     @Override
     public void recordLocalBlocked(K bizKey, F bizField) {
-        getTrace().getLocalStatusMap().get(bizKey).put(bizField, CacheAccessStatus.BLOCKED);
+        getTrace().getLocalStatusMap().get(bizKey).put(bizField, CacheAccessGetStatus.BLOCKED);
     }
 
     @Override
     public void recordRemoteBlocked(K bizKey, F bizField) {
-        getTrace().getRemoteStatusMap().get(bizKey).put(bizField, CacheAccessStatus.BLOCKED);
+        getTrace().getRemoteStatusMap().get(bizKey).put(bizField, CacheAccessGetStatus.BLOCKED);
     }
 
 
     @Override
     public void recordRemoteHit(K bizKey, F bizField) {
-        getTrace().getRemoteStatusMap().get(bizKey).put(bizField, CacheAccessStatus.HIT);
+        getTrace().getRemoteStatusMap().get(bizKey).put(bizField, CacheAccessGetStatus.HIT);
     }
 
     @Override
     public void recordRemotePhysicalMiss(K bizKey, F bizField) {
-        getTrace().getRemoteStatusMap().get(bizKey).put(bizField, CacheAccessStatus.PHYSICAL_MISS);
+        getTrace().getRemoteStatusMap().get(bizKey).put(bizField, CacheAccessGetStatus.PHYSICAL_MISS);
     }
 
     @Override
     public void recordRemoteLogicExpired(K bizKey, F bizField) {
-        getTrace().getRemoteStatusMap().get(bizKey).put(bizField, CacheAccessStatus.LOGIC_EXPIRED);
+        getTrace().getRemoteStatusMap().get(bizKey).put(bizField, CacheAccessGetStatus.LOGIC_EXPIRED);
     }
 
     @Override
