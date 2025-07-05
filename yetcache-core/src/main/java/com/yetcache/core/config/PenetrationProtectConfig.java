@@ -1,7 +1,6 @@
 package com.yetcache.core.config;
 
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 
 /**
  * @author walter.yan
@@ -14,4 +13,12 @@ public class PenetrationProtectConfig {
     protected Boolean enabled;
     protected Long ttlSecs;
     protected Long maxSize;
+
+    public static PenetrationProtectConfig defaultConfig() {
+        PenetrationProtectConfig config = new PenetrationProtectConfig();
+        config.setEnabled(true);
+        config.setTtlSecs(120L);
+        config.setMaxSize(10000L);
+        return config;
+    }
 }

@@ -1,83 +1,83 @@
-package com.yetcache.core.cache.manager;
-
-import com.yetcache.core.cache.flathash.MultiTierFlatHashCache;
-import com.yetcache.core.cache.loader.FlatHashCacheLoader;
-import com.yetcache.core.config.TenantMode;
-import com.yetcache.core.config.YetCacheProperties;
-import com.yetcache.core.config.MultiTierFlatHashCacheConfig;
-import com.yetcache.core.merger.CacheConfigMerger;
-import com.yetcache.core.support.field.FieldConverter;
-import com.yetcache.core.support.field.FieldConverterFactory;
-import com.yetcache.core.support.key.*;
-import com.yetcache.core.support.tenant.TenantProvider;
-import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-
-/**
- * @author walter.yan
- * @since 2025/6/28
- */
-@Slf4j
-@Component
-public final class FlatHashCacheManager {
-    @Autowired
-    private YetCacheProperties properties;
-    @Autowired
-    private FlatHashCacheRegistry registry;
-    @Autowired(required = false)
-    private TenantProvider tenantProvider;
-
-    public <F, V> MultiTierFlatHashCache<F, V> create(String name,
-                                                      RedissonClient rClient,
-                                                      FlatHashCacheLoader<F, V> cacheLoader) {
-        return create(name, rClient, null, cacheLoader, null);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <F, V> MultiTierFlatHashCache<F, V> create(String name,
-                                                      RedissonClient rClient,
-                                                      KeyConverter<Void> keyConverter,
-                                                      FlatHashCacheLoader<F, V> cacheLoader,
-                                                      FieldConverter<F> fieldConverter) {
-        MultiTierFlatHashCache<?, ?> existing = registry.get(name);
-        if (existing != null) {
-            throw new IllegalStateException("Cache already exists: " + name);
-        }
-
-        MultiTierFlatHashCacheConfig raw = Optional.ofNullable(properties.getCaches().getFlatHash())
-                .map(m -> m.get(name))
-                .orElse(null);
-
-        if (raw == null) {
-            log.warn("Cache config not found for [{}], using global defaults", name);
-            throw new IllegalStateException("Cache config not found for: " + name);
-        }
-
-        MultiTierFlatHashCacheConfig config = CacheConfigMerger.merge(properties.getGlobal(), raw);
-        // 在 merge 之后，填充 default 的 ttlRandomPercent（只做一次性补全）
-        if (config.getLocal() != null && config.getLocal().getTtlRandomPercent() == null) {
-            config.getLocal().setTtlRandomPercent(config.getTtlRandomPercent());
-        }
-        if (config.getRemote() != null && config.getRemote().getTtlRandomPercent() == null) {
-            config.getRemote().setTtlRandomPercent(config.getTtlRandomPercent());
-        }
-        TenantProvider providerToUse = config.getTenantMode() == TenantMode.NONE ? null : this.tenantProvider;
-        if (null == keyConverter) {
-            keyConverter = KeyConverterFactory.createDefault(config.getKey(),
-                    config.getTenantMode(), config.getUseHashTag(), providerToUse);
-        }
-        if (null == fieldConverter) {
-            fieldConverter = FieldConverterFactory.create();
-        }
-        MultiTierFlatHashCache<F, V> newCache = new MultiTierFlatHashCache<>(name, config, rClient,
-                keyConverter, fieldConverter, cacheLoader);
-        registry.register(name, newCache);
-        log.info("FlatHashCache [{}] created and registered", name);
-        return newCache;
-    }
-
-}
+//package com.yetcache.core.cache.manager;
+//
+//import com.yetcache.core.cache.flathash.MultiTierFlatHashCache;
+//import com.yetcache.core.cache.loader.FlatHashCacheLoader;
+//import com.yetcache.core.config.TenantMode;
+//import com.yetcache.core.config.YetCacheProperties;
+//import com.yetcache.core.config.MultiTierFlatHashCacheConfig;
+//import com.yetcache.core.merger.CacheConfigMerger;
+//import com.yetcache.core.support.field.FieldConverter;
+//import com.yetcache.core.support.field.FieldConverterFactory;
+//import com.yetcache.core.support.key.*;
+//import com.yetcache.core.support.tenant.TenantProvider;
+//import lombok.extern.slf4j.Slf4j;
+//import org.redisson.api.RedissonClient;
+//import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.stereotype.Component;
+//
+//import java.util.Optional;
+//
+///**
+// * @author walter.yan
+// * @since 2025/6/28
+// */
+//@Slf4j
+//@Component
+//public final class FlatHashCacheManager {
+//    @Autowired
+//    private YetCacheProperties properties;
+//    @Autowired
+//    private FlatHashCacheRegistry registry;
+//    @Autowired(required = false)
+//    private TenantProvider tenantProvider;
+//
+//    public <F, V> MultiTierFlatHashCache<F, V> create(String name,
+//                                                      RedissonClient rClient,
+//                                                      FlatHashCacheLoader<F, V> cacheLoader) {
+//        return create(name, rClient, null, cacheLoader, null);
+//    }
+//
+//    @SuppressWarnings("unchecked")
+//    public <F, V> MultiTierFlatHashCache<F, V> create(String name,
+//                                                      RedissonClient rClient,
+//                                                      KeyConverter<Void> keyConverter,
+//                                                      FlatHashCacheLoader<F, V> cacheLoader,
+//                                                      FieldConverter<F> fieldConverter) {
+//        MultiTierFlatHashCache<?, ?> existing = registry.get(name);
+//        if (existing != null) {
+//            throw new IllegalStateException("Cache already exists: " + name);
+//        }
+//
+//        MultiTierFlatHashCacheConfig raw = Optional.ofNullable(properties.getCaches().getFlatHash())
+//                .map(m -> m.get(name))
+//                .orElse(null);
+//
+//        if (raw == null) {
+//            log.warn("Cache config not found for [{}], using global defaults", name);
+//            throw new IllegalStateException("Cache config not found for: " + name);
+//        }
+//
+//        MultiTierFlatHashCacheConfig config = CacheConfigMerger.merge(properties.getGlobal(), raw);
+//        // 在 merge 之后，填充 default 的 ttlRandomPercent（只做一次性补全）
+//        if (config.getLocal() != null && config.getLocal().getTtlRandomPercent() == null) {
+//            config.getLocal().setTtlRandomPercent(config.getTtlRandomPercent());
+//        }
+//        if (config.getRemote() != null && config.getRemote().getTtlRandomPercent() == null) {
+//            config.getRemote().setTtlRandomPercent(config.getTtlRandomPercent());
+//        }
+//        TenantProvider providerToUse = config.getTenantMode() == TenantMode.NONE ? null : this.tenantProvider;
+//        if (null == keyConverter) {
+//            keyConverter = KeyConverterFactory.createDefault(config.getKey(),
+//                    config.getTenantMode(), config.getUseHashTag(), providerToUse);
+//        }
+//        if (null == fieldConverter) {
+//            fieldConverter = FieldConverterFactory.create();
+//        }
+//        MultiTierFlatHashCache<F, V> newCache = new MultiTierFlatHashCache<>(name, config, rClient,
+//                keyConverter, fieldConverter, cacheLoader);
+//        registry.register(name, newCache);
+//        log.info("FlatHashCache [{}] created and registered", name);
+//        return newCache;
+//    }
+//
+//}

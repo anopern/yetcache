@@ -34,7 +34,7 @@ public class RedisKVCache<V> {
 
     public void put(String key, CacheValueHolder<V> value) {
         RBucket<CacheValueHolder<V>> bucket = rClient.getBucket(key);
-        long realTtlSecs = TtlRandomizer.randomizeSecs(config.getTtlSecs(), config.getTtlRandomPercent());
+        long realTtlSecs = TtlRandomizer.randomizeSecs(config.getTtlSecs(), config.getTtlRandomPct());
         bucket.set(value, realTtlSecs, TimeUnit.SECONDS);
     }
 

@@ -1,6 +1,5 @@
 package com.yetcache.core.merger;
 
-import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
 import com.yetcache.core.config.*;
 import com.yetcache.core.config.MultiTierKVCacheConfig;
 import com.yetcache.core.config.CaffeineCacheConfig;
@@ -28,7 +27,7 @@ public final class CacheConfigMerger {
         MultiTierKVCacheConfig result = new MultiTierKVCacheConfig();
         result.setKeyPrefix(spec.getKeyPrefix());
         result.setUseHashTag(firstNonNull(spec.getUseHashTag(), global.getUseHashTag()));
-        result.setTtlRandomPercent(firstNonNull(spec.getTtlRandomPercent(), global.getTtlRandomPercent()));
+        result.setTtlRandomPercent(firstNonNull(spec.getTtlRandomPercent(), global.getTtlRandomPct()));
         result.setCacheTier(firstNonNull(spec.getCacheTier(), global.getCacheTier()));
         result.setTenantMode(firstNonNull(spec.getTenantMode(), global.getTenantMode()));
 
@@ -85,7 +84,7 @@ public final class CacheConfigMerger {
         MultiTierFlatHashCacheConfig result = new MultiTierFlatHashCacheConfig();
         result.setKey(spec.getKey());
         result.setUseHashTag(firstNonNull(spec.getUseHashTag(), global.getUseHashTag()));
-        result.setTtlRandomPercent(firstNonNull(spec.getTtlRandomPercent(), global.getTtlRandomPercent()));
+        result.setTtlRandomPercent(firstNonNull(spec.getTtlRandomPercent(), global.getTtlRandomPct()));
         result.setCacheTier(firstNonNull(spec.getCacheTier(), global.getCacheTier()));
         result.setTenantMode(firstNonNull(spec.getTenantMode(), global.getTenantMode()));
 
@@ -104,7 +103,7 @@ public final class CacheConfigMerger {
         MultiTierDynamicHashCacheConfig result = new MultiTierDynamicHashCacheConfig();
         result.setKeyPrefix(spec.getKeyPrefix());
         result.setUseHashTag(firstNonNull(spec.getUseHashTag(), global.getUseHashTag()));
-        result.setTtlRandomPercent(firstNonNull(spec.getTtlRandomPercent(), global.getTtlRandomPercent()));
+        result.setTtlRandomPercent(firstNonNull(spec.getTtlRandomPercent(), global.getTtlRandomPct()));
         result.setCacheTier(firstNonNull(spec.getCacheTier(), global.getCacheTier()));
         result.setTenantMode(firstNonNull(spec.getTenantMode(), global.getTenantMode()));
 

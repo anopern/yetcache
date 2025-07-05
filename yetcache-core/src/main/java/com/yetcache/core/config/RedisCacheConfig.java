@@ -2,7 +2,6 @@ package com.yetcache.core.config;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 
 /**
  * @author walter.yan
@@ -10,6 +9,13 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesBindin
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-
 public class RedisCacheConfig extends BaseCacheConfig {
+
+    public static RedisCacheConfig defaultConfig() {
+        RedisCacheConfig config = new RedisCacheConfig();
+        config.setTtlSecs(20 * 60L);
+        config.setTtlRandomPct(0.15);
+        config.setPenetrationProtect(PenetrationProtectConfig.defaultConfig());
+        return config;
+    }
 }

@@ -32,7 +32,7 @@ public class CaffeineKVCache<V> {
         Caffeine<Object, Object> builder = Caffeine.newBuilder();
 
         if (config.getTtlSecs() != null) {
-            long realTtl = TtlRandomizer.randomizeSecs(config.getTtlSecs(), config.getTtlRandomPercent());
+            long realTtl = TtlRandomizer.randomizeSecs(config.getTtlSecs(), config.getTtlRandomPct());
             builder.expireAfterWrite(realTtl, TimeUnit.SECONDS);
         }
         if (config.getMaxSize() != null) {

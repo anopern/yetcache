@@ -12,6 +12,6 @@ import java.util.Map;
 @Data
 public class CacheGroups {
     protected Map<String, MultiTierKVCacheConfig> kv = new HashMap<>();
-    protected Map<String, MultiTierFlatHashCacheConfig> flatHash = new HashMap<>();
-    protected Map<String, MultiTierDynamicHashCacheConfig> dynamicHash = new HashMap<>();
+//    protected Map<String, MultiTierFlatHashCacheConfig> flatHash = new HashMap<>();
+//    protected Map<String, MultiTierDynamicHashCacheConfig> dynamicHash = new HashMap<>();
 }
