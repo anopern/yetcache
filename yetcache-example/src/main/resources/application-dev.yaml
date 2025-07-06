@@ -32,48 +32,48 @@ logging:
     com.yetcache.*: debug
 
 yetcache:
-  global:
-    spec:
-      cache-tier: BOTH
-      tenant-mode: NONE
-      use-hash-tag: true
-    kv:
-      local:
-        ttl-secs: 300
-        ttl-random-pct: 0.1
-        penetration-protect:
-          enabled: true
-          ttl-secs: 30
-          max-size: 10000
-      remote:
-        ttl-secs: 600
-        ttl-random-pct: 0.1
-        penetration-protect:
-          enabled: true
-          ttl-secs: 60
-          max-size: 10000
   caches:
     kv:
       user-id-key-cache:
         spec:
           cache-name: 'user-id-key-cache'
           key-prefix: 'nd:acc:user:idk'
-          tenant-mode: NONE
-          cache-tier: BOTH
-          use-hash-tag: true
-        local:
-          max-size: 2000
-          ttl-secs: 30
-          ttl-random-pct: 0.1
-          penetration-protect:
-            enabled: true
-            ttl-secs: 30
-            max-size: 10000
-        remote:
-          ttl-secs: 120
-          ttl-random-pct: 0.1
-          penetration-protect:
-            enabled: true
-            ttl-secs: 60
-            max-size: 10000
+#          tenant-mode: NONE
+#          cache-tier: BOTH
+#          use-hash-tag: true
+#        local:
+#          max-size: 2000
+#          ttl-secs: 30
+#          ttl-random-pct: 0.1
+#          penetration-protect:
+#            enabled: true
+#            ttl-secs: 30
+#            max-size: 10000
+#        remote:
+#          ttl-secs: 120
+#          ttl-random-pct: 0.1
+#          penetration-protect:
+#            enabled: true
+#            ttl-secs: 60
+#            max-size: 10000
 
+#  global:
+#    spec:
+#      cache-tier: BOTH
+#      tenant-mode: NONE
+#      use-hash-tag: true
+#    kv:
+#      local:
+#        ttl-secs: 300
+#        ttl-random-pct: 0.1
+#        penetration-protect:
+#          enabled: true
+#          ttl-secs: 30
+#          max-size: 10000
+#      remote:
+#        ttl-secs: 600
+#        ttl-random-pct: 0.1
+#        penetration-protect:
+#          enabled: true
+#          ttl-secs: 60
+#          max-size: 10000

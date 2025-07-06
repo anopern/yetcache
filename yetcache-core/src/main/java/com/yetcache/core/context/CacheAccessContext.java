@@ -1,8 +1,5 @@
 package com.yetcache.core.context;
 
-import com.yetcache.core.support.trace.dynamichash.DynamicHashCacheBatchAccessTrace;
-import com.yetcache.core.support.trace.flashhash.FlatHashCacheAccessTrace;
-import com.yetcache.core.support.trace.kv.KVCacheAccessTrace;
 import lombok.Data;
 
 /**
@@ -20,98 +17,5 @@ public class CacheAccessContext {
         private String operator;
         private boolean forceRefresh;
         private boolean broadcastAfterRefresh;
-        private KVCacheAccessTrace<?> kvTrace;
-        private FlatHashCacheAccessTrace<?> flatHashTrace;
-        private DynamicHashCacheBatchAccessTrace<?, ?> dynamicHashTrace;
-    }
-
-    // 设置方法
-    public static void setTenantCode(String tenantCode) {
-        CONTEXT.get().setTenantCode(tenantCode);
-    }
-
-    public static void setSource(String source) {
-        CONTEXT.get().setSource(source);
-    }
-
-    public static void setTraceId(String traceId) {
-        CONTEXT.get().setTraceId(traceId);
-    }
-
-    public static void setOperator(String operator) {
-        CONTEXT.get().setOperator(operator);
-    }
-
-    public static void setForceRefresh(boolean forceRefresh) {
-        CONTEXT.get().setForceRefresh(forceRefresh);
-    }
-
-    // 获取方法
-    public static String getTenantId() {
-        return CONTEXT.get().getTenantCode();
-    }
-
-    public static String getSource() {
-        return CONTEXT.get().getSource();
-    }
-
-    public static String getTraceId() {
-        return CONTEXT.get().getTraceId();
-    }
-
-    public static String getOperator() {
-        return CONTEXT.get().getOperator();
-    }
-
-    public static boolean isForceRefresh() {
-        return CONTEXT.get().isForceRefresh();
-    }
-
-    // 清理方法（务必调用）
-    public static void clear() {
-        CONTEXT.remove();
-    }
-
-    // 用于封装式调用（可选）
-    public static Context getContext() {
-        return CONTEXT.get();
-    }
-
-    public static void setContext(Context context) {
-        CONTEXT.set(context);
-    }
-
-    public static void setSourceNormal() {
-        CONTEXT.get().setSource(CacheAccessSources.NORMAL.name());
-    }
-
-    public static void setSourceRefresh() {
-        CONTEXT.get().setSource(CacheAccessSources.REFRESH.name());
-    }
-
-    public static void setSourcePreload() {
-        CONTEXT.get().setSource(CacheAccessSources.PRELOAD.name());
-    }
-
-    public static void setFlatHashTrace(FlatHashCacheAccessTrace<?> trace) {
-        CONTEXT.get().setFlatHashTrace(trace);
-    }
-
-    public static void setDynamicHashTrace(DynamicHashCacheBatchAccessTrace<?, ?> trace) {
-        CONTEXT.get().setDynamicHashTrace(trace);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <F> FlatHashCacheAccessTrace<F> getFlatHashTrace() {
-        return (FlatHashCacheAccessTrace<F>) CONTEXT.get().getFlatHashTrace();
-    }
-
-    public static <K, F> DynamicHashCacheBatchAccessTrace<K, F> getDynamicHashTrace() {
-        return (DynamicHashCacheBatchAccessTrace<K, F>) CONTEXT.get().getDynamicHashTrace();
-    }
-
-
-    public static void setBroadcastAfterRefresh(boolean broadcastAfterRefresh) {
-        CONTEXT.get().setBroadcastAfterRefresh(broadcastAfterRefresh);
     }
 }
