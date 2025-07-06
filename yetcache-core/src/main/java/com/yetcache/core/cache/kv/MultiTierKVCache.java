@@ -3,9 +3,11 @@ package com.yetcache.core.cache.kv;
 import com.yetcache.core.cache.result.KVCacheGetResult;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.loader.KVCacheLoader;
+import com.yetcache.core.cache.trace.KVCacheGetTrace;
 import com.yetcache.core.config.PenetrationProtectConfig;
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import com.yetcache.core.config.kv.MultiTierKVCacheSpec;
+import com.yetcache.core.metrics.HitTier;
 import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
@@ -76,9 +78,11 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
         CacheValueHolder<V> remoteHolder;
 
         KVCacheGetResult<V> getResult = new KVCacheGetResult<>();
+        KVCacheGetTrace trace = new KVCacheGetTrace();
         if (null != localPpCache) {
             boolean blocked = localPpCache.isBlocked(key);
             if (blocked) {
+                trace.setHitTier(HitTier.BLOCKED);
                 return getResult;
             }
         }
@@ -86,6 +90,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
         if (null != remotePpCache) {
             boolean blocked = remotePpCache.isBlocked(key);
             if (blocked) {
+                trace.setHitTier(HitTier.BLOCKED);
                 return getResult;
             }
         }
@@ -95,6 +100,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
             localHolder = localCache.getIfPresent(key);
             if (localHolder != null && localHolder.isNotLogicExpired()) {
                 getResult.setValueHolder(localHolder);
+                trace.setHitTier(HitTier.LOCAL);
                 return getResult;
             }
         }
@@ -108,6 +114,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
                     localCache.put(key, CacheValueHolder.wrap(remoteHolder.getValue(), config.getLocal().getTtlSecs()));
                 }
                 getResult.setValueHolder(remoteHolder);
+                trace.setHitTier(HitTier.REMOTE);
                 return getResult;
             }
         }
@@ -125,6 +132,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
                     localCache.put(key, valueHolder);
                 }
                 getResult.setValueHolder(new CacheValueHolder<>(loaded));
+                trace.setHitTier(HitTier.SOURCE);
             } else {
                 if (null != localPpCache) {
                     localPpCache.markMiss(key);
@@ -136,6 +144,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
         } catch (Exception e) {
             log.warn("缓存回源加载失败，cacheName={}, bizKey={}, key={}, ", cacheName, bizKey, key, e);
         }
+        getResult.setTrace(trace);
         return getResult;
     }
 

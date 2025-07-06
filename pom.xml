@@ -10,7 +10,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>yetcache-agent</module>
-        <module>yetcache-agent-starter</module>
         <module>yetcache-core</module>
         <module>yetcache-example</module>
     </modules>
@@ -23,8 +22,7 @@
         <spring-cloud.alibaba.version>2.2.9.RELEASE</spring-cloud.alibaba.version>
         <spring-boot.version>2.3.2.RELEASE</spring-boot.version>
         <hutool-all.version>5.7.4</hutool-all.version>
-        <fastjson.version>1.2.71</fastjson.version>
-
+        <fastjson2.version>2.0.51</fastjson2.version>
     </properties>
 
     <dependencies>
@@ -41,10 +39,6 @@
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
             <version>${hutool-all.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -70,9 +64,9 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
-                <version>${fastjson.version}</version>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson2.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

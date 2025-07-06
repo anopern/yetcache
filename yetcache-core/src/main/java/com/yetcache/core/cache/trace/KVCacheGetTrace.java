@@ -1,5 +1,6 @@
 package com.yetcache.core.cache.trace;
 
+import com.yetcache.core.metrics.HitTier;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -11,7 +12,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class KVCacheGetTrace extends BaseCacheAccessTrace {
-    protected CacheAccessStatus localStatus;
-    protected CacheAccessStatus remoteStatus;
-    protected SourceLoadStatus loadStatus;
+    protected HitTier hitTier;
+//    protected CacheAccessStatus localStatus;
+//    protected CacheAccessStatus remoteStatus;
+//    protected SourceLoadStatus loadStatus;
 }

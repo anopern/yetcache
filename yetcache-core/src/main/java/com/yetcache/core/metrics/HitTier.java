@@ -5,6 +5,7 @@ package com.yetcache.core.metrics;
  * @since 2025/7/3
  */
 public enum HitTier {
+    BLOCKED,
     LOCAL,
     REMOTE,
     SOURCE

@@ -21,7 +21,6 @@
         <redisson.version>3.16.4</redisson.version>
         <fastjson2.version>2.0.20</fastjson2.version>
         <caffeine.version>3.1.8</caffeine.version>
-        <fastjson.version>2.0.32</fastjson.version>
     </properties>
 
     <dependencies>
@@ -52,11 +51,6 @@
             <version>${caffeine.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>${fastjson.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>27.0.1-jre</version>
@@ -75,6 +69,10 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
             <version>1.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
         </dependency>
     </dependencies>
 
