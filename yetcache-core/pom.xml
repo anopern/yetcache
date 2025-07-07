@@ -65,10 +65,21 @@
             <artifactId>mapstruct</artifactId>
             <version>1.6.3</version>
         </dependency>
+        <!-- 核心依赖：Spring Boot Actuator + Micrometer -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
-            <version>1.11.0</version>
+        </dependency>
+
+        <!-- 可选：Prometheus 集成支持 -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
         <dependency>
             <groupId>com.alibaba.fastjson2</groupId>

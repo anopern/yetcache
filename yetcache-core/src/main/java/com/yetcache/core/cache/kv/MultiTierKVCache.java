@@ -1,6 +1,7 @@
 package com.yetcache.core.cache.kv;
 
 import com.yetcache.core.cache.result.KVCacheGetResult;
+import com.yetcache.core.cache.result.KVCacheRefreshResult;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.loader.KVCacheLoader;
 import com.yetcache.core.cache.trace.KVCacheGetTrace;
@@ -8,6 +9,7 @@ import com.yetcache.core.config.PenetrationProtectConfig;
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import com.yetcache.core.config.kv.MultiTierKVCacheSpec;
 import com.yetcache.core.metrics.HitTier;
+import com.yetcache.core.metrics.KVCacheMetrics;
 import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;
 import com.yetcache.core.protect.RedisPenetrationProtectCache;
@@ -62,6 +64,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
     @Override
     public V get(K bizKey) {
         KVCacheGetResult<V> getResult = getWithResult(bizKey);
+        KVCacheMetrics.countGetHit(cacheName, getResult.getTrace().getHitTier().name());
         log.debug("CacheGetResult: {}", getResult);
         if (getResult.getValueHolder() != null) {
             return getResult.getValueHolder().getValue();
@@ -77,13 +80,14 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
         CacheValueHolder<V> localHolder;
         CacheValueHolder<V> remoteHolder;
 
-        KVCacheGetResult<V> getResult = new KVCacheGetResult<>();
+        KVCacheGetResult<V> result = new KVCacheGetResult<>();
         KVCacheGetTrace trace = new KVCacheGetTrace();
+        result.setTrace(trace);
         if (null != localPpCache) {
             boolean blocked = localPpCache.isBlocked(key);
             if (blocked) {
                 trace.setHitTier(HitTier.BLOCKED);
-                return getResult;
+                return result;
             }
         }
 
@@ -91,7 +95,7 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
             boolean blocked = remotePpCache.isBlocked(key);
             if (blocked) {
                 trace.setHitTier(HitTier.BLOCKED);
-                return getResult;
+                return result;
             }
         }
 
@@ -99,9 +103,9 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
         if (localCache != null) {
             localHolder = localCache.getIfPresent(key);
             if (localHolder != null && localHolder.isNotLogicExpired()) {
-                getResult.setValueHolder(localHolder);
+                result.setValueHolder(localHolder);
                 trace.setHitTier(HitTier.LOCAL);
-                return getResult;
+                return result;
             }
         }
 
@@ -113,9 +117,9 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
                 if (localCache != null) {
                     localCache.put(key, CacheValueHolder.wrap(remoteHolder.getValue(), config.getLocal().getTtlSecs()));
                 }
-                getResult.setValueHolder(remoteHolder);
+                result.setValueHolder(remoteHolder);
                 trace.setHitTier(HitTier.REMOTE);
-                return getResult;
+                return result;
             }
         }
 
@@ -126,12 +130,13 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
                 if (redisCache != null) {
                     CacheValueHolder<V> valueHolder = CacheValueHolder.wrap(loaded, config.getRemote().getTtlSecs());
                     redisCache.put(key, valueHolder);
+                    result.setValueHolder(valueHolder);
                 }
                 if (localCache != null) {
                     CacheValueHolder<V> valueHolder = CacheValueHolder.wrap(loaded, config.getLocal().getTtlSecs());
                     localCache.put(key, valueHolder);
+                    result.setValueHolder(valueHolder);
                 }
-                getResult.setValueHolder(new CacheValueHolder<>(loaded));
                 trace.setHitTier(HitTier.SOURCE);
             } else {
                 if (null != localPpCache) {
@@ -144,30 +149,24 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
         } catch (Exception e) {
             log.warn("缓存回源加载失败，cacheName={}, bizKey={}, key={}, ", cacheName, bizKey, key, e);
         }
-        getResult.setTrace(trace);
-        return getResult;
+        return result;
     }
 
-//    @Override
-//    public KVCacheRefreshResult<K, V> refresh(K bizKey) {
-//        Long startMills = System.currentTimeMillis();
-//        CacheParamChecker.failIfNull(bizKey, cacheName);
-//        String key = keyConverter.convert(bizKey);
-//        KVCacheRefreshResult<K, V> refreshResult = new KVCacheRefreshResult<>(cacheName, config.getCacheTier(),
-//                bizKey, key, startMills);
-//        V loaded = cacheLoader.load(bizKey);
-//        if (loaded != null) {
-//            if (localCache != null) {
-//                localCache.put(key, CacheValueHolder.wrap(loaded, config.getLocal().getTtlSecs()));
-//            }
-//            if (redisCache != null) {
-//                redisCache.put(key, CacheValueHolder.wrap(loaded, config.getRemote().getTtlSecs()));
-//            }
-//            refreshResult.setValueHolder(new CacheValueHolder<>(loaded));
-//        } else {
-//            refreshResult.setLoadStatus(SourceLoadStatus.NO_VALUE);
-//        }
-//        refreshResult.end();
-//        return refreshResult;
-//    }
+    @Override
+    public KVCacheRefreshResult<V> refreshWithResult(K bizKey) {
+        CacheParamChecker.failIfNull(bizKey, cacheName);
+        String key = keyConverter.convert(bizKey);
+        KVCacheRefreshResult<V> result = new KVCacheRefreshResult<>();
+        V loaded = cacheLoader.load(bizKey);
+        if (loaded != null) {
+            if (redisCache != null) {
+                redisCache.put(key, CacheValueHolder.wrap(loaded, config.getRemote().getTtlSecs()));
+            }
+            if (localCache != null) {
+                localCache.put(key, CacheValueHolder.wrap(loaded, config.getLocal().getTtlSecs()));
+            }
+            result.setValueHolder(new CacheValueHolder<>(loaded));
+        }
+        return result;
+    }
 }
