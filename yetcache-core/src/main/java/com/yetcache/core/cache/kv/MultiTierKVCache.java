@@ -73,6 +73,11 @@ public class MultiTierKVCache<K, V> implements KVCache<K, V> {
     }
 
     @Override
+    public void refresh(K bizKey) {
+
+    }
+
+    @Override
     public KVCacheGetResult<V> getWithResult(K bizKey) {
         CacheParamChecker.failIfNull(bizKey, cacheName);
         String key = keyConverter.convert(bizKey);
