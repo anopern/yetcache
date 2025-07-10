@@ -16,13 +16,6 @@ public class MultiTierKVCacheConfig {
     protected CaffeineKVCacheConfig local;
     protected RedisKVCacheConfig remote;
 
-    public MultiTierKVCacheConfig(MultiTierKVCacheConfig src) {
-        if (src == null) return;
-        if (src.spec != null) this.spec = new MultiTierKVCacheSpec(src.spec);
-        if (src.local != null) this.local = new CaffeineKVCacheConfig(src.local);
-        if (src.remote != null) this.remote = new RedisKVCacheConfig(src.remote);
-    }
-
     public static MultiTierKVCacheConfig defaultConfig() {
         return new MultiTierKVCacheConfig(MultiTierKVCacheSpec.defaultSpec(),
                 CaffeineKVCacheConfig.defaultConfig(),

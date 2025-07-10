@@ -1,4 +1,4 @@
-package com.yetcache.core.config.kv;
+package com.yetcache.core.config.flathash;
 
 import com.yetcache.core.config.PenetrationProtectConfig;
 import lombok.Data;
@@ -10,14 +10,14 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class CaffeineKVCacheConfig {
+public class CaffeineFlatHashCacheConfig {
     protected Long ttlSecs;
     protected Double ttlRandomPct;
     protected Integer maxSize;
     protected PenetrationProtectConfig penetrationProtect;
 
-    public static CaffeineKVCacheConfig defaultConfig() {
-        CaffeineKVCacheConfig defaultConfig = new CaffeineKVCacheConfig();
+    public static CaffeineFlatHashCacheConfig defaultConfig() {
+        CaffeineFlatHashCacheConfig defaultConfig = new CaffeineFlatHashCacheConfig();
         defaultConfig.setTtlSecs(300L);
         defaultConfig.setTtlRandomPct(0.15);
         defaultConfig.setMaxSize(10000);

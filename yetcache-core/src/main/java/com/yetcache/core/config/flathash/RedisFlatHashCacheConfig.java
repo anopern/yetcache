@@ -1,4 +1,4 @@
-package com.yetcache.core.config.kv;
+package com.yetcache.core.config.flathash;
 
 import com.yetcache.core.config.PenetrationProtectConfig;
 import lombok.Data;
@@ -10,12 +10,13 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class RedisKVCacheConfig {
+public class RedisFlatHashCacheConfig {
     protected Long ttlSecs;
     protected Double ttlRandomPct;
     protected PenetrationProtectConfig penetrationProtect;
-    public static RedisKVCacheConfig defaultConfig() {
-        RedisKVCacheConfig config = new RedisKVCacheConfig();
+
+    public static RedisFlatHashCacheConfig defaultConfig() {
+        RedisFlatHashCacheConfig config = new RedisFlatHashCacheConfig();
         config.setTtlSecs(20 * 60L);
         config.setTtlRandomPct(0.15);
         config.setPenetrationProtect(PenetrationProtectConfig.defaultConfig());
