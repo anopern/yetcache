@@ -15,6 +15,13 @@ public class CaffeineFlatHashCacheConfig {
     protected Double ttlRandomPct;
     protected Integer maxSize;
 
+    public CaffeineFlatHashCacheConfig(CaffeineFlatHashCacheConfig other) {
+        if (other == null) return;
+        this.ttlSecs = other.ttlSecs;
+        this.ttlRandomPct = other.ttlRandomPct;
+        this.maxSize = other.maxSize;
+    }
+
     public static CaffeineFlatHashCacheConfig defaultConfig() {
         CaffeineFlatHashCacheConfig defaultConfig = new CaffeineFlatHashCacheConfig();
         defaultConfig.setTtlSecs(300L);

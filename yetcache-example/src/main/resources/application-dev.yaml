@@ -45,3 +45,8 @@ yetcache:
         spec:
           cache-name: 'user-id-key-cache'
           key-prefix: 'nd:acc:user:idk'
+    flat-hash:
+      config-common-info-cache:
+        spec:
+          cache-name: 'config-common-info-cache'
+          key-prefix: 'nd:cfg:common:info'

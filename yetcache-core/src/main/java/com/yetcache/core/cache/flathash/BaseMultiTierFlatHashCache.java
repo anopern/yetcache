@@ -2,11 +2,11 @@ package com.yetcache.core.cache.flathash;
 
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
-import com.yetcache.core.config.flathash.MultiTierFlatHashCacheSpec;
 import com.yetcache.core.metrics.HitTier;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import lombok.extern.slf4j.Slf4j;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class BaseMultiTierFlatHashCache<F, V> implements MultiTierFlatHashCache<F, V> {
     protected String cacheName;
     private final MultiTierFlatHashCacheConfig config;
-    private CaffeineFlatHashCache<V> localCache;
+    private final CaffeineFlatHashCache<V> localCache;
     private final KeyConverter<Void> keyConverter;
     private final FieldConverter<F> fieldConverter;
 
@@ -31,10 +31,7 @@ public class BaseMultiTierFlatHashCache<F, V> implements MultiTierFlatHashCache<
         this.config = config;
         this.keyConverter = keyConverter;
         this.fieldConverter = fieldConverter;
-        MultiTierFlatHashCacheSpec spec = config.getSpec();
-        if (spec.getCacheTier().useLocal()) {
-            this.localCache = new CaffeineFlatHashCache<>(config.getLocal());
-        }
+        this.localCache = new CaffeineFlatHashCache<>(config.getLocal());
     }
 
     @Override

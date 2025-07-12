@@ -2,23 +2,34 @@ package com.yetcache.core.cache;
 
 import com.yetcache.core.config.YetCacheProperties;
 import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
+import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
+import com.yetcache.core.merger.CacheConfigMerger;
 
 /**
  * @author walter.yan
  * @since 2025/7/12
  */
 public class YetCacheConfigResolver {
+
     private final YetCacheProperties props;
 
     public YetCacheConfigResolver(YetCacheProperties props) {
         this.props = props;
     }
 
-    public MultiTierFlatHashCacheConfig resolveFlatHash(String cacheName) {
-        MultiTierFlatHashCacheConfig config = props.getCaches().getFlatHash().get(cacheName);
-        if (config == null) {
-            throw new IllegalArgumentException("未找到 FlatHash 结构 [" + cacheName + "] 的配置，请检查 yetcache.caches.flathash");
+    public MultiTierKVCacheConfig resolveKV(String cacheName) {
+        MultiTierKVCacheConfig raw = props.getCaches().getKv().get(cacheName);
+        if (raw == null) {
+            throw new IllegalArgumentException("KV结构未配置: " + cacheName);
         }
-        return config;
+        return CacheConfigMerger.merge(props.getGlobal(), raw);
+    }
+
+    public MultiTierFlatHashCacheConfig resolveFlatHash(String cacheName) {
+        MultiTierFlatHashCacheConfig raw = props.getCaches().getFlatHash().get(cacheName);
+        if (raw == null) {
+            throw new IllegalArgumentException("FlatHash结构未配置: " + cacheName);
+        }
+        return CacheConfigMerger.merge(props.getGlobal(), raw);
     }
 }

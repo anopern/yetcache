@@ -12,6 +12,19 @@ public class FlatHashCacheEnhanceConfig {
     protected PenetrationProtectConfig penetrationProtect;
     private HitCountMetricsConfig hitMetrics;
 
+    public FlatHashCacheEnhanceConfig() {
+    }
+
+    public FlatHashCacheEnhanceConfig(FlatHashCacheEnhanceConfig other) {
+        if (other == null) return;
+        this.penetrationProtect = other.penetrationProtect != null
+                ? new PenetrationProtectConfig(other.penetrationProtect)
+                : null;
+        this.hitMetrics = other.hitMetrics != null
+                ? new HitCountMetricsConfig(other.hitMetrics)
+                : null;
+    }
+
     public static FlatHashCacheEnhanceConfig defaultConfig() {
         FlatHashCacheEnhanceConfig config = new FlatHashCacheEnhanceConfig();
         config.setPenetrationProtect(PenetrationProtectConfig.defaultConfig());

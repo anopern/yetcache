@@ -1,6 +1,12 @@
 package com.yetcache.example.cache.cnfig;
 
+import com.yetcache.agent.MicrometerCacheMetricsCollector;
+import com.yetcache.core.cache.YetCacheConfigResolver;
+import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
 import com.yetcache.example.cache.ConfigCommonInfoCacheAgent;
+import com.yetcache.example.enums.EnumCaches;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,9 +16,14 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class ConfigCacheAgentConfig {
+    @Autowired
+    private MeterRegistry meterRegistry;
+    @Autowired
+    private YetCacheConfigResolver configResolver;
 
     @Bean
     public ConfigCommonInfoCacheAgent configCommonInfoCacheAgent() {
-
+        MultiTierFlatHashCacheConfig config = configResolver.resolveFlatHash(EnumCaches.CONFIG_COMMON_INFO_CACHE.getName());
+        return new ConfigCommonInfoCacheAgent(config, meterRegistry);
     }
 }
