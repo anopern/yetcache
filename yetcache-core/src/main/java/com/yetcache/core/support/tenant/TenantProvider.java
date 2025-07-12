@@ -5,7 +5,5 @@ package com.yetcache.core.support.tenant;
  * @since 2025/7/1
  */
 public interface TenantProvider {
-    String getCurrentTenantCode();
-    String getDefaultTenantCode();
-
+    String getTenantId();
 }

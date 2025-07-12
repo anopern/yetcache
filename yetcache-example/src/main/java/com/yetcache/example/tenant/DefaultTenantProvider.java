@@ -10,12 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DefaultTenantProvider implements TenantProvider {
     @Override
-    public String getCurrentTenantCode() {
-        return null;
-    }
-
-    @Override
-    public String getDefaultTenantCode() {
+    public String getTenantId() {
         return null;
     }
 }

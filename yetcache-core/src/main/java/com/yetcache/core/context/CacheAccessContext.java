@@ -22,4 +22,8 @@ public class CacheAccessContext {
     public static String getTenantId() {
         return CONTEXT.get().getTenantCode();
     }
+
+    public static void setTenantId(String tenantId) {
+        CONTEXT.get().setTenantCode(tenantId);
+    }
 }

@@ -1,6 +1,5 @@
 package com.yetcache.example.cache.cnfig;
 
-import com.yetcache.agent.MicrometerCacheMetricsCollector;
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
 import com.yetcache.example.cache.ConfigCommonInfoCacheAgent;

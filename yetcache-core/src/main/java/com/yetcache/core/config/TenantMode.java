@@ -7,4 +7,8 @@ package com.yetcache.core.config;
 public enum TenantMode {
     REQUIRED,
     NONE;
+
+    public boolean isRequired() {
+        return this == REQUIRED;
+    }
 }

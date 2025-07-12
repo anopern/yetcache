@@ -2,10 +2,13 @@ package com.yetcache.agent;
 
 import com.yetcache.core.cache.flathash.*;
 import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
+import com.yetcache.core.context.CacheAccessContext;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.support.key.KeyConverterFactory;
+import com.yetcache.core.support.tenant.TenantProvider;
 import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
@@ -16,10 +19,26 @@ import java.util.Map;
  * @author walter
  * @since 2025/6/28
  */
-public abstract class AbstractConfigCacheAgent<F, V> {
+@Slf4j
+public abstract class AbstractConfigCacheAgent<F, V> implements MultiTierFlatHashRefreshableCacheAgent {
     protected final MultiTierFlatHashCache<F, V> delegate;
+    protected final MultiTierFlatHashCacheConfig config;
+    protected final FlatHashCacheLoader<F, V> cacheLoader;
+    protected final TenantProvider tenantProvider;
+    protected final MeterRegistry meterRegistry;
 
-    protected AbstractConfigCacheAgent(MultiTierFlatHashCacheConfig config, MeterRegistry meterRegistry) {
+    protected AbstractConfigCacheAgent(MultiTierFlatHashCacheConfig config, FlatHashCacheLoader<F, V> cacheLoader,
+                                       TenantProvider tenantProvider,
+                                       MeterRegistry meterRegistry) {
+        this.config = config;
+        this.cacheLoader = cacheLoader;
+        this.tenantProvider = tenantProvider;
+        this.meterRegistry = meterRegistry;
+
+        this.delegate = createDelegateCache();
+    }
+
+    protected MultiTierFlatHashCache<F, V> createDelegateCache() {
         KeyConverter<Void> keyConverter = KeyConverterFactory.createDefault(config.getSpec().getKeyPrefix(),
                 config.getSpec().getTenantMode(), config.getSpec().getUseHashTag());
 
@@ -31,23 +50,57 @@ public abstract class AbstractConfigCacheAgent<F, V> {
 
         FlatHashCacheMetricsEnhancer<F, V> cacheMetricsEnhancer =
                 new FlatHashCacheMetricsEnhancer<>(config.getSpec().getCacheName(), getFieldConverter(),
-                        new MicrometerCacheMetricsCollector(meterRegistry));
+                        new MicrometerCacheAccessMetricsCollector(meterRegistry));
 
         cache = penetrationProtectEnhancer.enhance(cache, config.getEnhance());
         cache = cacheMetricsEnhancer.enhance(cache, config.getEnhance());
-
-        this.delegate = cache;
+        return cache;
     }
 
     protected abstract String getName();
 
     protected abstract FieldConverter<F> getFieldConverter();
 
+    protected final FlatHashAccessResult<Map<F, V>> refreshAllWithResult() {
+        long start = System.currentTimeMillis();
+        try {
+            Map<F, V> map = cacheLoader.loadAll();
+            if (map == null || map.isEmpty()) {
+                return FlatHashAccessResult.fail(new IllegalStateException("Loaded config map is empty"));
+            }
+            delegate.putAll(map);
+            return FlatHashAccessResult.success(map);
+        } catch (Exception e) {
+            log.warn("[{}] refresh failed: {}", getName(), e.getMessage(), e);
+            return FlatHashAccessResult.fail(e);
+        } finally {
+            long cost = System.currentTimeMillis() - start;
+            log.debug("[{}] refresh cost={}ms", getName(), cost);
+        }
+    }
+
     public V get(F field) {
+        setTenantIdIfRequired();
         return delegate.get(field);
     }
 
     public Map<F, V> listAll() {
+        setTenantIdIfRequired();
         return delegate.listAll();
+    }
+
+    @Override
+    public boolean refreshAll() {
+        FlatHashAccessResult<Map<F, V>> result = refreshAllWithResult();
+        if (null != result) {
+            return result.isSuccess();
+        }
+        return false;
+    }
+
+    protected void setTenantIdIfRequired() {
+        if (config.getSpec().getTenantMode().isRequired()) {
+            CacheAccessContext.setTenantId(tenantProvider.getTenantId());
+        }
     }
 }

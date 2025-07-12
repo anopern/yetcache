@@ -4,7 +4,7 @@ package com.yetcache.core.cache.flathash;
  * @author walter.yan
  * @since 2025/7/12
  */
-public interface CacheMetricsCollector {
+public interface CacheAccessMetricsCollector {
     void recordHit(String cacheName, String hitTier);
 
     void recordMiss(String cacheName);

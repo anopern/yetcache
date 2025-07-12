@@ -1,6 +1,6 @@
 package com.yetcache.agent;
 
-import com.yetcache.core.cache.flathash.CacheMetricsCollector;
+import com.yetcache.core.cache.flathash.CacheAccessMetricsCollector;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2025/7/12
  */
 @Component
-public class MicrometerCacheMetricsCollector implements CacheMetricsCollector {
+public class MicrometerCacheAccessMetricsCollector implements CacheAccessMetricsCollector {
     private final Map<String, Counter> hitCounterCache = new ConcurrentHashMap<>();
     private final Map<String, Counter> missCounterCache = new ConcurrentHashMap<>();
     private final Map<String, Counter> blockCounterCache = new ConcurrentHashMap<>();
@@ -22,7 +22,7 @@ public class MicrometerCacheMetricsCollector implements CacheMetricsCollector {
     private final MeterRegistry meterRegistry;
 
     @Autowired
-    public MicrometerCacheMetricsCollector(MeterRegistry meterRegistry) {
+    public MicrometerCacheAccessMetricsCollector(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
     }
 

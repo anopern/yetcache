@@ -15,13 +15,13 @@ public class FlatHashCacheMetricsDecorator<F, V> implements MultiTierFlatHashCac
     private final MultiTierFlatHashCache<F, V> delegate;
     private final HitCountMetricsConfig config;
     private final FieldConverter<F> fieldConverter;
-    private final CacheMetricsCollector collector;
+    private final CacheAccessMetricsCollector collector;
 
     public FlatHashCacheMetricsDecorator(String cacheName,
                                          MultiTierFlatHashCache<F, V> delegate,
                                          HitCountMetricsConfig config,
                                          FieldConverter<F> fieldConverter,
-                                         CacheMetricsCollector collector) {
+                                         CacheAccessMetricsCollector collector) {
         this.cacheName = cacheName;
         this.delegate = delegate;
         this.config = config;

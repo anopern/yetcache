@@ -12,11 +12,11 @@ public class FlatHashCacheMetricsEnhancer<F, V> implements MultiTierFlatHashCach
 
     private final String cacheName;
     private final FieldConverter<F> fieldConverter;
-    private final CacheMetricsCollector collector;
+    private final CacheAccessMetricsCollector collector;
 
     public FlatHashCacheMetricsEnhancer(String cacheName,
                                         FieldConverter<F> fieldConverter,
-                                        CacheMetricsCollector collector) {
+                                        CacheAccessMetricsCollector collector) {
         this.cacheName = cacheName;
         this.fieldConverter = fieldConverter;
         this.collector = collector;
