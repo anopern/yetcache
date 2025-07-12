@@ -2,11 +2,9 @@ package com.yetcache.agent;
 
 import com.yetcache.core.cache.flathash.*;
 import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
-import com.yetcache.core.context.CacheAccessContext;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.support.key.KeyConverterFactory;
-import com.yetcache.core.support.tenant.TenantProvider;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,15 +22,12 @@ public abstract class AbstractConfigCacheAgent<F, V> implements MultiTierFlatHas
     protected final MultiTierFlatHashCache<F, V> delegate;
     protected final MultiTierFlatHashCacheConfig config;
     protected final FlatHashCacheLoader<F, V> cacheLoader;
-    protected final TenantProvider tenantProvider;
     protected final MeterRegistry meterRegistry;
 
     protected AbstractConfigCacheAgent(MultiTierFlatHashCacheConfig config, FlatHashCacheLoader<F, V> cacheLoader,
-                                       TenantProvider tenantProvider,
                                        MeterRegistry meterRegistry) {
         this.config = config;
         this.cacheLoader = cacheLoader;
-        this.tenantProvider = tenantProvider;
         this.meterRegistry = meterRegistry;
 
         this.delegate = createDelegateCache();
@@ -40,7 +35,7 @@ public abstract class AbstractConfigCacheAgent<F, V> implements MultiTierFlatHas
 
     protected MultiTierFlatHashCache<F, V> createDelegateCache() {
         KeyConverter<Void> keyConverter = KeyConverterFactory.createDefault(config.getSpec().getKeyPrefix(),
-                config.getSpec().getTenantMode(), config.getSpec().getUseHashTag());
+                config.getSpec().getUseHashTag());
 
         MultiTierFlatHashCache<F, V> cache = new BaseMultiTierFlatHashCache<>(config.getSpec().getCacheName(),
                 config, keyConverter, getFieldConverter());
@@ -57,7 +52,7 @@ public abstract class AbstractConfigCacheAgent<F, V> implements MultiTierFlatHas
         return cache;
     }
 
-    protected abstract String getName();
+    public abstract String getName();
 
     protected abstract FieldConverter<F> getFieldConverter();
 
@@ -80,12 +75,10 @@ public abstract class AbstractConfigCacheAgent<F, V> implements MultiTierFlatHas
     }
 
     public V get(F field) {
-        setTenantIdIfRequired();
         return delegate.get(field);
     }
 
     public Map<F, V> listAll() {
-        setTenantIdIfRequired();
         return delegate.listAll();
     }
 
@@ -96,11 +89,5 @@ public abstract class AbstractConfigCacheAgent<F, V> implements MultiTierFlatHas
             return result.isSuccess();
         }
         return false;
-    }
-
-    protected void setTenantIdIfRequired() {
-        if (config.getSpec().getTenantMode().isRequired()) {
-            CacheAccessContext.setTenantId(tenantProvider.getTenantId());
-        }
     }
 }

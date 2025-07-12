@@ -1,6 +1,7 @@
 package com.yetcache.example.cache;
 
 import com.yetcache.agent.AbstractConfigCacheAgent;
+import com.yetcache.core.cache.flathash.FlatHashCacheLoader;
 import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.field.TypeFieldConverter;
@@ -15,12 +16,14 @@ import io.micrometer.core.instrument.MeterRegistry;
  */
 public class ConfigCommonInfoCacheAgent extends AbstractConfigCacheAgent<String, ConfigCommonInfo> {
 
-    public ConfigCommonInfoCacheAgent(MultiTierFlatHashCacheConfig config, MeterRegistry meterRegistry) {
-        super(config, meterRegistry);
+    public ConfigCommonInfoCacheAgent(MultiTierFlatHashCacheConfig config,
+                                      FlatHashCacheLoader<String, ConfigCommonInfo> cacheLoader,
+                                      MeterRegistry meterRegistry) {
+        super(config, cacheLoader, meterRegistry);
     }
 
     @Override
-    protected String getName() {
+    public String getName() {
         return EnumCaches.CONFIG_COMMON_INFO_CACHE.getName();
     }
 

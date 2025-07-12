@@ -13,11 +13,9 @@ import lombok.NoArgsConstructor;
 public class MultiTierFlatHashCacheSpec {
     protected String cacheName;
     protected String keyPrefix;
-    protected TenantMode tenantMode;
     protected Boolean useHashTag;
 
-    public MultiTierFlatHashCacheSpec(TenantMode tenantMode, Boolean useHashTag) {
-        this.tenantMode = tenantMode;
+    public MultiTierFlatHashCacheSpec(Boolean useHashTag) {
         this.useHashTag = useHashTag;
     }
 
@@ -25,12 +23,11 @@ public class MultiTierFlatHashCacheSpec {
         if (other == null) return;
         this.cacheName = other.cacheName;
         this.keyPrefix = other.keyPrefix;
-        this.tenantMode = other.tenantMode;
         this.useHashTag = other.useHashTag;
     }
 
 
     public static MultiTierFlatHashCacheSpec defaultSpec() {
-        return new MultiTierFlatHashCacheSpec(TenantMode.NONE, true);
+        return new MultiTierFlatHashCacheSpec(true);
     }
 }
