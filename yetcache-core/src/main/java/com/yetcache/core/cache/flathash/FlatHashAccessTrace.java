@@ -10,4 +10,17 @@ import lombok.Data;
 @Data
 public class FlatHashAccessTrace {
     protected HitTier hitTier;
+
+    @Override
+    public String toString() {
+        return "FlatHashAccessTrace{" +
+                "hitTier=" + hitTier +
+                '}';
+    }
+
+    public static FlatHashAccessTrace blocked() {
+        FlatHashAccessTrace trace = new FlatHashAccessTrace();
+        trace.setHitTier(HitTier.BLOCKED);
+        return trace;
+    }
 }

@@ -1,6 +1,5 @@
 package com.yetcache.core.cache.flathash;
 
-import com.yetcache.core.cache.support.CacheValueHolder;
 import lombok.Data;
 
 /**
@@ -8,7 +7,19 @@ import lombok.Data;
  * @since 2025/7/9
  */
 @Data
-public class FlatHashAccessResult<V> {
-    private CacheValueHolder<V> valueHolder;
+public class FlatHashAccessResult<T> {
+    private boolean success = true;
+    private String message;
+    private Throwable exception;
+
+    private T value;
     private FlatHashAccessTrace trace;
+
+    public FlatHashAccessResult() {
+        this.trace = new FlatHashAccessTrace();
+    }
+
+    public static FlatHashAccessResult<Void> success() {
+        return new FlatHashAccessResult<>();
+    }
 }

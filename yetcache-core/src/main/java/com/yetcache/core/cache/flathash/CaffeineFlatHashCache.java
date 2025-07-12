@@ -36,13 +36,6 @@ public class CaffeineFlatHashCache<V> {
         return map != null ? map.get(field) : null;
     }
 
-    public Map<String, CacheValueHolder<V>> batchGetIfPresent(String key, Collection<String> fields) {
-        ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.getIfPresent(key);
-        return map != null ? map.entrySet().stream()
-                .filter(entry -> fields.contains(entry.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)) : Collections.emptyMap();
-    }
-
     public void put(String key, String field, CacheValueHolder<V> valueHolder) {
         ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.get(key, k -> new ConcurrentHashMap<>());
         map.put(field, valueHolder);
@@ -51,20 +44,6 @@ public class CaffeineFlatHashCache<V> {
     public void putAll(String key, Map<String, CacheValueHolder<V>> valueHolderMap) {
         ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.get(key, k -> new ConcurrentHashMap<>());
         map.putAll(valueHolderMap);
-    }
-
-    public void invalidate(String key, String field) {
-        ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.getIfPresent(key);
-        if (map != null) {
-            map.remove(field);
-            if (map.isEmpty()) {
-                cache.invalidate(key);
-            }
-        }
-    }
-
-    public void invalidate(String key) {
-        cache.invalidate(key);
     }
 
     public Map<String, CacheValueHolder<V>> listAll(String key) {

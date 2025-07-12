@@ -1,22 +1,27 @@
 package com.yetcache.core.cache.flathash;
 
 
+import com.yetcache.core.cache.support.CacheValueHolder;
+
 import java.util.Map;
 
 /**
  * @author walter.yan
  * @since 2025/7/7
  */
-public interface MultiTierFlatHashCache< F, V> {
+public interface MultiTierFlatHashCache<F, V> {
     V get(F bizField);
 
-    FlatHashAccessResult<V> getWithResult(F bizField);
+    FlatHashAccessResult<CacheValueHolder<V>> getWithResult(F bizField);
 
     Map<F, V> listAll();
 
-    FlatHashAccessResult<V> listAllWithResult();
+    FlatHashAccessResult<Map<F, CacheValueHolder<V>>> listAllWithResult();
 
-    boolean refreshAll();
+    void putAll(Map<F, V> dataMap);
 
-    FlatHashAccessResult<V> refreshAllWithResult();
+    default FlatHashAccessResult<Void> putAllWithResult(Map<F, V> map) {
+        putAll(map);
+        return FlatHashAccessResult.success();
+    }
 }

@@ -1,8 +1,5 @@
 package com.yetcache.core.config.flathash;
 
-import com.yetcache.core.config.kv.CaffeineKVCacheConfig;
-import com.yetcache.core.config.kv.MultiTierKVCacheSpec;
-import com.yetcache.core.config.kv.RedisKVCacheConfig;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,11 +14,10 @@ import lombok.NoArgsConstructor;
 public class MultiTierFlatHashCacheConfig {
     private MultiTierFlatHashCacheSpec spec;
     protected CaffeineFlatHashCacheConfig local;
-    protected RedisFlatHashCacheConfig remote;
+    protected FlatHashCacheEnhanceConfig enhance;
 
     public static MultiTierFlatHashCacheConfig defaultConfig() {
         return new MultiTierFlatHashCacheConfig(MultiTierFlatHashCacheSpec.defaultSpec(),
-                CaffeineFlatHashCacheConfig.defaultConfig(),
-                RedisFlatHashCacheConfig.defaultConfig());
+                CaffeineFlatHashCacheConfig.defaultConfig(), FlatHashCacheEnhanceConfig.defaultConfig());
     }
 }

@@ -14,14 +14,12 @@ public class CaffeineFlatHashCacheConfig {
     protected Long ttlSecs;
     protected Double ttlRandomPct;
     protected Integer maxSize;
-    protected PenetrationProtectConfig penetrationProtect;
 
     public static CaffeineFlatHashCacheConfig defaultConfig() {
         CaffeineFlatHashCacheConfig defaultConfig = new CaffeineFlatHashCacheConfig();
         defaultConfig.setTtlSecs(300L);
         defaultConfig.setTtlRandomPct(0.15);
         defaultConfig.setMaxSize(10000);
-        defaultConfig.setPenetrationProtect(PenetrationProtectConfig.defaultConfig());
         return defaultConfig;
     }
 }
