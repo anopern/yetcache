@@ -1,6 +1,5 @@
 package com.yetcache.example.cache.cnfig;
 
-import com.yetcache.agent.regitry.CacheAgentRegistry;
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
 import com.yetcache.example.cache.ConfigCommonInfoCacheAgent;
@@ -21,8 +20,6 @@ public class ConfigCacheAgentConfig {
     private MeterRegistry meterRegistry;
     @Autowired
     private YetCacheConfigResolver configResolver;
-    @Autowired
-    private CacheAgentRegistry cacheAgentRegistry;
 
     @Autowired
     private ConfigCommonInfoCacheLoader configCommonInfoCacheLoader;
@@ -30,9 +27,6 @@ public class ConfigCacheAgentConfig {
     @Bean
     public ConfigCommonInfoCacheAgent configCommonInfoCacheAgent() {
         MultiTierFlatHashCacheConfig config = configResolver.resolveFlatHash(EnumCaches.CONFIG_COMMON_INFO_CACHE.getName());
-        ConfigCommonInfoCacheAgent agent = new ConfigCommonInfoCacheAgent(config, configCommonInfoCacheLoader,
-                meterRegistry);
-        cacheAgentRegistry.register(agent);
-        return agent;
+        return new ConfigCommonInfoCacheAgent(config, configCommonInfoCacheLoader, meterRegistry);
     }
 }

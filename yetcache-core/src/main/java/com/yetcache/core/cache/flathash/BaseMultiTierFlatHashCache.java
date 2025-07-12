@@ -43,7 +43,6 @@ public class BaseMultiTierFlatHashCache<F, V> implements MultiTierFlatHashCache<
         return result.getValue().getValue();
     }
 
-
     @Override
     public FlatHashAccessResult<CacheValueHolder<V>> getWithResult(F bizField) {
         String key = keyConverter.convert(null);
@@ -135,50 +134,4 @@ public class BaseMultiTierFlatHashCache<F, V> implements MultiTierFlatHashCache<
 
         localCache.putAll(key, cacheMap);
     }
-
-//    @Override
-//    public boolean refreshAll() {
-//        FlatHashAccessResult<Map<F, CacheValueHolder<V>>> result = refreshAllWithResult();
-//        if (null != result.getTrace()) {
-//            log.debug("trace=" + result.getTrace());
-//        }
-//        return null != result.getValue();
-//    }
-//
-//    @Override
-//    public FlatHashAccessResult<Map<F, CacheValueHolder<V>>> refreshAllWithResult() {
-//        FlatHashAccessResult<Map<F, CacheValueHolder<V>>> result = new FlatHashAccessResult<>();
-//        FlatHashAccessTrace trace = new FlatHashAccessTrace();
-//        result.setTrace(trace);
-//
-//        // 1. 加载数据
-//        Map<F, V> typeMap = cacheLoader.loadAll();
-//        if (typeMap == null || typeMap.isEmpty()) {
-//            result.setValue(new HashMap<>());
-//            return result;
-//        }
-//
-//        // 2. 包装为 CacheValueHolder 并写入本地缓存
-//        Map<F, CacheValueHolder<V>> holderMap = new HashMap<>();
-//        Map<String, CacheValueHolder<V>> cacheMap = new HashMap<>();
-//        String key = keyConverter.convert(null);
-//
-//        for (Map.Entry<F, V> entry : typeMap.entrySet()) {
-//            F field = entry.getKey();
-//            V value = entry.getValue();
-//
-//            CacheValueHolder<V> holder = CacheValueHolder.wrap(value, Integer.MAX_VALUE);  // 使用你平台封装的静态构造器
-//            holderMap.put(field, holder);
-//
-//            String fieldKey = fieldConverter.convert(field);         // F → String
-//            cacheMap.put(fieldKey, holder);
-//        }
-//
-//        // 3. 存入本地缓存（整个 map）
-//        localCache.putAll(key, cacheMap);
-//
-//        // 4. 返回封装结果
-//        result.setValue(holderMap);
-//        return result;
-//    }
 }

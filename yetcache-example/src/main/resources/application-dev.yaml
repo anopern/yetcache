@@ -45,6 +45,7 @@ yetcache:
         spec:
           cache-name: 'user-id-key-cache'
           key-prefix: 'nd:acc:user:idk'
+          refresh-interval-secs: 60
     flat-hash:
       config-common-info-cache:
         spec:

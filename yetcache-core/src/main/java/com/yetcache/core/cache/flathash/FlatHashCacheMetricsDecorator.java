@@ -34,6 +34,7 @@ public class FlatHashCacheMetricsDecorator<F, V> implements MultiTierFlatHashCac
         FlatHashAccessResult<CacheValueHolder<V>> result = getWithResult(field);
         return result != null && result.getValue() != null ? result.getValue().getValue() : null;
     }
+
     @Override
     public FlatHashAccessResult<CacheValueHolder<V>> getWithResult(F field) {
         FlatHashAccessResult<CacheValueHolder<V>> result = delegate.getWithResult(field);

@@ -2,7 +2,10 @@ package com.yetcache.agent.regitry;
 
 import com.yetcache.agent.AbstractConfigCacheAgent;
 import com.yetcache.agent.BaseKVCacheAgent;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,6 +17,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class CacheAgentRegistry {
     private final Map<String, BaseKVCacheAgent<?, ?>> kvCacheAgentMap = new ConcurrentHashMap<>();
     private final Map<String, AbstractConfigCacheAgent<?, ?>> configCacheAgentMap = new ConcurrentHashMap<>();
+
+    @Autowired
+    public CacheAgentRegistry(List<AbstractConfigCacheAgent<?, ?>> configCacheAgents) {
+        for (AbstractConfigCacheAgent<?, ?> agent : configCacheAgents) {
+            register(agent);
+        }
+    }
 
     public void register(BaseKVCacheAgent<?, ?> agent) {
         checkCacheAgentName(agent.getCacheName());

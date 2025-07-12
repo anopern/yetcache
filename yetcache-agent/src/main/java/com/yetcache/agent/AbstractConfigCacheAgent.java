@@ -56,6 +56,10 @@ public abstract class AbstractConfigCacheAgent<F, V> implements MultiTierFlatHas
 
     protected abstract FieldConverter<F> getFieldConverter();
 
+    public Long getRefreshIntervalSecs() {
+        return config.getSpec().getRefreshIntervalSecs();
+    }
+
     protected final FlatHashAccessResult<Map<F, V>> refreshAllWithResult() {
         long start = System.currentTimeMillis();
         try {
