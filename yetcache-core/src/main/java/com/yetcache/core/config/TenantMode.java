@@ -6,6 +6,5 @@ package com.yetcache.core.config;
  */
 public enum TenantMode {
     REQUIRED,
-    OPTIONAL,
     NONE;
 }

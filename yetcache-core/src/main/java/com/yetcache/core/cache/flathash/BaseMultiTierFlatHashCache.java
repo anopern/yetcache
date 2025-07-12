@@ -53,7 +53,7 @@ public class BaseMultiTierFlatHashCache<F, V> implements MultiTierFlatHashCache<
         String field = fieldConverter.convert(bizField);
 
         FlatHashAccessResult<CacheValueHolder<V>> result = new FlatHashAccessResult<>();
-        FlatHashAccessTrace trace = new FlatHashAccessTrace();
+        FlatHashCacheAccessTrace trace = new FlatHashCacheAccessTrace();
         result.setTrace(trace);
 
         // === 本地缓存读取 ===
@@ -89,7 +89,7 @@ public class BaseMultiTierFlatHashCache<F, V> implements MultiTierFlatHashCache<
     @Override
     public FlatHashAccessResult<Map<F, CacheValueHolder<V>>> listAllWithResult() {
         FlatHashAccessResult<Map<F, CacheValueHolder<V>>> result = new FlatHashAccessResult<>();
-        FlatHashAccessTrace trace = new FlatHashAccessTrace();
+        FlatHashCacheAccessTrace trace = new FlatHashCacheAccessTrace();
         result.setTrace(trace);
 
         String key = keyConverter.convert(null);

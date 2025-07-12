@@ -10,12 +10,12 @@ import lombok.Data;
 @Data
 public class FlatHashCacheEnhanceConfig {
     protected PenetrationProtectConfig penetrationProtect;
-    private HitCountMetricsConfig metrics;
+    private HitCountMetricsConfig hitMetrics;
 
     public static FlatHashCacheEnhanceConfig defaultConfig() {
         FlatHashCacheEnhanceConfig config = new FlatHashCacheEnhanceConfig();
         config.setPenetrationProtect(PenetrationProtectConfig.defaultConfig());
-        config.setMetrics(HitCountMetricsConfig.defaultConfig());
+        config.setHitMetrics(HitCountMetricsConfig.defaultConfig());
         return config;
     }
 }

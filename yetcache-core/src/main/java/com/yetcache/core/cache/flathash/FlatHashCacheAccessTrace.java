@@ -8,7 +8,7 @@ import lombok.Data;
  * @since 2025/7/9
  */
 @Data
-public class FlatHashAccessTrace {
+public class FlatHashCacheAccessTrace {
     protected HitTier hitTier;
 
     @Override
@@ -18,9 +18,13 @@ public class FlatHashAccessTrace {
                 '}';
     }
 
-    public static FlatHashAccessTrace blocked() {
-        FlatHashAccessTrace trace = new FlatHashAccessTrace();
+    public static FlatHashCacheAccessTrace blocked() {
+        FlatHashCacheAccessTrace trace = new FlatHashCacheAccessTrace();
         trace.setHitTier(HitTier.BLOCKED);
         return trace;
+    }
+
+    public boolean isBlocked() {
+        return HitTier.BLOCKED == getHitTier();
     }
 }

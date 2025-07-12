@@ -13,10 +13,10 @@ public class FlatHashAccessResult<T> {
     private Throwable exception;
 
     private T value;
-    private FlatHashAccessTrace trace;
+    private FlatHashCacheAccessTrace trace;
 
     public FlatHashAccessResult() {
-        this.trace = new FlatHashAccessTrace();
+        this.trace = new FlatHashCacheAccessTrace();
     }
 
     public static FlatHashAccessResult<Void> success() {

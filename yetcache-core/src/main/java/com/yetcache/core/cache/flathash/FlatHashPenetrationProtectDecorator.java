@@ -35,8 +35,9 @@ public class FlatHashPenetrationProtectDecorator<F, V> implements MultiTierFlatH
     }
 
     @Override
-    public V get(F bizField) {
-        return null;
+    public V get(F field) {
+        FlatHashAccessResult<CacheValueHolder<V>> result = getWithResult(field);
+        return result != null && result.getValue() != null ? result.getValue().getValue() : null;
     }
 
     @Override
@@ -47,7 +48,7 @@ public class FlatHashPenetrationProtectDecorator<F, V> implements MultiTierFlatH
         String field = fieldConverter.convert(bizField);
         if (localNullBlockCache.isBlocked(field)) {
             FlatHashAccessResult<CacheValueHolder<V>> blockedResult = new FlatHashAccessResult<>();
-            blockedResult.setTrace(FlatHashAccessTrace.blocked());
+            blockedResult.setTrace(FlatHashCacheAccessTrace.blocked());
             return blockedResult;
         }
         FlatHashAccessResult<CacheValueHolder<V>> result = delegate.getWithResult(bizField);

@@ -1,7 +1,6 @@
 package com.yetcache.agent;
 
 import com.yetcache.core.cache.kv.KVCache;
-import com.yetcache.core.cache.manager.KVCacheManager;
 import com.yetcache.core.support.tenant.TenantProvider;
 import lombok.EqualsAndHashCode;
 import org.redisson.api.RedissonClient;

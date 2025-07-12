@@ -2,7 +2,7 @@ package com.yetcache.core.support.key;
 
 import cn.hutool.core.util.StrUtil;
 import com.yetcache.core.config.TenantMode;
-import com.yetcache.core.support.tenant.TenantProvider;
+import com.yetcache.core.context.CacheAccessContext;
 import lombok.Data;
 
 /**
@@ -13,7 +13,6 @@ import lombok.Data;
 public abstract class AbstractKeyConverter {
     protected final String keyPrefix;
     protected final TenantMode tenantMode;
-    protected final TenantProvider tenantProvider;
 
     protected String resolvePrefix() {
         StringBuilder sb = new StringBuilder(keyPrefix);
@@ -32,19 +31,11 @@ public abstract class AbstractKeyConverter {
     protected String resolveTenantCode() {
         switch (tenantMode) {
             case REQUIRED:
-                String requiredCode = tenantProvider.getCurrentTenantCode();
-                if (StrUtil.isBlank(requiredCode)) {
-                    throw new IllegalStateException("Tenant code is required but not provided");
+                String requiredId = CacheAccessContext.getTenantId();
+                if (StrUtil.isBlank(requiredId)) {
+                    throw new IllegalStateException("Tenant id is required but not provided");
                 }
-                return requiredCode;
-
-            case OPTIONAL:
-                String optionalCode = tenantProvider.getDefaultTenantCode();
-                if (StrUtil.isBlank(optionalCode)) {
-                    throw new IllegalStateException("Tenant code is optional but no default code provided");
-                }
-                return optionalCode;
-
+                return requiredId;
             case NONE:
             default:
                 return null;

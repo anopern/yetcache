@@ -16,7 +16,6 @@ import javax.annotation.PostConstruct;
 @Data
 @ConfigurationProperties(prefix = "yetcache")
 @Slf4j
-@Component
 public class YetCacheProperties {
     private GlobalConfig global = new GlobalConfig();
     protected CacheGroups caches = new CacheGroups();

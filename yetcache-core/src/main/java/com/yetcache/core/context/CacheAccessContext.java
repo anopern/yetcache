@@ -18,4 +18,8 @@ public class CacheAccessContext {
         private boolean forceRefresh;
         private boolean broadcastAfterRefresh;
     }
+
+    public static String getTenantId() {
+        return CONTEXT.get().getTenantCode();
+    }
 }

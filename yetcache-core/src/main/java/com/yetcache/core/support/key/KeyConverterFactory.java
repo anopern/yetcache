@@ -10,8 +10,7 @@ import com.yetcache.core.support.tenant.TenantProvider;
 public class KeyConverterFactory {
     public static <K> KeyConverter<K> createDefault(String keyPrefix,
                                                     TenantMode tenantMode,
-                                                    boolean useHashTag,
-                                                    TenantProvider tenantProvider) {
-        return new DefaultKeyConverter<>(keyPrefix, tenantMode, useHashTag, tenantProvider);
+                                                    boolean useHashTag) {
+        return new DefaultKeyConverter<>(keyPrefix, tenantMode, useHashTag);
     }
 }
