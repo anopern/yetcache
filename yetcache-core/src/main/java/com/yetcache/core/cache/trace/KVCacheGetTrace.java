@@ -1,6 +1,5 @@
 package com.yetcache.core.cache.trace;
 
-import com.yetcache.core.metrics.HitTier;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

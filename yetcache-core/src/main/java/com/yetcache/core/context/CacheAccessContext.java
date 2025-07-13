@@ -26,4 +26,9 @@ public class CacheAccessContext {
     public static void setTenantId(String tenantId) {
         CONTEXT.get().setTenantCode(tenantId);
     }
+
+    public static void clear() {
+        CONTEXT.remove();
+    }
+
 }

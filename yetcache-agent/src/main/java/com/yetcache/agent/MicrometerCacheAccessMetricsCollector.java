@@ -3,70 +3,52 @@ package com.yetcache.agent;
 import com.yetcache.core.cache.flathash.CacheAccessMetricsCollector;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
+import io.micrometer.core.instrument.Timer;
+import lombok.extern.slf4j.Slf4j;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author walter.yan
  * @since 2025/7/12
  */
-@Component
+@Slf4j
 public class MicrometerCacheAccessMetricsCollector implements CacheAccessMetricsCollector {
-    private final Map<String, Counter> hitCounterCache = new ConcurrentHashMap<>();
-    private final Map<String, Counter> missCounterCache = new ConcurrentHashMap<>();
-    private final Map<String, Counter> blockCounterCache = new ConcurrentHashMap<>();
 
-    private final MeterRegistry meterRegistry;
+    private final MeterRegistry registry;
 
-    @Autowired
-    public MicrometerCacheAccessMetricsCollector(MeterRegistry meterRegistry) {
-        this.meterRegistry = meterRegistry;
+    // 缓存 counter 避免重复创建
+    private final Map<String, Counter> counterCache = new ConcurrentHashMap<>();
+    private final Map<String, Timer> timerCache = new ConcurrentHashMap<>();
+
+    public MicrometerCacheAccessMetricsCollector(MeterRegistry registry) {
+        this.registry = registry;
     }
 
     @Override
-    public void recordHit(String cacheName, String hitTier) {
-        getHitCounter(cacheName, hitTier).increment();
+    public void recordAccess(String cacheName, String method, String result) {
+        String key = cacheName + "|" + method + "|" + result;
+        counterCache.computeIfAbsent(key, k ->
+                Counter.builder("yetcache.access.count")
+                        .description("Cache access count")
+                        .tag("cache", cacheName)
+                        .tag("method", method)
+                        .tag("result", result)
+                        .register(registry)
+        ).increment();
     }
 
     @Override
-    public void recordMiss(String cacheName) {
-        getMissCounter(cacheName).increment();
+    public void recordLatency(String cacheName, String method, long nanos) {
+        String key = cacheName + "|" + method;
+        timerCache.computeIfAbsent(key, k ->
+                Timer.builder("yetcache.access.latency")
+                        .description("Cache access latency")
+                        .tag("cache", cacheName)
+                        .tag("method", method)
+                        .publishPercentileHistogram()
+                        .register(registry)
+        ).record(nanos, TimeUnit.NANOSECONDS);
     }
-
-    @Override
-    public void recordBlocked(String cacheName) {
-        getBlockCounter(cacheName).increment();
-    }
-
-    private Counter getHitCounter(String cacheName, String tier) {
-        String key = cacheName + "|" + tier;
-        return hitCounterCache.computeIfAbsent(key, k ->
-                Counter.builder("yetcache.hit.count")
-                        .tags("cache", cacheName, "tier", tier)
-                        .description("Cache hit count")
-                        .register(meterRegistry)
-        );
-    }
-
-    private Counter getMissCounter(String cacheName) {
-        return missCounterCache.computeIfAbsent(cacheName, k ->
-                Counter.builder("yetcache.miss.count")
-                        .tags("cache", cacheName)
-                        .description("Cache miss count")
-                        .register(meterRegistry)
-        );
-    }
-
-    private Counter getBlockCounter(String cacheName) {
-        return blockCounterCache.computeIfAbsent(cacheName, k ->
-                Counter.builder("yetcache.blocked.count")
-                        .tags("cache", cacheName)
-                        .description("Blocked by null-penetration cache")
-                        .register(meterRegistry)
-        );
-    }
-
 }

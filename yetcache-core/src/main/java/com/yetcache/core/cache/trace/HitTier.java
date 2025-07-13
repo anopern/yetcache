@@ -7,5 +7,6 @@ package com.yetcache.core.cache.trace;
 public enum HitTier {
     LOCAL,
     REMOTE,
-    SOURCE
+    SOURCE,
+    NONE,
 }

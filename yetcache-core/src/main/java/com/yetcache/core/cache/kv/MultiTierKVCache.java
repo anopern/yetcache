@@ -8,7 +8,6 @@ import com.yetcache.core.cache.trace.KVCacheGetTrace;
 import com.yetcache.core.config.PenetrationProtectConfig;
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import com.yetcache.core.config.kv.MultiTierKVCacheSpec;
-import com.yetcache.core.metrics.HitTier;
 import com.yetcache.core.metrics.KVCacheMetrics;
 import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.protect.CaffeinePenetrationProtectCache;

@@ -5,15 +5,11 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.flathash.CaffeineFlatHashCacheConfig;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.yetcache.core.util.CacheConstants.DEFAULT_EXPIRE;
-import static com.yetcache.core.util.CacheConstants.DEFAULT_LOCAL_LIMIT;
 
 /**
  * @author walter.yan

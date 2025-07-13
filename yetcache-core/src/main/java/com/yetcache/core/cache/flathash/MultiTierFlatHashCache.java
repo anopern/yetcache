@@ -2,6 +2,7 @@ package com.yetcache.core.cache.flathash;
 
 
 import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.result.FlatHashStorageResult;
 
 import java.util.Map;
 
@@ -10,18 +11,10 @@ import java.util.Map;
  * @since 2025/7/7
  */
 public interface MultiTierFlatHashCache<F, V> {
-    V get(F bizField);
 
-    FlatHashAccessResult<CacheValueHolder<V>> getWithResult(F bizField);
+    FlatHashStorageResult<F, V> getWithResult(F bizField);
 
-    Map<F, V> listAll();
+    FlatHashStorageResult<F, V> listAllWithResult();
 
-    FlatHashAccessResult<Map<F, CacheValueHolder<V>>> listAllWithResult();
-
-    void putAll(Map<F, V> dataMap);
-
-    default FlatHashAccessResult<Void> putAllWithResult(Map<F, V> map) {
-        putAll(map);
-        return FlatHashAccessResult.success();
-    }
+    FlatHashStorageResult<F, V> putAllWithResult(Map<F, V> map);
 }
