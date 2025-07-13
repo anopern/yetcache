@@ -1,10 +1,5 @@
 package com.yetcache.agent.flathash;
 
-/**
- * @author walter.yan
- * @since 2025/7/14
- */
-
 import com.yetcache.agent.FlatHashCacheLoader;
 import com.yetcache.agent.exception.CacheUnavailableException;
 import com.yetcache.agent.result.FlatHashCacheAgentResult;
@@ -13,12 +8,14 @@ import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * 业务便捷父类：所有业务 Flat-Hash Agent 统一继承它，
  * 自动拥有 list()/get()，内部仍走 listAllWithResult()。
+ *
+ * @author walter.yan
+ * @since 2025/7/14
  */
 public abstract class AbstractListableFlatHashAgent<F, V>
         extends AbstractFlatHashCacheAgent<F, V> {
