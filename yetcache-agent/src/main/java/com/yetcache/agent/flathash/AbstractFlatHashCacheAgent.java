@@ -1,122 +1,168 @@
 package com.yetcache.agent.flathash;
 
+import com.yetcache.agent.FlatHashCacheLoader;
+import com.yetcache.agent.MetricsInterceptor;
+import com.yetcache.agent.interceptor.CacheInvocationChain;
+import com.yetcache.agent.interceptor.CacheInvocationContext;
+import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
+import com.yetcache.agent.interceptor.DefaultInvocationChain;
+import com.yetcache.agent.preload.PreloadableCacheAgent;
+import com.yetcache.agent.result.FlatHashCacheAgentResult;
 import com.yetcache.core.cache.flathash.*;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
-import com.yetcache.core.context.CacheAccessContext;
+import com.yetcache.core.result.CacheAccessResult;
+import com.yetcache.core.result.CacheOutcome;
+import com.yetcache.core.result.FlatHashStorageResult;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.support.key.KeyConverterFactory;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 /**
+ * 基于 FlatHashCacheAgentResult 的聚合层基类，实现统一的 trace / outcome / metrics 处理。
+ * <p>
+ * 只暴露 get / listAll / notifyDirty 三个高阶 API，禁止字段级刷新。
+ * 运行期不回源，失败场景通过 CacheAgentResult.outcome() 上报。
+ * </p>
+ *
  * @author walter.yan
- * @since 2025/7/13
+ * @since 2025/07/13
  */
 @Slf4j
-public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheAgent<F, V> {
+public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheAgent<F, V>, PreloadableCacheAgent {
+    protected final String cacheAgentName;
     protected final MultiTierFlatHashCache<F, V> cache;
     protected final MultiTierFlatHashCacheConfig config;
     protected final FlatHashCacheLoader<F, V> cacheLoader;
-    protected final CacheAccessMetricsCollector metricsCollector;
+    /**
+     * 并发刷新防抖
+     */
+    private final AtomicBoolean refreshing = new AtomicBoolean(false);
+    /**
+     * 拦截器链，可按需在子类或外部继续追加
+     */
+    private final List<CacheInvocationInterceptor> interceptors = new CopyOnWriteArrayList<>();
 
-    public AbstractFlatHashCacheAgent(MultiTierFlatHashCacheConfig config, FlatHashCacheLoader<F, V> cacheLoader,
-                                      CacheAccessMetricsCollector metricsCollector) {
+    /* ---------------- ctor ---------------- */
+    public AbstractFlatHashCacheAgent(String cacheAgentName,
+                                      MultiTierFlatHashCacheConfig config,
+                                      FlatHashCacheLoader<F, V> cacheLoader,
+                                      MeterRegistry registry) {
+        this.cacheAgentName = cacheAgentName;
         this.config = config;
         this.cacheLoader = cacheLoader;
-        this.metricsCollector = metricsCollector;
 
-        KeyConverter<Void> keyConverter = KeyConverterFactory.createDefault(config.getSpec().getKeyPrefix(),
+        KeyConverter<Void> keyConverter = KeyConverterFactory.createDefault(
+                config.getSpec().getKeyPrefix(),
                 config.getSpec().getUseHashTag());
-        this.cache = new DefaultMultiTierFlatHashCache<>(config.getSpec().getCacheName(),
+        this.cache = new DefaultMultiTierFlatHashCache<>(
+                config.getSpec().getCacheName(),
                 config, keyConverter, getFieldConverter());
+
+        // 默认仅注入指标拦截器；可通过 getInterceptors().add(...) 再拼装
+        this.interceptors.add(new MetricsInterceptor(registry));
     }
 
-    @Override
-    public V get(F field) {
-        FlatHashAccessResult<CacheValueHolder<V>> result = getWithResult(field);
-        return result != null && result.getValue() != null ? result.getValue().getValue() : null;
-    }
-
-    @Override
-    public FlatHashAccessResult<CacheValueHolder<V>> getWithResult(F field) {
+    @SuppressWarnings("unchecked")
+    private <R extends CacheAccessResult<?>> R invoke(String method,
+                                                      Supplier<R> business) {
+        CacheInvocationContext ctx = CacheInvocationContext.start(cacheAgentName, method);
+        CacheInvocationChain<R> chain = new DefaultInvocationChain<>(interceptors, business);
         try {
-            return cache.getWithResult(field);
-        } catch (Exception e) {
-            log.warn("[{}] getWithResult() failed: {}", getName(), e.getMessage(), e);
-            return FlatHashAccessResult.failGet(e);
-        } finally {
-            CacheAccessContext.clear();
+            return chain.proceed(ctx);               // R 已经是目标类型
+        } catch (Throwable t) {
+            log.error("[{}] {} failed", cacheAgentName, method, t);
+            return (R) FlatHashCacheAgentResult.flatHashFail(cacheAgentName, t);
         }
     }
 
     @Override
-    public Map<F, V> listAll() {
-        FlatHashAccessResult<Map<F, CacheValueHolder<V>>> result = listAllWithResult();
-        if (null != result.getTrace()) {
-            log.debug("trace=" + result.getTrace());
-        }
-        if (null != result.getValue()) {
-            Map<F, V> map = new HashMap<>();
-            for (Map.Entry<F, CacheValueHolder<V>> entry : result.getValue().entrySet()) {
-                map.put(entry.getKey(), entry.getValue().getValue());
-            }
-            return map;
-        }
-        log.warn("listAllWithResult() no cache found");
-        return Collections.emptyMap();
+    public FlatHashCacheAgentResult<F, V> listAllWithResult() {
+        return invoke("listAll",
+                () -> convertToAgentResult(cache.listAllWithResult()));
     }
 
-    @Override
-    public FlatHashAccessResult<Map<F, CacheValueHolder<V>>> listAllWithResult() {
-        try {
-            return cache.listAllWithResult();
-        } catch (Exception e) {
-            log.warn("[{}] listAllWithResult() failed: {}", getName(), e.getMessage(), e);
-            return FlatHashAccessResult.failRefresh(e);
-        } finally {
-            CacheAccessContext.clear();
-        }
-    }
+    /* ====================================================================== */
+    /*                              GOVERNANCE                                */
+    /* ====================================================================== */
 
     @Override
     public void notifyDirty() {
-        FlatHashAccessResult<Map<F, V>> result = refreshAllWithResult();
-        if (result.isSuccess()) {
-            log.debug("[{}] refresh success", getName());
-        } else {
-            log.warn("[{}] refresh failed, exception: {}", getName(), result.getException() != null
-                    ? result.getException().getStackTrace() : "unknown");
+        FlatHashCacheAgentResult<F, V> res = refreshAllInternal();
+        if (!res.isSuccess()) {
+            log.warn("[{}] refresh failed: {}", cacheAgentName, res.trace().reason());
         }
     }
 
-    protected final FlatHashAccessResult<Map<F, V>> refreshAllWithResult() {
-        long start = System.currentTimeMillis();
+    /**
+     * 仅供运维 / 定时器调用，执行全量刷新。
+     */
+    protected FlatHashCacheAgentResult<F, V> refreshAllInternal() {
+        return invoke("refreshAllInternal", this::doRefreshAllInternal);
+    }
+
+    protected FlatHashCacheAgentResult<F, V> doRefreshAllInternal() {
         try {
-            Map<F, V> map = cacheLoader.loadAll();
-            if (map == null || map.isEmpty()) {
-                return FlatHashAccessResult.failRefresh(new IllegalStateException("Loaded config map is empty"));
+            Map<F, V> data = cacheLoader.loadAll();
+            if (data == null || data.isEmpty()) {
+                return FlatHashCacheAgentResult.flatHashFail(cacheAgentName, new IllegalStateException("Loaded map empty"));
             }
-            FlatHashAccessResult<Void> putResult = cache.putAllWithResult(map);
-            if (!putResult.isSuccess()) {
-                return FlatHashAccessResult.failRefresh(putResult.getException());
+            FlatHashStorageResult<F, V> putRes = cache.putAllWithResult(data);
+            if (!putRes.outcome().equals(CacheOutcome.SUCCESS)) {
+                return FlatHashCacheAgentResult.flatHashFail(cacheAgentName, new RuntimeException("putAll failed"));
             }
-            return FlatHashAccessResult.success(map);
+            Map<F, CacheValueHolder<V>> wrapped = new HashMap<>();
+            data.forEach((f, v) -> wrapped.put(f, CacheValueHolder.wrap(v, config.getLocal().getTtlSecs())));
+            return FlatHashCacheAgentResult.success(cacheAgentName, wrapped, false);
         } catch (Exception e) {
-            log.warn("[{}] refresh failed: {}", getName(), e.getMessage(), e);
-            return FlatHashAccessResult.failRefresh(e);
-        } finally {
-            CacheAccessContext.clear();
-            long cost = System.currentTimeMillis() - start;
-            log.debug("[{}] refresh cost={}ms", getName(), cost);
+            return FlatHashCacheAgentResult.flatHashFail(cacheAgentName, e);
+        }
+    }
+
+    /* ====================================================================== */
+    /*                              HELPERS                                   */
+    /* ====================================================================== */
+
+    private FlatHashCacheAgentResult<F, V> convertToAgentResult(FlatHashStorageResult<F, V> raw) {
+        switch (raw.outcome()) {
+            case HIT:
+            case SUCCESS:
+                return FlatHashCacheAgentResult.success(cacheAgentName, raw.value(), true);
+            case MISS:
+                return FlatHashCacheAgentResult.flatHashMiss(cacheAgentName);
+            case BLOCK:
+                return FlatHashCacheAgentResult.flatHashBlock(cacheAgentName, raw.trace().reason());
+            default:
+                return FlatHashCacheAgentResult.flatHashFail(cacheAgentName, raw.trace().exception());
         }
     }
 
     protected abstract FieldConverter<F> getFieldConverter();
 
-    public abstract String getName();
+    @Override
+    public int getPriority() {
+        return 0;
+    }
+
+    @Override
+    public String getCacheAgentName() {
+        return this.cacheAgentName;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public FlatHashCacheAgentResult<F, V> preload() {
+        return invoke("initialLoad", this::doRefreshAllInternal);
+    }
 }

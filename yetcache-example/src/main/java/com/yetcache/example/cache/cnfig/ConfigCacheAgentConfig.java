@@ -26,7 +26,8 @@ public class ConfigCacheAgentConfig {
 
     @Bean
     public ConfigCommonInfoCacheAgent configCommonInfoCacheAgent() {
-        MultiTierFlatHashCacheConfig config = configResolver.resolveFlatHash(EnumCaches.CONFIG_COMMON_INFO_CACHE.getName());
-        return new ConfigCommonInfoCacheAgent(config, configCommonInfoCacheLoader, meterRegistry);
+        String cacheName = EnumCaches.CONFIG_COMMON_INFO_CACHE.getName();
+        MultiTierFlatHashCacheConfig config = configResolver.resolveFlatHash(cacheName);
+        return new ConfigCommonInfoCacheAgent(cacheName, config, configCommonInfoCacheLoader, meterRegistry);
     }
 }

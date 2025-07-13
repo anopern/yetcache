@@ -1,4 +1,4 @@
-package com.yetcache.agent.enhancer;
+package com.yetcache.agent.interceptor;
 
 import com.yetcache.core.context.CacheAccessContext;
 import lombok.Data;
@@ -11,18 +11,27 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2025/7/13
  */
 @Data
-public class CacheInvocationContext {
+public class CacheInvocationContext implements AutoCloseable {
     private final String cacheName;
     private final String methodName;
-    private final CacheAccessContext accessContext;
+    private final CacheAccessContext.Context accessContext;
 
     // 用户可以挂载任意信息，例如计时、trace id、布隆过滤器等
     private final Map<String, Object> attributes = new ConcurrentHashMap<>();
 
-    public CacheInvocationContext(String cacheName, String methodName, CacheAccessContext accessContext) {
+    public CacheInvocationContext(String cacheName, String methodName, CacheAccessContext.Context accessContext) {
         this.cacheName = cacheName;
         this.methodName = methodName;
         this.accessContext = accessContext;
+    }
+
+    public static CacheInvocationContext start(String cache, String method) {
+        return new CacheInvocationContext(cache, method, CacheAccessContext.begin(method));
+    }
+
+    @Override
+    public void close() {
+        CacheAccessContext.clear();
     }
 
     public <T> void setAttribute(String key, T value) {

@@ -1,4 +1,4 @@
-package com.yetcache.core.cache.flathash;
+package com.yetcache.agent;
 
 import java.util.Map;
 
