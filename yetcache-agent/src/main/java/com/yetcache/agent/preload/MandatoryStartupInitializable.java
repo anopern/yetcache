@@ -6,10 +6,10 @@ import com.yetcache.core.result.CacheAccessResult;
  * @author walter.yan
  * @since 2025/7/14
  */
-public interface PreloadableCacheAgent {
+public interface MandatoryStartupInitializable {
     int getPriority();
 
-    String getCacheAgentName();
+    String getComponentName();
 
-    <R extends CacheAccessResult<?>> R preload();
+    <R extends CacheAccessResult<?>> R initialize();
 }

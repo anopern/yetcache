@@ -33,7 +33,7 @@ public abstract class AbstractListableFlatHashAgent<F, V>
     public Map<F, V> list() {
         FlatHashCacheAgentResult<F, V> r = listAllWithResult();
         if (!r.isSuccess()) {
-            throw new CacheUnavailableException(getCacheAgentName(), r.outcome(), r.trace());
+            throw new CacheUnavailableException(getComponentName(), r.outcome(), r.trace());
         }
         return unwrap(r.value());            // Map<F,CacheValueHolder<V>> ➜ Map<F,V>
     }
