@@ -1,5 +1,8 @@
 package com.yetcache.core.cache.dynamichash;
 
+import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.result.StorageCacheAccessResult;
+
 import java.util.Map;
 
 /**
@@ -7,15 +10,15 @@ import java.util.Map;
  * @since 2025/7/14
  */
 public interface MultiTierDynamicHashCache<K, F, V> {
-    DynamicHashStorageResult<K, F, V> get(K bizKey, F bizField);
+    StorageCacheAccessResult<CacheValueHolder<V>> get(K bizKey, F bizField);
 
-    DynamicHashStorageResult<K, F, V> list(K bizKey);
+    StorageCacheAccessResult<Map<F, CacheValueHolder<V>>> list(K bizKey);
 
-    DynamicHashStorageResult<K, F, V> put(K bizKey, F bizField, V value);
+    StorageCacheAccessResult<Void> put(K bizKey, F bizField, V value);
 
-    DynamicHashStorageResult<K, F, V> putAll(K bizKey, Map<F, V> valueMap);
+    StorageCacheAccessResult<Void> putAll(K bizKey, Map<F, V> valueMap);
 
-    DynamicHashStorageResult<K, F, V> invalidate(K bizKey, F bizField);
+    StorageCacheAccessResult<Void> invalidate(K bizKey, F bizField);
 
-    DynamicHashStorageResult<K, F, V> invalidateAll(K bizKey);
+    StorageCacheAccessResult<Void> invalidateAll(K bizKey);
 }

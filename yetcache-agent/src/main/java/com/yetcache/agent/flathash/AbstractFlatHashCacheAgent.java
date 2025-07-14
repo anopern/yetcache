@@ -47,11 +47,11 @@ public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheA
     /**
      * 并发刷新防抖
      */
-    private final AtomicBoolean refreshing = new AtomicBoolean(false);
+    protected final AtomicBoolean refreshing = new AtomicBoolean(false);
     /**
      * 拦截器链，可按需在子类或外部继续追加
      */
-    private final List<CacheInvocationInterceptor> interceptors = new CopyOnWriteArrayList<>();
+    protected final List<CacheInvocationInterceptor> interceptors = new CopyOnWriteArrayList<>();
 
     /* ---------------- ctor ---------------- */
     public AbstractFlatHashCacheAgent(String componentNane,
