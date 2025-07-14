@@ -31,8 +31,8 @@ public final class CacheAgentRegistry {
     }
 
     public void register(AbstractFlatHashCacheAgent<?, ?> agent) {
-        checkCacheAgentName(agent.getCacheAgentName());
-        flatHashCacheAgentMap.put(agent.getCacheAgentName(), agent);
+        checkCacheAgentName(agent.getComponentName());
+        flatHashCacheAgentMap.put(agent.getComponentName(), agent);
     }
 
     public Map<String, AbstractFlatHashCacheAgent<?, ?>> getFlatHashCacheAgentMap() {

@@ -9,32 +9,18 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import static com.yetcache.core.util.CacheConstants.DEFAULT_EXPIRE;
-
 /**
  * @author walter.yan
  * @since 2025/6/29
  */
 public class CaffeineFlatHashCache<V> {
-    private final CaffeineFlatHashCacheConfig config;
     private final Cache<String, ConcurrentHashMap<String, CacheValueHolder<V>>> cache;
 
     public CaffeineFlatHashCache(CaffeineFlatHashCacheConfig config) {
-        this.config = config;
         this.cache = Caffeine.newBuilder()
-                .expireAfterWrite(DEFAULT_EXPIRE, TimeUnit.SECONDS)
+                .expireAfterWrite(Integer.MAX_VALUE, TimeUnit.SECONDS)
                 .maximumSize(config.getMaxSize())
                 .build();
-    }
-
-    public CacheValueHolder<V> getIfPresent(String key, String field) {
-        ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.getIfPresent(key);
-        return map != null ? map.get(field) : null;
-    }
-
-    public void put(String key, String field, CacheValueHolder<V> valueHolder) {
-        ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.get(key, k -> new ConcurrentHashMap<>());
-        map.put(field, valueHolder);
     }
 
     public void putAll(String key, Map<String, CacheValueHolder<V>> valueHolderMap) {

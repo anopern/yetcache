@@ -69,29 +69,9 @@ public class DefaultMultiTierFlatHashCache<F, V> implements MultiTierFlatHashCac
         }
     }
 
-    /* =============================  READ  ================================= */
 
     @Override
-    public FlatHashStorageResult<F, V> getWithResult(F bizField) {
-        return invoke("get", () -> doGet(bizField));
-    }
-
-    private FlatHashStorageResult<F, V> doGet(F field) {
-        if (field == null) {
-            return FlatHashStorageResult.block("null field");
-        }
-        String key     = keyConverter.convert(null);
-        String fieldK  = fieldConverter.convert(field);
-
-        CacheValueHolder<V> holder = localCache.getIfPresent(key, fieldK);
-        if (holder != null && holder.isNotLogicExpired()) {
-            return FlatHashStorageResult.hit(Collections.singletonMap(field, holder), HitTier.LOCAL);
-        }
-        return FlatHashStorageResult.miss(HitTier.LOCAL);
-    }
-
-    @Override
-    public FlatHashStorageResult<F, V> listAllWithResult() {
+    public FlatHashStorageResult<F, V> listAll() {
         return invoke("listAll", this::doListAll);
     }
 
@@ -120,7 +100,7 @@ public class DefaultMultiTierFlatHashCache<F, V> implements MultiTierFlatHashCac
     /* =============================  WRITE  ================================ */
 
     @Override
-    public FlatHashStorageResult<F, V> putAllWithResult(Map<F, V> dataMap) {
+    public FlatHashStorageResult<F, V> putAll(Map<F, V> dataMap) {
         return invoke("putAll", () -> doPutAll(dataMap));
     }
 

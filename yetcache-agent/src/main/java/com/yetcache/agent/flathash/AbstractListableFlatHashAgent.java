@@ -31,7 +31,7 @@ public abstract class AbstractListableFlatHashAgent<F, V>
      * 业务常用：返回只读 Map<F,V>（无 Holder）
      */
     public Map<F, V> list() {
-        FlatHashCacheAgentResult<F, V> r = listAllWithResult();
+        FlatHashCacheAgentResult<F, V> r = listAll();
         if (!r.isSuccess()) {
             throw new CacheUnavailableException(getComponentName(), r.outcome(), r.trace());
         }

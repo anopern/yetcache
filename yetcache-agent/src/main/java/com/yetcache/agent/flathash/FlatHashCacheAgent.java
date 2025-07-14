@@ -7,7 +7,7 @@ import com.yetcache.agent.result.FlatHashCacheAgentResult;
  * @since 2025/7/12
  */
 public interface FlatHashCacheAgent<F, V> {
-    FlatHashCacheAgentResult<F, V> listAllWithResult();
+    FlatHashCacheAgentResult<F, V> listAll();
 
     /**
      * 通知 Agent 当前缓存数据可能已被修改。

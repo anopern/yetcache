@@ -12,8 +12,6 @@
         <module>yetcache-agent</module>
         <module>yetcache-core</module>
         <module>yetcache-example</module>
-        <module>yetcache-kv-cache</module>
-        <module>yetcache-flathash-cache</module>
     </modules>
 
     <properties>

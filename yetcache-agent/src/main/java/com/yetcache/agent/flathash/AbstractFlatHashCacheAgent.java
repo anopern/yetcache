@@ -99,9 +99,9 @@ public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheA
     }
 
     @Override
-    public FlatHashCacheAgentResult<F, V> listAllWithResult() {
+    public FlatHashCacheAgentResult<F, V> listAll() {
         return invoke("listAll",
-                () -> convertToAgentResult(cache.listAllWithResult()));
+                () -> convertToAgentResult(cache.listAll()));
     }
 
     /* ====================================================================== */
@@ -129,7 +129,7 @@ public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheA
             if (data == null || data.isEmpty()) {
                 return FlatHashCacheAgentResult.flatHashFail(componentNane, new IllegalStateException("Loaded map empty"));
             }
-            FlatHashStorageResult<F, V> putRes = cache.putAllWithResult(data);
+            FlatHashStorageResult<F, V> putRes = cache.putAll(data);
             if (!putRes.outcome().equals(CacheOutcome.SUCCESS)) {
                 return FlatHashCacheAgentResult.flatHashFail(componentNane, new RuntimeException("putAll failed"));
             }
