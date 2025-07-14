@@ -1,4 +1,4 @@
-package com.yetcache.core.config.flathash;
+package com.yetcache.core.config.dynamichash;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,20 +9,20 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class CaffeineFlatHashCacheConfig {
+public class CaffeineDynamicHashCacheConfig {
     protected Long ttlSecs;
     protected Double ttlRandomPct;
     protected Integer maxSize;
 
-    public CaffeineFlatHashCacheConfig(CaffeineFlatHashCacheConfig other) {
+    public CaffeineDynamicHashCacheConfig(CaffeineDynamicHashCacheConfig other) {
         if (other == null) return;
         this.ttlSecs = other.ttlSecs;
         this.ttlRandomPct = other.ttlRandomPct;
         this.maxSize = other.maxSize;
     }
 
-    public static CaffeineFlatHashCacheConfig defaultConfig() {
-        CaffeineFlatHashCacheConfig defaultConfig = new CaffeineFlatHashCacheConfig();
+    public static CaffeineDynamicHashCacheConfig defaultConfig() {
+        CaffeineDynamicHashCacheConfig defaultConfig = new CaffeineDynamicHashCacheConfig();
         defaultConfig.setTtlSecs(300L);
         defaultConfig.setTtlRandomPct(0.15);
         defaultConfig.setMaxSize(10000);

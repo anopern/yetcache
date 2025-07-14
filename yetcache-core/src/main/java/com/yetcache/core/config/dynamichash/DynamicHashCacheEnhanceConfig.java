@@ -1,4 +1,4 @@
-package com.yetcache.core.config.flathash;
+package com.yetcache.core.config.dynamichash;
 
 import com.yetcache.core.config.HitCountMetricsConfig;
 import com.yetcache.core.config.PenetrationProtectConfig;
@@ -9,14 +9,14 @@ import lombok.Data;
  * @since 2025/7/12
  */
 @Data
-public class FlatHashCacheEnhanceConfig {
+public class DynamicHashCacheEnhanceConfig {
     protected PenetrationProtectConfig penetrationProtect;
     private HitCountMetricsConfig hitMetrics;
 
-    public FlatHashCacheEnhanceConfig() {
+    public DynamicHashCacheEnhanceConfig() {
     }
 
-    public FlatHashCacheEnhanceConfig(FlatHashCacheEnhanceConfig other) {
+    public DynamicHashCacheEnhanceConfig(DynamicHashCacheEnhanceConfig other) {
         if (other == null) return;
         this.penetrationProtect = other.penetrationProtect != null
                 ? new PenetrationProtectConfig(other.penetrationProtect)
@@ -26,8 +26,8 @@ public class FlatHashCacheEnhanceConfig {
                 : null;
     }
 
-    public static FlatHashCacheEnhanceConfig defaultConfig() {
-        FlatHashCacheEnhanceConfig config = new FlatHashCacheEnhanceConfig();
+    public static DynamicHashCacheEnhanceConfig defaultConfig() {
+        DynamicHashCacheEnhanceConfig config = new DynamicHashCacheEnhanceConfig();
         config.setPenetrationProtect(PenetrationProtectConfig.defaultConfig());
         config.setHitMetrics(HitCountMetricsConfig.defaultConfig());
         return config;

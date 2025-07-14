@@ -1,4 +1,4 @@
-package com.yetcache.core.config.flathash;
+package com.yetcache.core.config;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
