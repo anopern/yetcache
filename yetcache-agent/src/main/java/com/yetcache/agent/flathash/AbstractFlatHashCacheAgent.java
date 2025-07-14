@@ -10,7 +10,7 @@ import com.yetcache.agent.preload.MandatoryStartupInitializable;
 import com.yetcache.agent.result.FlatHashCacheAgentResult;
 import com.yetcache.core.cache.flathash.*;
 import com.yetcache.core.cache.support.CacheValueHolder;
-import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
+import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.core.result.CacheAccessResult;
 import com.yetcache.core.result.CacheOutcome;
 import com.yetcache.core.result.FlatHashStorageResult;
@@ -42,7 +42,7 @@ public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheA
         , MandatoryStartupInitializable, ForceIntervalRefreshable {
     protected final String componentNane;
     protected final MultiTierFlatHashCache<F, V> cache;
-    protected final MultiTierFlatHashCacheConfig config;
+    protected final FlatHashCacheConfig config;
     protected final FlatHashCacheLoader<F, V> cacheLoader;
     /**
      * 并发刷新防抖
@@ -55,7 +55,7 @@ public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheA
 
     /* ---------------- ctor ---------------- */
     public AbstractFlatHashCacheAgent(String componentNane,
-                                      MultiTierFlatHashCacheConfig config,
+                                      FlatHashCacheConfig config,
                                       FlatHashCacheLoader<F, V> cacheLoader,
                                       MeterRegistry registry) {
         this.componentNane = componentNane;

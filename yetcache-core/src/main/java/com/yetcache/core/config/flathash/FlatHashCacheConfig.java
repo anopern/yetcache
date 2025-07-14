@@ -11,21 +11,21 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MultiTierFlatHashCacheConfig {
-    private MultiTierFlatHashCacheSpec spec;
+public class FlatHashCacheConfig {
+    private FlatHashCacheSpec spec;
     protected CaffeineFlatHashCacheConfig local;
     protected FlatHashCacheEnhanceConfig enhance;
 
-    public MultiTierFlatHashCacheConfig(MultiTierFlatHashCacheConfig other) {
+    public FlatHashCacheConfig(FlatHashCacheConfig other) {
         if (other == null) return;
-        this.spec = other.spec != null ? new MultiTierFlatHashCacheSpec(other.spec) : null;
+        this.spec = other.spec != null ? new FlatHashCacheSpec(other.spec) : null;
         this.local = other.local != null ? new CaffeineFlatHashCacheConfig(other.local) : null;
         this.enhance = other.enhance != null ? new FlatHashCacheEnhanceConfig(other.enhance) : null;
     }
 
 
-    public static MultiTierFlatHashCacheConfig defaultConfig() {
-        return new MultiTierFlatHashCacheConfig(MultiTierFlatHashCacheSpec.defaultSpec(),
+    public static FlatHashCacheConfig defaultConfig() {
+        return new FlatHashCacheConfig(FlatHashCacheSpec.defaultSpec(),
                 CaffeineFlatHashCacheConfig.defaultConfig(), FlatHashCacheEnhanceConfig.defaultConfig());
     }
 }

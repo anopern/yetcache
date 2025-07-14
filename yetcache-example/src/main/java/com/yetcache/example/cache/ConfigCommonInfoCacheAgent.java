@@ -2,7 +2,7 @@ package com.yetcache.example.cache;
 
 import com.yetcache.agent.flathash.FlatHashCacheLoader;
 import com.yetcache.agent.flathash.AbstractListableFlatHashAgent;
-import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
+import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.field.TypeFieldConverter;
 import com.yetcache.example.entity.ConfigCommonInfo;
@@ -16,7 +16,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class ConfigCommonInfoCacheAgent extends AbstractListableFlatHashAgent<String, ConfigCommonInfo> {
 
     public ConfigCommonInfoCacheAgent(String cacheAgentName,
-                                      MultiTierFlatHashCacheConfig config,
+                                      FlatHashCacheConfig config,
                                       FlatHashCacheLoader<String, ConfigCommonInfo> cacheLoader,
                                       MeterRegistry registry) {
         super(cacheAgentName, config, cacheLoader, registry);

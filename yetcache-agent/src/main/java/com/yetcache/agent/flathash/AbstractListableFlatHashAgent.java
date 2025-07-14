@@ -3,7 +3,7 @@ package com.yetcache.agent.flathash;
 import com.yetcache.agent.exception.CacheUnavailableException;
 import com.yetcache.agent.result.FlatHashCacheAgentResult;
 import com.yetcache.core.cache.support.CacheValueHolder;
-import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
+import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 
 import java.util.Collections;
@@ -21,7 +21,7 @@ public abstract class AbstractListableFlatHashAgent<F, V>
         extends AbstractFlatHashCacheAgent<F, V> {
 
     protected AbstractListableFlatHashAgent(String name,
-                                            MultiTierFlatHashCacheConfig config,
+                                            FlatHashCacheConfig config,
                                             FlatHashCacheLoader<F, V> loader,
                                             MeterRegistry meter) {
         super(name, config, loader, meter);

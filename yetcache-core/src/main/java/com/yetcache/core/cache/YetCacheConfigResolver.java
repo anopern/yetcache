@@ -1,7 +1,7 @@
 package com.yetcache.core.cache;
 
 import com.yetcache.core.config.YetCacheProperties;
-import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
+import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import com.yetcache.core.merger.CacheConfigMerger;
 
@@ -25,8 +25,8 @@ public class YetCacheConfigResolver {
         return CacheConfigMerger.merge(props.getGlobal(), raw);
     }
 
-    public MultiTierFlatHashCacheConfig resolveFlatHash(String cacheName) {
-        MultiTierFlatHashCacheConfig raw = props.getCaches().getFlatHash().get(cacheName);
+    public FlatHashCacheConfig resolveFlatHash(String cacheName) {
+        FlatHashCacheConfig raw = props.getCaches().getFlatHash().get(cacheName);
         if (raw == null) {
             throw new IllegalArgumentException("FlatHash结构未配置: " + cacheName);
         }

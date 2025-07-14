@@ -2,7 +2,7 @@ package com.yetcache.core.cache.flathash;
 
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.trace.HitTier;
-import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
+import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.core.result.BasicFailResult;
 import com.yetcache.core.result.CacheAccessResult;
 import com.yetcache.core.result.CacheAccessTrace;
@@ -38,19 +38,19 @@ import java.util.stream.Collectors;
 public class DefaultMultiTierFlatHashCache<F, V> implements MultiTierFlatHashCache<F, V> {
 
     private final String cacheName;
-    private final MultiTierFlatHashCacheConfig config;
+    private final FlatHashCacheConfig config;
     private final CaffeineFlatHashCache<V> localCache;   // JVM / Caffeine
     private final KeyConverter<Void> keyConverter;
     private final FieldConverter<F> fieldConverter;
 
     public DefaultMultiTierFlatHashCache(String cacheName,
-                                         MultiTierFlatHashCacheConfig config,
+                                         FlatHashCacheConfig config,
                                          KeyConverter<Void> keyConverter,
                                          FieldConverter<F> fieldConverter) {
-        this.cacheName     = Objects.requireNonNull(cacheName, "cacheName");
-        this.config        = Objects.requireNonNull(config, "config");
-        this.keyConverter  = Objects.requireNonNull(keyConverter, "keyConverter");
-        this.fieldConverter= Objects.requireNonNull(fieldConverter, "fieldConverter");
+        this.cacheName = Objects.requireNonNull(cacheName, "cacheName");
+        this.config = Objects.requireNonNull(config, "config");
+        this.keyConverter = Objects.requireNonNull(keyConverter, "keyConverter");
+        this.fieldConverter = Objects.requireNonNull(fieldConverter, "fieldConverter");
         this.localCache = new CaffeineFlatHashCache<>(config.getLocal());
     }
 
@@ -90,7 +90,7 @@ public class DefaultMultiTierFlatHashCache<F, V> implements MultiTierFlatHashCac
 
     private F safeReverse(String fieldKey) {
         try {
-            return fieldConverter.reverse(fieldKey);
+            return fieldConverter.revert(fieldKey);
         } catch (Exception ex) {
             log.warn("[{}] reverse field failed: {}", cacheName, fieldKey, ex);
             return null; // caller will filter null keys

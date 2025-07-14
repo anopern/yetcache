@@ -6,5 +6,5 @@ package com.yetcache.core.support.field;
  */
 public interface FieldConverter<K> {
     String convert(K bizField);
-    K reverse(String field);
+    K revert(String field);
 }

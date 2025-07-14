@@ -21,7 +21,7 @@ public class TypeFieldConverter<F> implements FieldConverter<F> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public F reverse(String field) {
+    public F revert(String field) {
         if (field == null) {
             return null;
         }

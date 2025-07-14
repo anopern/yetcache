@@ -1,7 +1,7 @@
 package com.yetcache.example.cache.cnfig;
 
 import com.yetcache.core.cache.YetCacheConfigResolver;
-import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
+import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.example.cache.ConfigCommonInfoCacheAgent;
 import com.yetcache.example.enums.EnumCaches;
 import com.yetcache.example.service.loader.ConfigCommonInfoCacheLoader;
@@ -27,7 +27,7 @@ public class ConfigCacheAgentConfig {
     @Bean
     public ConfigCommonInfoCacheAgent configCommonInfoCacheAgent() {
         String cacheName = EnumCaches.CONFIG_COMMON_INFO_CACHE.getName();
-        MultiTierFlatHashCacheConfig config = configResolver.resolveFlatHash(cacheName);
+        FlatHashCacheConfig config = configResolver.resolveFlatHash(cacheName);
         return new ConfigCommonInfoCacheAgent(cacheName, config, configCommonInfoCacheLoader, meterRegistry);
     }
 }

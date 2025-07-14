@@ -1,6 +1,7 @@
 package com.yetcache.core.config;
 
-import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
+import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
+import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import lombok.Data;
 
@@ -14,5 +15,6 @@ import java.util.Map;
 @Data
 public class CacheGroups {
     protected Map<String, MultiTierKVCacheConfig> kv = new HashMap<>();
-    protected Map<String, MultiTierFlatHashCacheConfig> flatHash = new HashMap<>();
+    protected Map<String, FlatHashCacheConfig> flatHash = new HashMap<>();
+    protected Map<String, DynamicHashCacheConfig> dynamicHash = new HashMap<>();
 }

@@ -1,6 +1,7 @@
 package com.yetcache.core.config;
 
-import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
+import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
+import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import lombok.Data;
 
@@ -11,5 +12,6 @@ import lombok.Data;
 @Data
 public class GlobalConfig {
     protected MultiTierKVCacheConfig kv = MultiTierKVCacheConfig.defaultConfig();
-    protected MultiTierFlatHashCacheConfig flatHash = MultiTierFlatHashCacheConfig.defaultConfig();
+    protected FlatHashCacheConfig flatHash = FlatHashCacheConfig.defaultConfig();
+    protected DynamicHashCacheConfig dynamicHash = DynamicHashCacheConfig.defaultConfig();
 }

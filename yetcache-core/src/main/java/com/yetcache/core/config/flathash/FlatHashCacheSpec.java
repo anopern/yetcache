@@ -1,4 +1,4 @@
-package com.yetcache.core.config.dynamichash;
+package com.yetcache.core.config.flathash;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,19 +9,19 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class MultiTierDynamicHashCacheSpec {
+public class FlatHashCacheSpec {
     protected String cacheName;
     protected String keyPrefix;
 
     protected Boolean useHashTag;
     protected Long refreshIntervalSecs;
 
-    public MultiTierDynamicHashCacheSpec(Boolean useHashTag, Long refreshIntervalSecs) {
+    public FlatHashCacheSpec(Boolean useHashTag, Long refreshIntervalSecs) {
         this.useHashTag = useHashTag;
         this.refreshIntervalSecs = refreshIntervalSecs;
     }
 
-    public MultiTierDynamicHashCacheSpec(MultiTierDynamicHashCacheSpec other) {
+    public FlatHashCacheSpec(FlatHashCacheSpec other) {
         if (other == null) return;
         this.cacheName = other.cacheName;
         this.keyPrefix = other.keyPrefix;
@@ -29,7 +29,7 @@ public class MultiTierDynamicHashCacheSpec {
         this.refreshIntervalSecs = other.refreshIntervalSecs;
     }
 
-    public static MultiTierDynamicHashCacheSpec defaultSpec() {
-        return new MultiTierDynamicHashCacheSpec(true, 30 * 60L);
+    public static FlatHashCacheSpec defaultSpec() {
+        return new FlatHashCacheSpec(true, 30 * 60L);
     }
 }

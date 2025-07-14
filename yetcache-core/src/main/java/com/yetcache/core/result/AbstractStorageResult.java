@@ -21,13 +21,13 @@ public abstract class AbstractStorageResult<T>
     private final T value;
     private final CacheAccessTrace trace;
     private final HitTier tier;
-    private final boolean fromSource;
+    private final Boolean fromSource;
 
     protected AbstractStorageResult(CacheOutcome outcome,
                                     T value,
                                     CacheAccessTrace trace,
                                     HitTier tier,
-                                    boolean fromSource) {
+                                    Boolean fromSource) {
         this.outcome = Objects.requireNonNull(outcome, "outcome");
         this.value = value;
         this.trace = Objects.requireNonNull(trace, "trace");
