@@ -1,12 +1,12 @@
 package com.yetcache.agent.flathash;
 
-import com.yetcache.agent.FlatHashCacheLoader;
 import com.yetcache.agent.exception.CacheUnavailableException;
 import com.yetcache.agent.result.FlatHashCacheAgentResult;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
 import io.micrometer.core.instrument.MeterRegistry;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -47,9 +47,11 @@ public abstract class AbstractListableFlatHashAgent<F, V>
 
     /* ---------- 工具 ---------- */
     private Map<F, V> unwrap(Map<F, CacheValueHolder<V>> raw) {
-        return raw.entrySet().stream()
-                .collect(Collectors.toUnmodifiableMap(
+        Map<F, V> result = raw.entrySet().stream()
+                .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        e -> e.getValue().getValue()));
+                        e -> e.getValue().getValue()
+                ));
+        return Collections.unmodifiableMap(result);
     }
 }

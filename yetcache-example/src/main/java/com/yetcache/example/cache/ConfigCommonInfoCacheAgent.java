@@ -1,6 +1,6 @@
 package com.yetcache.example.cache;
 
-import com.yetcache.agent.FlatHashCacheLoader;
+import com.yetcache.agent.flathash.FlatHashCacheLoader;
 import com.yetcache.agent.flathash.AbstractListableFlatHashAgent;
 import com.yetcache.core.config.flathash.MultiTierFlatHashCacheConfig;
 import com.yetcache.core.support.field.FieldConverter;

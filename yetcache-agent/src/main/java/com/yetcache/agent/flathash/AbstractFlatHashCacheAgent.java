@@ -1,6 +1,5 @@
 package com.yetcache.agent.flathash;
 
-import com.yetcache.agent.FlatHashCacheLoader;
 import com.yetcache.agent.ForceIntervalRefreshable;
 import com.yetcache.agent.MetricsInterceptor;
 import com.yetcache.agent.interceptor.CacheInvocationChain;

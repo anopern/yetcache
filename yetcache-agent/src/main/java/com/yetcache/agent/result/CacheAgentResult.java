@@ -21,19 +21,19 @@ public class CacheAgentResult <T> implements CacheAccessResult<T>, Serializable 
     private final CacheAccessTrace trace;
 
     /* ---------- aggregation-specific ---------- */
-    private final String agentName;  // 业务侧标识，如 "user-config-cache"
+    private final String componentName;  // 业务侧标识，如 "user-config-cache"
     private final boolean fromCache; // true=直接命中缓存, false=回源(如preload/init)
 
     /* ------------------------------------------------------------------ */
     CacheAgentResult(CacheOutcome outcome,
                      T value,
                      CacheAccessTrace trace,
-                     String agentName,
+                     String componentName,
                      boolean fromCache) {
         this.outcome   = Objects.requireNonNull(outcome, "outcome");
         this.value     = value;
         this.trace     = Objects.requireNonNull(trace, "trace");
-        this.agentName = Objects.requireNonNull(agentName, "agentName");
+        this.componentName = Objects.requireNonNull(componentName, "agentName");
         this.fromCache = fromCache;
     }
 
@@ -86,13 +86,13 @@ public class CacheAgentResult <T> implements CacheAccessResult<T>, Serializable 
     @Override public T value()                       { return value; }
     @Override public CacheAccessTrace trace()        { return trace; }
 
-    public String agentName()  { return agentName; }
+    public String agentName()  { return componentName; }
     public boolean fromCache() { return fromCache; }
 
     /* ===== copy-with-trace (for invoke模板) ========================== */
     @Override
     public CacheAgentResult<T> withTrace(CacheAccessTrace trace) {
-        return new CacheAgentResult<>(outcome, value, trace, agentName, fromCache);
+        return new CacheAgentResult<>(outcome, value, trace, componentName, fromCache);
     }
 
     /* ===== helpers =================================================== */
@@ -100,7 +100,7 @@ public class CacheAgentResult <T> implements CacheAccessResult<T>, Serializable 
 
     @Override public String toString() {
         return "CacheAgentResult{" +
-                "agent='" + agentName + '\'' +
+                "agent='" + componentName + '\'' +
                 ", outcome=" + outcome +
                 ", fromCache=" + fromCache +
                 ", latency=" + trace.latencyMicros() + "µs" +
