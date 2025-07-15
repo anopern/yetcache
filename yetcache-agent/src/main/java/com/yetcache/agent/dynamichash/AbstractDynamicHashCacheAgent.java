@@ -1,5 +1,7 @@
 package com.yetcache.agent.dynamichash;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.yetcache.agent.AbstractCacheAgent;
 import com.yetcache.agent.CacheValueHolderHelper;
 import com.yetcache.agent.MetricsInterceptor;
@@ -23,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author walter.yan
@@ -34,6 +37,7 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
     protected final MultiTierDynamicHashCache<K, F, V> cache;
     protected final DynamicHashCacheConfig config;
     protected final DynamicHashCacheLoader<K, F, V> cacheLoader;
+    private final Cache<K, Long> fullyLoadedTs;
 
     /**
      * 拦截器链，可按需在子类或外部继续追加
@@ -52,6 +56,11 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
         this.cacheLoader = cacheLoader;
         this.cache = new DefaultMultiTierDynamicHashCache<>(componentNane, config, redissonClient, keyConverter,
                 fieldConverter);
+
+        this.fullyLoadedTs = Caffeine.newBuilder()
+                .expireAfterWrite(config.getSpec().getFullyLoadedExpireSecs(), TimeUnit.MINUTES)
+                .maximumSize(100_000)
+                .build();
 
         this.interceptors.add(new MetricsInterceptor(registry));
     }
@@ -103,29 +112,46 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
 
     private DynamicHashCacheAgentResult<K, F, V> loadAllAndUpdate(K bizKey, boolean force) {
         try {
-            if (!force) {
+            // ✅ 1. 非强制刷新时，优先使用结构新鲜期窗口逻辑
+            if (!force && withinFullyLoadedExpireWindow(bizKey)) {
+                log.debug("Fully-loaded freshness window active for key = {}", bizKey);
                 StorageCacheAccessResult<Map<F, CacheValueHolder<V>>> result = cache.list(bizKey);
                 if (result.outcome() == CacheOutcome.HIT) {
-                    return DynamicHashCacheAgentResult.success(getComponentName(), result.value(), result.getTier());
+                    return DynamicHashCacheAgentResult.success(
+                            getComponentName(), result.value(), result.getTier());
                 }
             }
 
+            // ✅ 2. 回源加载数据
             Map<F, V> loadedMap = cacheLoader.loadAll(bizKey);
-
             if (loadedMap == null || loadedMap.isEmpty()) {
                 return DynamicHashCacheAgentResult.notFound(getComponentName());
             }
 
+            // ✅ 3. 回源成功 → 缓存 + 更新结构级 fullyLoadedTs 标记
             cache.putAll(bizKey, loadedMap);
+            fullyLoadedTs.put(bizKey, System.currentTimeMillis());
 
-            return DynamicHashCacheAgentResult.success(getComponentName(),
-                    CacheValueHolderHelper.wrapAsHolderMap(loadedMap), HitTier.SOURCE);
+            return DynamicHashCacheAgentResult.success(
+                    getComponentName(),
+                    CacheValueHolderHelper.wrapAsHolderMap(loadedMap),
+                    HitTier.SOURCE);
+
         } catch (Exception e) {
             log.warn("cache loadAll failed, agent = {}, key = {}", componentName, bizKey, e);
             return DynamicHashCacheAgentResult.fail(componentName, e);
         } finally {
             CacheAccessContext.clear();
         }
+    }
+
+    private boolean withinFullyLoadedExpireWindow(K bizKey) {
+        long expireSecs = config.getSpec().getFullyLoadedExpireSecs();
+        if (expireSecs <= 0) return false;
+
+        Long lastFullLoad = fullyLoadedTs.getIfPresent(bizKey);
+        return lastFullLoad != null &&
+                (System.currentTimeMillis() - lastFullLoad <= expireSecs * 1000L);
     }
 
 

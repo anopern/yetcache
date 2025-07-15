@@ -6,6 +6,10 @@ import com.yetcache.example.service.IStockHoldInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * @author walter.yan
  * @since 2025/7/2
@@ -18,5 +22,11 @@ public class StockHoldInfoCacheLoader extends AbstractDynamicHashCacheLoader<Str
     @Override
     public StockHoldInfo load(String fundAccount, Long id) {
         return stockHoldInfoService.getById(id);
+    }
+
+    @Override
+    public Map<Long, StockHoldInfo> loadAll(String fundAccount) {
+        return stockHoldInfoService.listByFundAccount(fundAccount)
+                .stream().collect(Collectors.toMap(StockHoldInfo::getId, stockHoldInfo -> stockHoldInfo));
     }
 }

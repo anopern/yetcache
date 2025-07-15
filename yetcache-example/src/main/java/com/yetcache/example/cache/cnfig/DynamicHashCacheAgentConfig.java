@@ -30,8 +30,9 @@ public class DynamicHashCacheAgentConfig {
 
     @Bean
     public StockHoldInfoCacheAgent stockHoldInfoCacheAgent() {
-        DynamicHashCacheConfig config = configResolver.resolveDynamicHash("stockHoldInfoCache");
-        return new StockHoldInfoCacheAgent(EnumCaches.STOCK_HOLD_INFO_CACHE.getName(),
+        String componentName = EnumCaches.STOCK_HOLD_INFO_CACHE.getName();
+        DynamicHashCacheConfig config = configResolver.resolveDynamicHash(componentName);
+        return new StockHoldInfoCacheAgent(componentName,
                 config, redissonClient,
                 KeyConverterFactory.createDefault(config.getSpec().getKeyPrefix(), config.getSpec().getUseHashTag()),
                 new TypeFieldConverter<>(Long.class),

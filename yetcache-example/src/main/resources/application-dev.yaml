@@ -51,3 +51,8 @@ yetcache:
         spec:
           cache-name: 'config-common-info-cache'
           key-prefix: 'nd:cfg:common:info'
+    dynamic-hash:
+      stock-hold-info-cache:
+        spec:
+          cache-name: 'stock-hold-info-cache'
+          key-prefix: 'nd:asset:stock:hold'

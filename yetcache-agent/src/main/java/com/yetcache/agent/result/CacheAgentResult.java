@@ -67,7 +67,7 @@ public class CacheAgentResult<T> implements CacheAccessResult<T>, Serializable {
 
     /* ===== helpers =================================================== */
     public boolean isSuccess() {
-        return outcome == CacheOutcome.SUCCESS;
+        return outcome == CacheOutcome.SUCCESS || outcome == CacheOutcome.HIT;
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.yetcache.example.cache.service.StockHoldInfoCacheService;
 import com.yetcache.example.entity.StockHoldInfo;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,9 +19,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/stock-hold-infos")
 @Slf4j
-@AllArgsConstructor
 public class StockHoldInfoController {
     private final StockHoldInfoCacheService cacheService;
+
+    @Autowired
+    public StockHoldInfoController(StockHoldInfoCacheService cacheService) {
+        this.cacheService = cacheService;
+    }
 
     @PostMapping("/get")
     public StockHoldInfo get(@RequestBody StockHoldInfo dto) {
@@ -29,7 +34,8 @@ public class StockHoldInfoController {
 
     @PostMapping("/listAll")
     public List<StockHoldInfo> listAll(@RequestBody StockHoldInfo dto) {
-        return cacheService.listAll(dto.getFundAccount(), dto.getForceRefresh());
+        boolean forceRefresh = dto.getForceRefresh() != null && dto.getForceRefresh();
+        return cacheService.listAll(dto.getFundAccount(), forceRefresh);
     }
 
     @PostMapping("/refreshAll")
