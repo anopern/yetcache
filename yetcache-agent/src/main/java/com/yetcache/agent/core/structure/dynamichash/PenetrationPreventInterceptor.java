@@ -1,12 +1,10 @@
-package com.yetcache.agent.dynamichash;
+package com.yetcache.agent.core.structure.dynamichash;
 
 import com.yetcache.agent.interceptor.CacheInvocationChain;
 import com.yetcache.agent.interceptor.CacheInvocationContext;
 import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
-import com.yetcache.core.config.PenetrationProtectConfig;
 import com.yetcache.core.protect.PenetrationProtectCache;
 import com.yetcache.core.result.CacheAccessResult;
-import com.yetcache.core.result.CacheOutcome;
 
 /**
  * @author walter.yan

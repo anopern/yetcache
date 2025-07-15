@@ -1,6 +1,5 @@
-package com.yetcache.agent.refresh;
+package com.yetcache.agent.core.capability;
 
-import com.yetcache.agent.ForceIntervalRefreshable;
 import com.yetcache.core.result.CacheAccessResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

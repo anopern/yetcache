@@ -1,6 +1,5 @@
-package com.yetcache.agent;
+package com.yetcache.agent.core.capability;
 
-import com.yetcache.agent.preload.MandatoryStartupInitializable;
 import com.yetcache.core.result.CacheAccessResult;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;

@@ -1,4 +1,4 @@
-package com.yetcache.agent;
+package com.yetcache.agent.governance.plugin;
 
 import com.yetcache.agent.interceptor.CacheInvocationChain;
 import com.yetcache.agent.interceptor.CacheInvocationContext;

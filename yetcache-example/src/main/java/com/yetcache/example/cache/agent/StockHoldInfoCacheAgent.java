@@ -1,7 +1,7 @@
 package com.yetcache.example.cache.agent;
 
-import com.yetcache.agent.dynamichash.AbstractDynamicHashCacheAgent;
-import com.yetcache.agent.dynamichash.DynamicHashCacheLoader;
+import com.yetcache.agent.core.structure.dynamichash.AbstractDynamicHashCacheAgent;
+import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheLoader;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;

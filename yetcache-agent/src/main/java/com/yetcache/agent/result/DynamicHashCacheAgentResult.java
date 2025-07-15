@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  * @author walter.yan
  * @since 2025/7/14
  */
-public class DynamicHashCacheAgentResult<K, F, V> extends CacheAgentResult<Map<F, CacheValueHolder<V>>> {
+public final class DynamicHashCacheAgentResult<K, F, V> extends CacheAgentResult<Map<F, CacheValueHolder<V>>> {
     DynamicHashCacheAgentResult(CacheOutcome outcome,
                                 Map<F, CacheValueHolder<V>> value,
                                 HitTier hitTier,

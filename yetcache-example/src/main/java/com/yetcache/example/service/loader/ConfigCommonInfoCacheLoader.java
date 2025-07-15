@@ -1,7 +1,7 @@
 package com.yetcache.example.service.loader;
 
 import cn.hutool.core.collection.CollUtil;
-import com.yetcache.agent.flathash.FlatHashCacheLoader;
+import com.yetcache.agent.core.structure.flathash.FlatHashCacheLoader;
 import com.yetcache.example.entity.ConfigCommonInfo;
 import com.yetcache.example.service.IConfigCommonInfoService;
 import org.springframework.beans.factory.annotation.Autowired;

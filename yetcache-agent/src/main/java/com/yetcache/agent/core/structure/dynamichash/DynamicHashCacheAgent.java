@@ -1,4 +1,4 @@
-package com.yetcache.agent.dynamichash;
+package com.yetcache.agent.core.structure.dynamichash;
 
 import com.yetcache.agent.result.DynamicHashCacheAgentResult;
 

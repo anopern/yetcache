@@ -1,4 +1,4 @@
-package com.yetcache.agent;
+package com.yetcache.agent.core;
 
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.config.YetCacheProperties;

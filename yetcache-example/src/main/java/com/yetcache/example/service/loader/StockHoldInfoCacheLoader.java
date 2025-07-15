@@ -1,12 +1,11 @@
 package com.yetcache.example.service.loader;
 
-import com.yetcache.agent.dynamichash.AbstractDynamicHashCacheLoader;
+import com.yetcache.agent.core.structure.dynamichash.AbstractDynamicHashCacheLoader;
 import com.yetcache.example.entity.StockHoldInfo;
 import com.yetcache.example.service.IStockHoldInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 

@@ -1,10 +1,10 @@
-package com.yetcache.agent.dynamichash;
+package com.yetcache.agent.core.structure.dynamichash;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.yetcache.agent.AbstractCacheAgent;
-import com.yetcache.agent.CacheValueHolderHelper;
-import com.yetcache.agent.MetricsInterceptor;
+import com.yetcache.agent.core.structure.AbstractCacheAgent;
+import com.yetcache.agent.core.CacheValueHolderHelper;
+import com.yetcache.agent.governance.plugin.MetricsInterceptor;
 import com.yetcache.agent.result.DynamicHashCacheAgentResult;
 import com.yetcache.core.cache.dynamichash.DefaultMultiTierDynamicHashCache;
 import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;

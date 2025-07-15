@@ -1,12 +1,12 @@
-package com.yetcache.agent.flathash;
+package com.yetcache.agent.core.structure.flathash;
 
-import com.yetcache.agent.ForceIntervalRefreshable;
-import com.yetcache.agent.MetricsInterceptor;
+import com.yetcache.agent.core.capability.ForceIntervalRefreshable;
+import com.yetcache.agent.governance.plugin.MetricsInterceptor;
 import com.yetcache.agent.interceptor.CacheInvocationChain;
 import com.yetcache.agent.interceptor.CacheInvocationContext;
 import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
 import com.yetcache.agent.interceptor.DefaultInvocationChain;
-import com.yetcache.agent.preload.MandatoryStartupInitializable;
+import com.yetcache.agent.core.capability.MandatoryStartupInitializable;
 import com.yetcache.agent.result.FlatHashCacheAgentResult;
 import com.yetcache.core.cache.flathash.*;
 import com.yetcache.core.cache.support.CacheValueHolder;

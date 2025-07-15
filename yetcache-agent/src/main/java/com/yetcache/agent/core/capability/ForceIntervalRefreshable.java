@@ -1,4 +1,4 @@
-package com.yetcache.agent;
+package com.yetcache.agent.core.capability;
 
 import com.yetcache.core.result.CacheAccessResult;
 

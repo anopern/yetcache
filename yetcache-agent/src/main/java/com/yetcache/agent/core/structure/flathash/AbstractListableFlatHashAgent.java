@@ -1,6 +1,6 @@
-package com.yetcache.agent.flathash;
+package com.yetcache.agent.core.structure.flathash;
 
-import com.yetcache.agent.exception.CacheUnavailableException;
+import com.yetcache.agent.core.exception.CacheUnavailableException;
 import com.yetcache.agent.result.FlatHashCacheAgentResult;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.flathash.FlatHashCacheConfig;

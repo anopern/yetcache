@@ -1,4 +1,4 @@
-package com.yetcache.agent.dynamichash;
+package com.yetcache.agent.core.structure.dynamichash;
 
 import java.util.HashMap;
 import java.util.Map;

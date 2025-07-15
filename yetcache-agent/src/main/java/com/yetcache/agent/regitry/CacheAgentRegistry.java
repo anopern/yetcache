@@ -1,6 +1,6 @@
 package com.yetcache.agent.regitry;
 
-import com.yetcache.agent.flathash.AbstractFlatHashCacheAgent;
+import com.yetcache.agent.core.structure.flathash.AbstractFlatHashCacheAgent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
