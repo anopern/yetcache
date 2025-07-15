@@ -43,7 +43,7 @@ public final class StorageCacheAccessResult<T> implements CacheAccessResult<T> {
     }
 
     public static <T> StorageCacheAccessResult<T> hitHolderMap(T value, HitTier hitTier) {
-        return new StorageCacheAccessResult<>(CacheOutcome.SUCCESS, value, hitTier, CacheAccessTrace.start());
+        return new StorageCacheAccessResult<>(CacheOutcome.HIT, value, hitTier, CacheAccessTrace.start());
     }
 
     public static <T> StorageCacheAccessResult<T> success() {

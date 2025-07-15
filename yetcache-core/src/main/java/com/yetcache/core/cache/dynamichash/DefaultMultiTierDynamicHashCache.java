@@ -74,7 +74,7 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
     }
 
     @Override
-    public StorageCacheAccessResult<Map<F, CacheValueHolder<V>>> list(K bizKey) {
+    public StorageCacheAccessResult<Map<F, CacheValueHolder<V>>> listAll(K bizKey) {
         String key = keyConverter.convert(bizKey);
 
         // 1. 本地缓存尝试

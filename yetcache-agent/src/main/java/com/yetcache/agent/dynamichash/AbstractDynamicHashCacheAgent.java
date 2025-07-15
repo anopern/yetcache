@@ -5,7 +5,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.yetcache.agent.AbstractCacheAgent;
 import com.yetcache.agent.CacheValueHolderHelper;
 import com.yetcache.agent.MetricsInterceptor;
-import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
 import com.yetcache.agent.result.DynamicHashCacheAgentResult;
 import com.yetcache.core.cache.dynamichash.DefaultMultiTierDynamicHashCache;
 import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
@@ -22,9 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -110,7 +107,7 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
             // ✅ 1. 非强制刷新时，优先使用结构新鲜期窗口逻辑
             if (!force && withinFullyLoadedExpireWindow(bizKey)) {
                 log.debug("Fully-loaded freshness window active for key = {}", bizKey);
-                StorageCacheAccessResult<Map<F, CacheValueHolder<V>>> result = cache.list(bizKey);
+                StorageCacheAccessResult<Map<F, CacheValueHolder<V>>> result = cache.listAll(bizKey);
                 if (result.outcome() == CacheOutcome.HIT) {
                     return DynamicHashCacheAgentResult.success(
                             getComponentName(), result.value(), result.getTier());

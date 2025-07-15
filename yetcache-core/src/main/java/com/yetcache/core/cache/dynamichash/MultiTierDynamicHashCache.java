@@ -12,7 +12,7 @@ import java.util.Map;
 public interface MultiTierDynamicHashCache<K, F, V> {
     StorageCacheAccessResult<CacheValueHolder<V>> get(K bizKey, F bizField);
 
-    StorageCacheAccessResult<Map<F, CacheValueHolder<V>>> list(K bizKey);
+    StorageCacheAccessResult<Map<F, CacheValueHolder<V>>> listAll(K bizKey);
 
     StorageCacheAccessResult<Void> put(K bizKey, F bizField, V value);
 
