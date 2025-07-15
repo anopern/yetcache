@@ -11,18 +11,16 @@ import java.util.concurrent.TimeUnit;
 public class RedisPenetrationProtectCache extends AbstractPenetrationProtectCache {
     private final RedissonClient rClient;
     private final long ttlSeconds;
-    private final long maxSize;
 
     public RedisPenetrationProtectCache(RedissonClient rClient, String keyPrefix, String cacheName,
                                         long ttlSeconds, long maxSize) {
         super(keyPrefix, cacheName);
         this.rClient = rClient;
         this.ttlSeconds = ttlSeconds;
-        this.maxSize = maxSize;
     }
 
     @Override
-    public void markMiss(String logicKey) {
+    public void markNotFund(String logicKey) {
         RBucket<Integer> bucket = rClient.getBucket(buildKey(logicKey));
         bucket.set(1, ttlSeconds, TimeUnit.SECONDS);
     }

@@ -42,6 +42,14 @@ public class CacheAccessContext {
         TL.get().setTenantCode(tenantId);
     }
 
+    public static void setForceRefresh(boolean forceRefresh) {
+        TL.get().setForceRefresh(forceRefresh);
+    }
+
+    public static boolean isForceRefresh() {
+        return TL.get().isForceRefresh();
+    }
+
     public static void clear() {
         TL.remove();
     }

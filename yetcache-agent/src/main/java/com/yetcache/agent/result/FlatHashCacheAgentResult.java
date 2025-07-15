@@ -1,6 +1,7 @@
 package com.yetcache.agent.result;
 
 import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.cache.trace.HitTier;
 import com.yetcache.core.result.CacheAccessTrace;
 import com.yetcache.core.result.CacheOutcome;
 
@@ -18,70 +19,69 @@ public final class FlatHashCacheAgentResult<F, V>
     /* ---------------- constructors (hidden) ---------------- */
     private FlatHashCacheAgentResult(CacheOutcome outcome,
                                      Map<F, CacheValueHolder<V>> value,
+                                     HitTier hitTier,
                                      CacheAccessTrace trace,
-                                     String agentName,
-                                     boolean fromCache) {
-        super(outcome, value, trace, agentName, fromCache);
+                                     String componentName) {
+        super(outcome, value, hitTier, trace, componentName);
     }
 
     /* ---------------- static factories --------------------- */
 
-    /**
-     * 写 / 读成功，value 不为空
-     */
-    public static <F, V> FlatHashCacheAgentResult<F, V> success(String agentName,
-                                                                Map<F, CacheValueHolder<V>> value,
-                                                                boolean fromCache) {
+    public static <F, V> FlatHashCacheAgentResult<F, V> success(String componentName) {
         return new FlatHashCacheAgentResult<>(
                 CacheOutcome.SUCCESS,
-                Collections.unmodifiableMap(Objects.requireNonNull(value)),
+                null,
+                null,
                 CacheAccessTrace.start().success(),
-                agentName,
-                fromCache
+                componentName
         );
     }
 
     /**
      * 写类成功（无返回数据）
      */
-    public static <F, V> FlatHashCacheAgentResult<F, V> success(String agentName) {
+    public static <F, V> FlatHashCacheAgentResult<F, V> hit(String componentName,
+                                                            Map<F, CacheValueHolder<V>> value,
+                                                            HitTier hitTier) {
         return new FlatHashCacheAgentResult<>(
-                CacheOutcome.SUCCESS,
-                Collections.emptyMap(),
+                CacheOutcome.HIT,
+                value,
+                hitTier,
                 CacheAccessTrace.start().success(),
-                agentName,
-                true
+                componentName
         );
     }
 
-    public static <F, V> FlatHashCacheAgentResult<F, V> flatHashFail(String agentName, Throwable ex) {               // 签名与父类不同 ↓↓↓
+    public static <F, V> FlatHashCacheAgentResult<F, V> fail(String componentName, Throwable ex) {
         return new FlatHashCacheAgentResult<>(
                 CacheOutcome.FAIL,
-                Collections.emptyMap(),
+                null,
+                null,
                 CacheAccessTrace.start().fail(ex),
-                agentName,
-                true
+                componentName
         );
     }
 
-    public static <F, V> FlatHashCacheAgentResult<F, V> flatHashMiss(String agentName) {
+    public static <F, V> FlatHashCacheAgentResult<F, V> miss(String componentName) {
         return new FlatHashCacheAgentResult<>(
                 CacheOutcome.MISS,
                 null,
+                null,
                 CacheAccessTrace.start().success(),
-                agentName,
-                true
+                componentName
         );
     }
 
-    /** 因限流/阻断被拒绝。 */
-    public static  <F, V> FlatHashCacheAgentResult<F, V> flatHashBlock(String agentName, String reason) {
+    /**
+     * 因限流/阻断被拒绝。
+     */
+    public static <F, V> FlatHashCacheAgentResult<F, V> flatHashBlock(String componentName, String reason) {
         return new FlatHashCacheAgentResult<>(
                 CacheOutcome.BLOCK,
                 null,
+                null,
                 CacheAccessTrace.start().block(reason),
-                agentName,
-                true
+                componentName
         );
     }
 
@@ -89,6 +89,6 @@ public final class FlatHashCacheAgentResult<F, V>
     @Override
     public FlatHashCacheAgentResult<F, V> withTrace(CacheAccessTrace trace) {
         return new FlatHashCacheAgentResult<>(
-                outcome(), value(), trace, agentName(), fromCache());
+                outcome(), value(), hitTier, trace, componentName());
     }
 }

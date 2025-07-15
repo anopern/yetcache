@@ -1,6 +1,6 @@
 package com.yetcache.example.controller;
 
-import com.yetcache.example.cache.ConfigCommonInfoCacheAgent;
+import com.yetcache.example.cache.agent.ConfigCommonInfoCacheAgent;
 import com.yetcache.example.entity.ConfigCommonInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;

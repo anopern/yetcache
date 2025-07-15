@@ -5,6 +5,7 @@ import com.yetcache.agent.interceptor.CacheInvocationContext;
 import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
 import com.yetcache.agent.interceptor.DefaultInvocationChain;
 import com.yetcache.core.result.CacheAccessResult;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -15,6 +16,7 @@ import java.util.function.Supplier;
  * @since 2025/7/15
  */
 public abstract class AbstractCacheAgent<T extends CacheAccessResult<?>> {
+    @Getter
     protected final String componentName;
     protected final List<CacheInvocationInterceptor> interceptors = new CopyOnWriteArrayList<>();
 

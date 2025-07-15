@@ -1,4 +1,4 @@
-package com.yetcache.example.cache;
+package com.yetcache.example.cache.agent;
 
 import com.yetcache.agent.flathash.FlatHashCacheLoader;
 import com.yetcache.agent.flathash.AbstractListableFlatHashAgent;

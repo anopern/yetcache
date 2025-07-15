@@ -82,7 +82,7 @@ public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheA
             return chain.proceed(ctx);               // R 已经是目标类型
         } catch (Throwable t) {
             log.error("[{}] {} failed", componentNane, method, t);
-            return (R) FlatHashCacheAgentResult.flatHashFail(componentNane, t);
+            return (R) FlatHashCacheAgentResult.fail(componentNane, t);
         }
     }
 
@@ -127,17 +127,17 @@ public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheA
         try {
             Map<F, V> data = cacheLoader.loadAll();
             if (data == null || data.isEmpty()) {
-                return FlatHashCacheAgentResult.flatHashFail(componentNane, new IllegalStateException("Loaded map empty"));
+                return FlatHashCacheAgentResult.fail(componentNane, new IllegalStateException("Loaded map empty"));
             }
             FlatHashStorageResult<F, V> putRes = cache.putAll(data);
             if (!putRes.outcome().equals(CacheOutcome.SUCCESS)) {
-                return FlatHashCacheAgentResult.flatHashFail(componentNane, new RuntimeException("putAll failed"));
+                return FlatHashCacheAgentResult.fail(componentNane, new RuntimeException("putAll failed"));
             }
             Map<F, CacheValueHolder<V>> wrapped = new HashMap<>();
             data.forEach((f, v) -> wrapped.put(f, CacheValueHolder.wrap(v, config.getLocal().getTtlSecs())));
-            return FlatHashCacheAgentResult.success(componentNane, wrapped, false);
+            return FlatHashCacheAgentResult.success(componentNane);
         } catch (Exception e) {
-            return FlatHashCacheAgentResult.flatHashFail(componentNane, e);
+            return FlatHashCacheAgentResult.fail(componentNane, e);
         }
     }
 
@@ -148,14 +148,15 @@ public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheA
     private FlatHashCacheAgentResult<F, V> convertToAgentResult(FlatHashStorageResult<F, V> raw) {
         switch (raw.outcome()) {
             case HIT:
+                return FlatHashCacheAgentResult.hit(componentNane, raw.value(), raw.hitTier());
             case SUCCESS:
-                return FlatHashCacheAgentResult.success(componentNane, raw.value(), true);
+                return FlatHashCacheAgentResult.success(componentNane);
             case MISS:
-                return FlatHashCacheAgentResult.flatHashMiss(componentNane);
+                return FlatHashCacheAgentResult.miss(componentNane);
             case BLOCK:
                 return FlatHashCacheAgentResult.flatHashBlock(componentNane, raw.trace().reason());
             default:
-                return FlatHashCacheAgentResult.flatHashFail(componentNane, raw.trace().exception());
+                return FlatHashCacheAgentResult.fail(componentNane, raw.trace().exception());
         }
     }
 

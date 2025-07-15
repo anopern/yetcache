@@ -1,6 +1,5 @@
 package com.yetcache.agent.regitry;
 
-import com.yetcache.agent.BaseKVCacheAgent;
 import com.yetcache.agent.flathash.AbstractFlatHashCacheAgent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -15,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public final class CacheAgentRegistry {
-    private final Map<String, BaseKVCacheAgent<?, ?>> kvCacheAgentMap = new ConcurrentHashMap<>();
+//    private final Map<String, BaseKVCacheAgent<?, ?>> kvCacheAgentMap = new ConcurrentHashMap<>();
     private final Map<String, AbstractFlatHashCacheAgent<?, ?>> flatHashCacheAgentMap = new ConcurrentHashMap<>();
 
     @Autowired
@@ -25,10 +24,10 @@ public final class CacheAgentRegistry {
         }
     }
 
-    public void register(BaseKVCacheAgent<?, ?> agent) {
-        checkCacheAgentName(agent.getCacheName());
-        kvCacheAgentMap.put(agent.getCacheName(), agent);
-    }
+//    public void register(BaseKVCacheAgent<?, ?> agent) {
+//        checkCacheAgentName(agent.getCacheName());
+//        kvCacheAgentMap.put(agent.getCacheName(), agent);
+//    }
 
     public void register(AbstractFlatHashCacheAgent<?, ?> agent) {
         checkCacheAgentName(agent.getComponentName());
@@ -40,9 +39,9 @@ public final class CacheAgentRegistry {
     }
 
     private void checkCacheAgentName(String agentName) {
-        if (kvCacheAgentMap.containsKey(agentName)) {
-            throw new IllegalArgumentException("CacheAgent name already exists: " + agentName);
-        }
+//        if (kvCacheAgentMap.containsKey(agentName)) {
+//            throw new IllegalArgumentException("CacheAgent name already exists: " + agentName);
+//        }
 
         if (flatHashCacheAgentMap.containsKey(agentName)) {
             throw new IllegalArgumentException("CacheAgent name already exists: " + agentName);

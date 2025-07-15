@@ -22,7 +22,7 @@ public class CaffeinePenetrationProtectCache extends AbstractPenetrationProtectC
     }
 
     @Override
-    public void markMiss(String logicalKey) {
+    public void markNotFund(String logicalKey) {
         cache.put(buildKey(logicalKey), true);
     }
 

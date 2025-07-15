@@ -76,6 +76,6 @@ public final class FlatHashStorageResult<F, V>
     @Override
     public FlatHashStorageResult<F, V> withTrace(CacheAccessTrace trace) {
         return new FlatHashStorageResult<>(outcome(), value(), trace,
-                tierHit(), fromSource());
+                hitTier(), fromSource());
     }
 }

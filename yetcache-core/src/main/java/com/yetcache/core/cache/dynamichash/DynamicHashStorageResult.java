@@ -135,6 +135,6 @@ public final class DynamicHashStorageResult<K, F, V>
 
     @Override
     public DynamicHashStorageResult<K, F, V> withTrace(CacheAccessTrace trace) {
-        return new DynamicHashStorageResult<>(outcome(), value(), trace, tierHit(), fromSource());
+        return new DynamicHashStorageResult<>(outcome(), value(), trace, hitTier(), fromSource());
     }
 }

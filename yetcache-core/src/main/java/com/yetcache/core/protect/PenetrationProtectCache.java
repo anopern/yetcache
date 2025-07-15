@@ -5,7 +5,7 @@ package com.yetcache.core.protect;
  * @since 2025/6/28
  */
 public interface PenetrationProtectCache {
-    void markMiss(String absKey);
+    void markNotFund(String absKey);
 
     boolean isBlocked(String absKey);
 }

@@ -1,6 +1,7 @@
 package com.yetcache.core.merger;
 
 import com.yetcache.core.config.GlobalConfig;
+import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
 import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 
@@ -24,6 +25,14 @@ public class CacheConfigMerger {
         }
         FlatHashCacheConfig globalFlatHash = global.getFlatHash();
         return FieldMerger.mergeNonNullFields(globalFlatHash, raw, 10);
+    }
+
+    public static DynamicHashCacheConfig merge(GlobalConfig global, DynamicHashCacheConfig raw) {
+        if (global == null || global.getKv() == null) {
+            return raw;
+        }
+        DynamicHashCacheConfig globalDynamicHash = global.getDynamicHash();
+        return FieldMerger.mergeNonNullFields(globalDynamicHash, raw, 10);
     }
 }
 

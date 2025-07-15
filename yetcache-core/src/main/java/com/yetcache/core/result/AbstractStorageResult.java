@@ -51,7 +51,7 @@ public abstract class AbstractStorageResult<T>
         return trace;
     }
 
-    public HitTier tierHit() {
+    public HitTier hitTier() {
         return tier;
     }
 
