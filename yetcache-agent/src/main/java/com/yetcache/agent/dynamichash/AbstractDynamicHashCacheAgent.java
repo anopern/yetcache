@@ -39,11 +39,6 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
     protected final DynamicHashCacheLoader<K, F, V> cacheLoader;
     private final Cache<K, Long> fullyLoadedTs;
 
-    /**
-     * 拦截器链，可按需在子类或外部继续追加
-     */
-    protected final List<CacheInvocationInterceptor> interceptors = new CopyOnWriteArrayList<>();
-
     public AbstractDynamicHashCacheAgent(String componentNane,
                                          DynamicHashCacheConfig config,
                                          RedissonClient redissonClient,
