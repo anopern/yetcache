@@ -3,6 +3,7 @@ package com.yetcache.agent.governance.plugin;
 import com.yetcache.agent.interceptor.CacheInvocationChain;
 import com.yetcache.agent.interceptor.CacheInvocationContext;
 import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
+import com.yetcache.agent.result.CacheAgentResult;
 import com.yetcache.core.result.CacheAccessResult;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -22,14 +23,14 @@ public class MetricsInterceptor  implements CacheInvocationInterceptor {
     }
 
     @Override
-    public <R extends CacheAccessResult<?>> R intercept(CacheInvocationContext ctx, CacheInvocationChain<R> chain) throws Throwable {
+    public <R extends CacheAgentResult<?>> R intercept(CacheInvocationContext ctx, CacheInvocationChain<R> chain) throws Throwable {
         long startNs = System.nanoTime();
         R res = chain.proceed(ctx);
         long costNs = System.nanoTime() - startNs;
 
         /* ---------- Counter ---------- */
         Counter.builder("yetcache.access.count")
-                .tag("cache", ctx.getCacheName())
+                .tag("cache", ctx.getComponentNane())
                 .tag("method", ctx.getMethodName())              // get/listAll/refreshAll…
                 .tag("outcome", res.outcome().name())      // HIT/MISS/FAIL…
                 .register(registry)
@@ -37,7 +38,7 @@ public class MetricsInterceptor  implements CacheInvocationInterceptor {
 
         /* ---------- Timer (微秒级) ---------- */
         Timer.builder("yetcache.access.latency")
-                .tag("cache", ctx.getCacheName())
+                .tag("cache", ctx.getComponentNane())
                 .tag("method", ctx.getMethodName())
                 .tag("outcome", res.outcome().name())
                 .register(registry)
@@ -45,11 +46,4 @@ public class MetricsInterceptor  implements CacheInvocationInterceptor {
 
         return res;
     }
-
-//    @Override
-//    public  T intercept(CacheInvocationContext ctx,
-//                                    CacheInvocationChain<T> chain) throws Throwable {
-//
-
-//    }
 }

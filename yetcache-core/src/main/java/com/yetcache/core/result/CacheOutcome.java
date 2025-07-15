@@ -11,7 +11,7 @@ public enum CacheOutcome {
     HIT,          // 命中
     MISS,         // 未命中
     BLOCK,        // 被拦截／限流
-    NOT_FUND,      // 缓存不存在
+    NOT_FOUND,      // 数据不存在
     FAIL,         // 异常失败
 
     // ---------- WRITE ----------

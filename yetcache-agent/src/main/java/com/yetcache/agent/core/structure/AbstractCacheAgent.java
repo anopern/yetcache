@@ -1,12 +1,10 @@
 package com.yetcache.agent.core.structure;
 
-import com.yetcache.agent.interceptor.CacheInvocationChain;
-import com.yetcache.agent.interceptor.CacheInvocationContext;
-import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
-import com.yetcache.agent.interceptor.DefaultInvocationChain;
-import com.yetcache.core.result.CacheAccessResult;
+import com.yetcache.agent.governance.plugin.MetricsInterceptor;
+import com.yetcache.agent.interceptor.*;
+import com.yetcache.agent.result.CacheAgentResult;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.Getter;
-
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
@@ -15,7 +13,7 @@ import java.util.function.Supplier;
  * @author walter.yan
  * @since 2025/7/15
  */
-public abstract class AbstractCacheAgent<T extends CacheAccessResult<?>> {
+public abstract class AbstractCacheAgent<T extends CacheAgentResult<?>> {
     @Getter
     protected final String componentName;
     protected final List<CacheInvocationInterceptor> interceptors = new CopyOnWriteArrayList<>();
@@ -24,19 +22,24 @@ public abstract class AbstractCacheAgent<T extends CacheAccessResult<?>> {
         this.componentName = componentName;
     }
 
-    @SuppressWarnings("unchecked")
     protected <R extends T> R invoke(String method, Supplier<R> business) {
-        CacheInvocationContext ctx = CacheInvocationContext.start(componentName, method);
+        return invoke(method, business, null);
+    }
+
+    protected <R extends T> R invoke(String method, Supplier<R> business, CacheAccessKey key) {
+        CacheInvocationContext ctx = CacheInvocationContext.start(componentName, method, key);
         CacheInvocationChain<R> chain = new DefaultInvocationChain<>(interceptors, business);
+
         try {
             return chain.proceed(ctx);
         } catch (Throwable t) {
-            return (R) defaultFail(method, t);
+            // 使用 resultClass 创建一个默认失败结果，避免强转
+            return defaultFail(method, t);
         }
     }
 
     /**
      * 子类提供默认失败返回结果（结构相关）
      */
-    protected abstract T defaultFail(String method, Throwable t);
+    protected abstract <R extends T> R defaultFail(String method, Throwable t);
 }

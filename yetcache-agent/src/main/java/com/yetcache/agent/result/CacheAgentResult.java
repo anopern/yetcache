@@ -70,6 +70,10 @@ public class CacheAgentResult<T> implements CacheAccessResult<T>, Serializable {
         return outcome == CacheOutcome.SUCCESS || outcome == CacheOutcome.HIT;
     }
 
+    public static <T> CacheAgentResult<T> notFound(String componentName) {
+        return new CacheAgentResult<>(CacheOutcome.NOT_FOUND, null, null, CacheAccessTrace.start(), componentName);
+    }
+
     @Override
     public String toString() {
         return "CacheAgentResult{" +

@@ -1,5 +1,6 @@
 package com.yetcache.agent.interceptor;
 
+import com.yetcache.agent.result.CacheAgentResult;
 import com.yetcache.core.result.CacheAccessResult;
 
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.function.Supplier;
  * @author walter.yan
  * @since 2025/7/14
  */
-public final class DefaultInvocationChain<R extends CacheAccessResult<?>>
+public final class DefaultInvocationChain<R extends CacheAgentResult<?>>
         implements CacheInvocationChain<R> {
 
     private final List<CacheInvocationInterceptor> interceptors;
@@ -27,7 +28,7 @@ public final class DefaultInvocationChain<R extends CacheAccessResult<?>>
     public R proceed(CacheInvocationContext ctx) throws Throwable {
         try (ctx) {                            // ctx 实现 AutoCloseable 仅负责 MDC 等资源
             if (index < interceptors.size()) {
-                return (R) interceptors.get(index++).intercept(ctx, this);
+                return interceptors.get(index++).intercept(ctx, this);
             }
             return target.get();               // 返回 R == CacheAccessResult<?>
         }

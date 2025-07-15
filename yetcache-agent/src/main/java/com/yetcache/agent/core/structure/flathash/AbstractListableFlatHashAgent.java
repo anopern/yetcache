@@ -17,14 +17,13 @@ import java.util.stream.Collectors;
  * @author walter.yan
  * @since 2025/7/14
  */
-public abstract class AbstractListableFlatHashAgent<F, V>
-        extends AbstractFlatHashCacheAgent<F, V> {
+public abstract class AbstractListableFlatHashAgent<F, V> extends AbstractFlatHashCacheAgent<F, V> {
 
-    protected AbstractListableFlatHashAgent(String name,
+    protected AbstractListableFlatHashAgent(String componentNane,
                                             FlatHashCacheConfig config,
                                             FlatHashCacheLoader<F, V> loader,
                                             MeterRegistry meter) {
-        super(name, config, loader, meter);
+        super(componentNane, config, loader, meter);
     }
 
     /**

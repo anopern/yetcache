@@ -33,12 +33,12 @@ public final class DynamicHashCacheAgentResult<K, F, V> extends CacheAgentResult
                 componentName);
     }
 
-    public static <K, F, V> DynamicHashCacheAgentResult<K, F, V> notFound(String componentName) {
-        return new DynamicHashCacheAgentResult<>(CacheOutcome.NOT_FUND, null, null,
+    public static <K, F, V> DynamicHashCacheAgentResult<K, F, V> dynamicHashNotFound(String componentName) {
+        return new DynamicHashCacheAgentResult<>(CacheOutcome.NOT_FOUND, null, null,
                 CacheAccessTrace.start(), componentName);
     }
 
-    public static <K, F, V> DynamicHashCacheAgentResult<K, F, V> fail(String componentName, Throwable ex) {
+    public static <K, F, V> DynamicHashCacheAgentResult<K, F, V> dynamicHashFail(String componentName, Throwable ex) {
         return new DynamicHashCacheAgentResult<>(CacheOutcome.FAIL, null, null,
                 CacheAccessTrace.start().fail(ex), componentName);
     }

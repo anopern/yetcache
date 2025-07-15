@@ -2,6 +2,7 @@ package com.yetcache.example.cache.agent;
 
 import com.yetcache.agent.core.structure.flathash.FlatHashCacheLoader;
 import com.yetcache.agent.core.structure.flathash.AbstractListableFlatHashAgent;
+import com.yetcache.agent.result.FlatHashCacheAgentResult;
 import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.field.TypeFieldConverter;

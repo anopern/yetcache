@@ -28,8 +28,8 @@ public class PenetrationProtectConfig {
     public static PenetrationProtectConfig defaultConfig() {
         PenetrationProtectConfig config = new PenetrationProtectConfig();
         config.setEnabled(true);
-        config.setTtlSecs(120L);
-        config.setMaxSize(10000L);
+        config.setTtlSecs(2 * 60L);
+        config.setMaxSize(10_000L);
         return config;
     }
 }

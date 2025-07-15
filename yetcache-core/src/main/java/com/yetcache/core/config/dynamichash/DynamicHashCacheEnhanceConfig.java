@@ -10,7 +10,8 @@ import lombok.Data;
  */
 @Data
 public class DynamicHashCacheEnhanceConfig {
-    protected PenetrationProtectConfig penetrationProtect;
+    protected PenetrationProtectConfig localPenetrationProtect;
+    protected PenetrationProtectConfig remotePenetrationProtect;
     private HitCountMetricsConfig hitMetrics;
 
     public DynamicHashCacheEnhanceConfig() {
@@ -18,8 +19,11 @@ public class DynamicHashCacheEnhanceConfig {
 
     public DynamicHashCacheEnhanceConfig(DynamicHashCacheEnhanceConfig other) {
         if (other == null) return;
-        this.penetrationProtect = other.penetrationProtect != null
-                ? new PenetrationProtectConfig(other.penetrationProtect)
+        this.localPenetrationProtect = other.localPenetrationProtect != null
+                ? new PenetrationProtectConfig(other.localPenetrationProtect)
+                : null;
+        this.remotePenetrationProtect = other.remotePenetrationProtect != null
+                ? new PenetrationProtectConfig(other.remotePenetrationProtect)
                 : null;
         this.hitMetrics = other.hitMetrics != null
                 ? new HitCountMetricsConfig(other.hitMetrics)
@@ -28,7 +32,8 @@ public class DynamicHashCacheEnhanceConfig {
 
     public static DynamicHashCacheEnhanceConfig defaultConfig() {
         DynamicHashCacheEnhanceConfig config = new DynamicHashCacheEnhanceConfig();
-        config.setPenetrationProtect(PenetrationProtectConfig.defaultConfig());
+        config.setLocalPenetrationProtect(PenetrationProtectConfig.defaultConfig());
+        config.setRemotePenetrationProtect(PenetrationProtectConfig.defaultConfig());
         config.setHitMetrics(HitCountMetricsConfig.defaultConfig());
         return config;
     }

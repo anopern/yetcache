@@ -52,7 +52,7 @@ public final class FlatHashCacheAgentResult<F, V>
         );
     }
 
-    public static <F, V> FlatHashCacheAgentResult<F, V> fail(String componentName, Throwable ex) {
+    public static <F, V> FlatHashCacheAgentResult<F, V> flatHashFail(String componentName, Throwable ex) {
         return new FlatHashCacheAgentResult<>(
                 CacheOutcome.FAIL,
                 null,

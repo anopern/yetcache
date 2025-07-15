@@ -1,6 +1,6 @@
 package com.yetcache.agent.interceptor;
 
-import com.yetcache.core.result.CacheAccessResult;
+import com.yetcache.agent.result.CacheAgentResult;
 
 /**
  * @author walter.yan
@@ -8,6 +8,13 @@ import com.yetcache.core.result.CacheAccessResult;
  */
 public interface CacheInvocationInterceptor {
 
-    <R extends CacheAccessResult<?>> R intercept(CacheInvocationContext ctx,
-                                                 CacheInvocationChain<R> chain) throws Throwable;
+    <R extends CacheAgentResult<?>> R intercept(CacheInvocationContext ctx,
+                                                CacheInvocationChain<R> chain) throws Throwable;
+
+    /**
+     * 增强器是否适用于当前方法名
+     */
+    default boolean supports(String methodName) {
+        return true; // 默认全部匹配
+    }
 }

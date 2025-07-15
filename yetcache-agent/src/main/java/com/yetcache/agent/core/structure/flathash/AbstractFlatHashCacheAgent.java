@@ -1,6 +1,7 @@
 package com.yetcache.agent.core.structure.flathash;
 
 import com.yetcache.agent.core.capability.ForceIntervalRefreshable;
+import com.yetcache.agent.core.structure.AbstractCacheAgent;
 import com.yetcache.agent.governance.plugin.MetricsInterceptor;
 import com.yetcache.agent.interceptor.CacheInvocationChain;
 import com.yetcache.agent.interceptor.CacheInvocationContext;
@@ -38,8 +39,8 @@ import java.util.function.Supplier;
  * @since 2025/07/13
  */
 @Slf4j
-public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheAgent<F, V>
-        , MandatoryStartupInitializable, ForceIntervalRefreshable {
+public abstract class AbstractFlatHashCacheAgent<F, V> extends AbstractCacheAgent<FlatHashCacheAgentResult<F, V>>
+        implements FlatHashCacheAgent<F, V>, MandatoryStartupInitializable, ForceIntervalRefreshable {
     protected final String componentNane;
     protected final MultiTierFlatHashCache<F, V> cache;
     protected final FlatHashCacheConfig config;
@@ -58,6 +59,7 @@ public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheA
                                       FlatHashCacheConfig config,
                                       FlatHashCacheLoader<F, V> cacheLoader,
                                       MeterRegistry registry) {
+        super(componentNane);
         this.componentNane = componentNane;
         this.config = config;
         this.cacheLoader = cacheLoader;
@@ -71,19 +73,6 @@ public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheA
 
         // 默认仅注入指标拦截器；可通过 getInterceptors().add(...) 再拼装
         this.interceptors.add(new MetricsInterceptor(registry));
-    }
-
-    @SuppressWarnings("unchecked")
-    private <R extends CacheAccessResult<?>> R invoke(String method,
-                                                      Supplier<R> business) {
-        CacheInvocationContext ctx = CacheInvocationContext.start(componentNane, method);
-        CacheInvocationChain<R> chain = new DefaultInvocationChain<>(interceptors, business);
-        try {
-            return chain.proceed(ctx);               // R 已经是目标类型
-        } catch (Throwable t) {
-            log.error("[{}] {} failed", componentNane, method, t);
-            return (R) FlatHashCacheAgentResult.fail(componentNane, t);
-        }
     }
 
     @Override
@@ -127,17 +116,15 @@ public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheA
         try {
             Map<F, V> data = cacheLoader.loadAll();
             if (data == null || data.isEmpty()) {
-                return FlatHashCacheAgentResult.fail(componentNane, new IllegalStateException("Loaded map empty"));
+                return FlatHashCacheAgentResult.flatHashFail(componentNane, new IllegalStateException("Loaded map empty"));
             }
             FlatHashStorageResult<F, V> putRes = cache.putAll(data);
             if (!putRes.outcome().equals(CacheOutcome.SUCCESS)) {
-                return FlatHashCacheAgentResult.fail(componentNane, new RuntimeException("putAll failed"));
+                return FlatHashCacheAgentResult.flatHashFail(componentNane, new RuntimeException("putAll failed"));
             }
-            Map<F, CacheValueHolder<V>> wrapped = new HashMap<>();
-            data.forEach((f, v) -> wrapped.put(f, CacheValueHolder.wrap(v, config.getLocal().getTtlSecs())));
             return FlatHashCacheAgentResult.success(componentNane);
         } catch (Exception e) {
-            return FlatHashCacheAgentResult.fail(componentNane, e);
+            return FlatHashCacheAgentResult.flatHashFail(componentNane, e);
         }
     }
 
@@ -156,7 +143,7 @@ public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheA
             case BLOCK:
                 return FlatHashCacheAgentResult.flatHashBlock(componentNane, raw.trace().reason());
             default:
-                return FlatHashCacheAgentResult.fail(componentNane, raw.trace().exception());
+                return FlatHashCacheAgentResult.flatHashFail(componentNane, raw.trace().exception());
         }
     }
 
@@ -175,5 +162,11 @@ public abstract class AbstractFlatHashCacheAgent<F, V> implements FlatHashCacheA
     @Override
     public long getRefreshIntervalSecs() {
         return config.getSpec().getRefreshIntervalSecs();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected FlatHashCacheAgentResult<F, V> defaultFail(String method, Throwable t) {
+        return FlatHashCacheAgentResult.flatHashFail(componentName, t);
     }
 }
