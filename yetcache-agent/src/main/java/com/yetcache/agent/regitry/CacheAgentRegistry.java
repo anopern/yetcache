@@ -1,5 +1,6 @@
 package com.yetcache.agent.regitry;
 
+import com.yetcache.agent.core.CacheStructureType;
 import com.yetcache.agent.core.structure.AbstractCacheAgent;
 import com.yetcache.agent.core.structure.dynamichash.AbstractDynamicHashCacheAgent;
 import com.yetcache.agent.core.structure.flathash.AbstractFlatHashCacheAgent;
@@ -19,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public final class CacheAgentRegistry {
 
-//    private final Map<String, BaseKVCacheAgent<?, ?>> kvAgentMap = new ConcurrentHashMap<>();
+    //    private final Map<String, BaseKVCacheAgent<?, ?>> kvAgentMap = new ConcurrentHashMap<>();
     private final Map<String, AbstractFlatHashCacheAgent<?, ?>> flatHashAgentMap = new ConcurrentHashMap<>();
     private final Map<String, AbstractDynamicHashCacheAgent<?, ?, ?>> dynamicHashAgentMap = new ConcurrentHashMap<>();
 
@@ -78,6 +79,27 @@ public final class CacheAgentRegistry {
     // =============== 统一治理视角 ===============
     public Optional<AbstractCacheAgent> getAgent(String name) {
         return Optional.ofNullable(allAgentMap.get(name));
+    }
+
+    public AbstractCacheAgent<?> getAgent(CacheStructureType structureType, String name) {
+        Map<String, AbstractCacheAgent<?>> agentMap = get(structureType);
+        AbstractCacheAgent<?> agent = agentMap.get(name);
+        if (agent == null) {
+            throw new IllegalArgumentException("No agent found for structureType: " + structureType + ", name: " + name);
+        }
+        return agent;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, AbstractCacheAgent<?>> get(CacheStructureType structureType) {
+        switch (structureType) {
+            case FLAT_HASH:
+                return (Map<String, AbstractCacheAgent<?>>) (Map<?, ?>) flatHashAgentMap;
+            case DYNAMIC_HASH:
+                return (Map<String, AbstractCacheAgent<?>>) (Map<?, ?>) dynamicHashAgentMap;
+            default:
+                throw new IllegalArgumentException("Invalid structure type: " + structureType);
+        }
     }
 
     public Set<String> getAllAgentNames() {

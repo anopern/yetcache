@@ -1,9 +1,7 @@
 package com.yetcache.agent.core.structure;
 
-import com.yetcache.agent.governance.plugin.MetricsInterceptor;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.agent.result.CacheAgentResult;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.Getter;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;

@@ -5,5 +5,5 @@ package com.yetcache.agent.broadcast;
  * @since 2025/7/16
  */
 public interface CacheBroadcastReceiver {
-    void onReceive(CacheBroadcastCommand command);
+    void onReceive(CacheBroadcastCommand cmd);
 }

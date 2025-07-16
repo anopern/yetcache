@@ -1,5 +1,7 @@
 package com.yetcache.agent.broadcast;
 
+import com.yetcache.agent.core.CacheAgentMethod;
+import com.yetcache.agent.core.CacheStructureType;
 import lombok.Data;
 
 import java.util.Map;
@@ -10,9 +12,9 @@ import java.util.Map;
  */
 @Data
 public class CacheBroadcastCommand {
-    private String structureType; // DYNAMIC_HASH / KV / FLAT_HASH
+    private CacheStructureType structureType; // DYNAMIC_HASH / KV / FLAT_HASH
     private String agentName;
-    private String action; // e.g., REFRESH_ALL / REMOVE_FIELD
+    private CacheAgentMethod action; // e.g., REFRESH_ALL / REMOVE_FIELD
     private String key;
     private String field;
     private Map<String, String> extra;
