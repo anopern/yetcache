@@ -5,6 +5,7 @@ import com.yetcache.agent.core.CacheStructureType;
 import lombok.Data;
 
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author walter.yan
@@ -20,4 +21,12 @@ public class CacheBroadcastCommand {
     private Map<String, String> extra;
 
     // getters/setters omitted for brevity
+
+    public <K> K parseKey(Function<String, K> parser) {
+        return parser.apply(this.key);
+    }
+
+    public <F> F parseField(Function<String, F> parser) {
+        return parser.apply(this.field);
+    }
 }

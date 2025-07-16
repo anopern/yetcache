@@ -28,7 +28,7 @@ public class DynamicHashRefreshAllHandler implements CacheBroadcastHandler {
     public void handle(CacheBroadcastCommand cmd) {
         String key = cmd.getKey();
         if (key != null) {
-            agent.refreshAll(key);
+            agent.refreshAll(keyStr -> keyConverter.revert(keyStr));
         } else {
             System.err.println("[YetCache] REFRESH_ALL broadcast missing key, command: " + cmd);
         }
