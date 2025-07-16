@@ -7,14 +7,10 @@ import com.yetcache.agent.core.CacheValueHolderHelper;
 import com.yetcache.agent.governance.plugin.MetricsInterceptor;
 import com.yetcache.agent.governance.plugin.PenetrationProtectInterceptor;
 import com.yetcache.agent.interceptor.CacheAccessKey;
-import com.yetcache.agent.interceptor.CacheInvocationChain;
-import com.yetcache.agent.interceptor.CacheInvocationContext;
-import com.yetcache.agent.interceptor.DefaultInvocationChain;
 import com.yetcache.agent.protect.CaffeinePenetrationProtector;
 import com.yetcache.agent.protect.CompositePenetrationProtector;
 import com.yetcache.agent.protect.PenetrationProtector;
 import com.yetcache.agent.protect.RedisPenetrationProtector;
-import com.yetcache.agent.protect.cache.CaffeinePenetrationProtectCache;
 import com.yetcache.agent.result.DynamicHashCacheAgentResult;
 import com.yetcache.core.cache.dynamichash.DefaultMultiTierDynamicHashCache;
 import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
@@ -36,7 +32,6 @@ import org.redisson.api.RedissonClient;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 /**
  * @author walter.yan
@@ -103,7 +98,8 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
             if (result.outcome() == CacheOutcome.HIT) {
                 CacheValueHolder<V> holder = result.value();
                 if (holder.isNotLogicExpired()) {
-                    return DynamicHashCacheAgentResult.success(getComponentName(), Map.of(bizField, holder), result.getTier());
+                    return DynamicHashCacheAgentResult.success(getComponentName(),
+                            Collections.singletonMap(bizField, holder), result.getTier());
                 }
             }
 
@@ -117,7 +113,7 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
             cache.put(bizKey, bizField, loaded);
 
             return DynamicHashCacheAgentResult.success(getComponentName(),
-                    Map.of(bizField, CacheValueHolder.wrap(loaded, 0)), HitTier.SOURCE);
+                    Collections.singletonMap(bizField, CacheValueHolder.wrap(loaded, 0)), HitTier.SOURCE);
         } catch (Exception e) {
             log.warn("cache load failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);
             return DynamicHashCacheAgentResult.dynamicHashFail(componentName, e);
