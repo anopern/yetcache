@@ -13,7 +13,7 @@ public interface DynamicHashCacheAgent<K, F, V> {
 
     DynamicHashCacheAgentResult<K, F, V> refreshAll(K bizKey);
 
-    DynamicHashCacheAgentResult<K, F, V> invalidate(K bizKey, F bizField);
+    DynamicHashCacheAgentResult<K, F, V> remove(K bizKey, F bizField);
 
-    DynamicHashCacheAgentResult<K, F, V> invalidateAll(K bizKey);
+    DynamicHashCacheAgentResult<K, F, V> removeAll(K bizKey);
 }

@@ -2,6 +2,7 @@ package com.yetcache.core.config;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
+import com.yetcache.core.config.broadcast.BroadcastConfig;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -18,6 +19,7 @@ import javax.annotation.PostConstruct;
 @Slf4j
 public class YetCacheProperties {
     private GlobalConfig global = new GlobalConfig();
+    private BroadcastConfig broadcast = new BroadcastConfig();
     protected CacheGroups caches = new CacheGroups();
 
     @PostConstruct

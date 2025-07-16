@@ -38,7 +38,7 @@ public class RedisKVCache<V> {
         bucket.set(value, realTtlSecs, TimeUnit.SECONDS);
     }
 
-    public void invalidate(String key) {
+    public void remove(String key) {
         rClient.getBucket(key).delete();
     }
 }

@@ -183,7 +183,7 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
 
 
     @Override
-    public DynamicHashCacheAgentResult<K, F, V> invalidate(K bizKey, F bizField) {
+    public DynamicHashCacheAgentResult<K, F, V> remove(K bizKey, F bizField) {
         return invoke("invalidate", () -> doInvalidate(bizKey, bizField));
     }
 
@@ -201,7 +201,7 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
     }
 
     @Override
-    public DynamicHashCacheAgentResult<K, F, V> invalidateAll(K bizKey) {
+    public DynamicHashCacheAgentResult<K, F, V> removeAll(K bizKey) {
         return invoke("invalidateAll", () -> doInvalidateAll(bizKey));
     }
 

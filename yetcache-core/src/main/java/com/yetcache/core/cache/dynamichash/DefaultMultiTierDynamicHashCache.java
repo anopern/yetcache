@@ -151,7 +151,7 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
 
         // 清除本地缓存
         if (localCache != null) {
-            localCache.invalidate(key, field);
+            localCache.remove(key, field);
         }
 
         // 清除远程缓存
@@ -168,7 +168,7 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
 
         // 清除本地缓存
         if (localCache != null) {
-            localCache.invalidateAll(key);
+            localCache.removeAll(key);
         }
 
         // 清除远程缓存

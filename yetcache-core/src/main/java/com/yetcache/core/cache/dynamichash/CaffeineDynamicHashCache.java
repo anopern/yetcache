@@ -49,11 +49,11 @@ public class CaffeineDynamicHashCache<V> {
         return map != null ? new ConcurrentHashMap<>(map) : new ConcurrentHashMap<>();
     }
 
-    public void invalidateAll(String key) {
+    public void removeAll(String key) {
         cache.invalidate(key);
     }
 
-    public void invalidate(String key, String field) {
+    public void remove(String key, String field) {
         ConcurrentHashMap<String, CacheValueHolder<V>> map = cache.getIfPresent(key);
         if (map != null) {
             map.remove(field);
