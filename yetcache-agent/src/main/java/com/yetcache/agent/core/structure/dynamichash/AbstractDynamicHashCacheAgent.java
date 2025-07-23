@@ -148,6 +148,10 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
             // ✅ 2. 回源加载数据
             Map<F, V> loadedMap = cacheLoader.loadAll(bizKey);
             if (loadedMap == null || loadedMap.isEmpty()) {
+                // ✅ 如果 source 明确为空，删除缓存，防止污染
+                cache.invalidateAll(bizKey);
+                fullyLoadedTs.invalidate(bizKey);
+                log.info("force refresh removed empty structure, agent = {}, key = {}", componentName, bizKey);
                 return DynamicHashCacheAgentResult.dynamicHashNotFound(getComponentName());
             }
 
@@ -170,7 +174,9 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
 
     private boolean withinFullyLoadedExpireWindow(K bizKey) {
         long expireSecs = config.getSpec().getFullyLoadedExpireSecs();
-        if (expireSecs <= 0) return false;
+        if (expireSecs <= 0) {
+            return false;
+        }
 
         Long lastFullLoad = fullyLoadedTs.getIfPresent(bizKey);
         return lastFullLoad != null &&

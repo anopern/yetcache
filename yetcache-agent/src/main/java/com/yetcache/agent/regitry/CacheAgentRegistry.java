@@ -93,7 +93,7 @@ public final class CacheAgentRegistry {
     @SuppressWarnings("unchecked")
     private Map<String, AbstractCacheAgent<?>> get(CacheStructureType structureType) {
         switch (structureType) {
-            case FLAT_HASH:
+            case CONFIG:
                 return (Map<String, AbstractCacheAgent<?>>) (Map<?, ?>) flatHashAgentMap;
             case DYNAMIC_HASH:
                 return (Map<String, AbstractCacheAgent<?>>) (Map<?, ?>) dynamicHashAgentMap;

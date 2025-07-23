@@ -19,7 +19,7 @@ public class DefaultCacheBroadcastReceiver implements CacheBroadcastReceiver {
     }
 
     @Override
-    public void onReceive(CacheBroadcastCommand cmd) {
+    public void onReceive(AbstractCacheBroadcastCommand cmd) {
         Optional<CacheBroadcastHandler> optional = handlerRegistry.getHandler(cmd);
         if (optional.isPresent()) {
             optional.get().handle(cmd);

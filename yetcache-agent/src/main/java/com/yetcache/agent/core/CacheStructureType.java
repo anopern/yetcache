@@ -7,7 +7,7 @@ package com.yetcache.agent.core;
 public enum CacheStructureType {
     DYNAMIC_HASH,
     KV,
-    FLAT_HASH;
+    CONFIG;
 
     public static CacheStructureType fromString(String type) {
         for (CacheStructureType value : CacheStructureType.values()) {

@@ -1,6 +1,6 @@
 package com.yetcache.agent.broadcast.handler;
 
-import com.yetcache.agent.broadcast.CacheBroadcastCommand;
+import com.yetcache.agent.broadcast.AbstractCacheBroadcastCommand;
 import com.yetcache.agent.core.CacheAgentMethod;
 import com.yetcache.agent.core.CacheStructureType;
 import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheAgent;
@@ -19,18 +19,18 @@ public class DynamicHashRefreshAllHandler implements CacheBroadcastHandler {
     }
 
     @Override
-    public boolean supports(CacheBroadcastCommand command) {
+    public boolean supports(AbstractCacheBroadcastCommand command) {
         return CacheStructureType.DYNAMIC_HASH.equals(command.getStructureType()) &&
                 CacheAgentMethod.REFRESH_ALL == command.getAction();
     }
 
     @Override
-    public void handle(CacheBroadcastCommand cmd) {
-        String key = cmd.getKey();
-        if (key != null) {
-            agent.refreshAll(keyStr -> keyConverter.revert(keyStr));
-        } else {
-            System.err.println("[YetCache] REFRESH_ALL broadcast missing key, command: " + cmd);
-        }
+    public void handle(AbstractCacheBroadcastCommand cmd) {
+//        String key = cmd.getKey();
+//        if (key != null) {
+//            agent.refreshAll(keyStr -> keyConverter.revert(keyStr));
+//        } else {
+//            System.err.println("[YetCache] REFRESH_ALL broadcast missing key, command: " + cmd);
+//        }
     }
 }
