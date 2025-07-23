@@ -1,6 +1,7 @@
 package com.yetcache.core.cache;
 
 import com.yetcache.core.config.YetCacheProperties;
+import com.yetcache.core.config.broadcast.RabbitMqConfig;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
 import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;

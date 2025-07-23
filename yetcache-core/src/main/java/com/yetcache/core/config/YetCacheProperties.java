@@ -19,7 +19,7 @@ import javax.annotation.PostConstruct;
 @Slf4j
 public class YetCacheProperties {
     private GlobalConfig global = new GlobalConfig();
-    private BroadcastConfig broadcast = new BroadcastConfig();
+    private BroadcastConfig broadcast = BroadcastConfig.defaultConfig();
     protected CacheGroups caches = new CacheGroups();
 
     @PostConstruct

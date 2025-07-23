@@ -12,6 +12,7 @@ import com.yetcache.agent.regitry.CacheAgentRegistry;
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.config.YetCacheProperties;
 import com.yetcache.core.config.broadcast.RabbitMqConfig;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -36,12 +37,13 @@ public class YetcacheAgentConfiguration {
     }
 
     @Bean
-    public String broadcastQueueName(YetCacheProperties yetCacheProperties, Connection connection) throws IOException {
+    public String broadcastQueueName(YetCacheProperties yetCacheProperties, ConnectionFactory springConnectionFactory) throws IOException {
         RabbitMqConfig config = yetCacheProperties.getBroadcast().getRabbitmq();
 
-        // 创建 Channel 并声明交换机和队列
-        Channel channel = connection.createChannel();
-
+        // 获取底层 RabbitMQ Connection
+        Connection rabbitConnection = springConnectionFactory.createConnection().getDelegate();
+        assert rabbitConnection != null;
+        Channel channel = rabbitConnection.createChannel();
         return BroadcastQueueInitializer.init(channel, config);
     }
 
