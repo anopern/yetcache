@@ -1,6 +1,6 @@
 package com.yetcache.agent.broadcast.handler;
 
-import com.yetcache.agent.broadcast.AbstractCacheBroadcastCommand;
+import com.yetcache.agent.broadcast.command.AbstractCacheBroadcastCommand;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,6 @@ import java.util.Optional;
  * @since 2025/7/16
  */
 public class CacheBroadcastHandlerRegistry {
-
     private final List<CacheBroadcastHandler> handlers = new ArrayList<>();
 
     public void register(CacheBroadcastHandler handler) {

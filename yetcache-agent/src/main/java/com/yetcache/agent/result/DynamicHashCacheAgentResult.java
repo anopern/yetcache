@@ -33,6 +33,14 @@ public final class DynamicHashCacheAgentResult<K, F, V> extends CacheAgentResult
                 componentName);
     }
 
+    public static <K, F, V> DynamicHashCacheAgentResult<K, F, V> success(String componentName) {
+        return new DynamicHashCacheAgentResult<>(CacheOutcome.SUCCESS,
+                null,
+                null,
+                CacheAccessTrace.start(),
+                componentName);
+    }
+
     public static <K, F, V> DynamicHashCacheAgentResult<K, F, V> dynamicHashNotFound(String componentName) {
         return new DynamicHashCacheAgentResult<>(CacheOutcome.NOT_FOUND, null, null,
                 CacheAccessTrace.start(), componentName);
@@ -53,5 +61,10 @@ public final class DynamicHashCacheAgentResult<K, F, V> extends CacheAgentResult
         return value().values().stream()
                 .map(CacheValueHolder::getValue)
                 .collect(Collectors.toList());
+    }
+
+    public static <K, F, V> DynamicHashCacheAgentResult<K, F, V> badParam(String componentName) {
+        return new DynamicHashCacheAgentResult<>(CacheOutcome.BAD_PARAM, null, null,
+                CacheAccessTrace.start(), componentName);
     }
 }

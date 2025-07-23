@@ -1,5 +1,6 @@
-package com.yetcache.agent.broadcast;
+package com.yetcache.agent.broadcast.receiver;
 
+import com.yetcache.agent.broadcast.command.AbstractCacheBroadcastCommand;
 import com.yetcache.agent.broadcast.handler.CacheBroadcastHandler;
 import com.yetcache.agent.broadcast.handler.CacheBroadcastHandlerRegistry;
 import com.yetcache.agent.regitry.CacheAgentRegistry;

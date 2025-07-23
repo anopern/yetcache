@@ -16,5 +16,6 @@ public enum CacheOutcome {
 
     // ---------- WRITE ----------
     SUCCESS,      // 写入成功
-    WRITE_FAIL    // 写入失败
+    WRITE_FAIL,    // 写入失败
+    BAD_PARAM,     // 参数错误
 }

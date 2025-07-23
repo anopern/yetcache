@@ -37,6 +37,6 @@ public class DynamicHashCacheAgentConfig {
                 KeyConverterFactory.createDefault(config.getSpec().getKeyPrefix(), config.getSpec().getUseHashTag()),
                 new TypeFieldConverter<>(Long.class),
                 stockHoldInfoCacheLoader,
-                meterRegistry);
+                null);
     }
 }

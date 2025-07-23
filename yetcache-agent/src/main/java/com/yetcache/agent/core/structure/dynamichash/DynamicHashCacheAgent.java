@@ -23,4 +23,8 @@ public interface DynamicHashCacheAgent<K, F, V> {
     DynamicHashCacheAgentResult<K, F, V> remove(K bizKey, F bizField);
 
     DynamicHashCacheAgentResult<K, F, V> removeAll(K bizKey);
+
+    DynamicHashCacheAgentResult<K, F, V> put(K bizKey, F bizField, V value);
+
+    DynamicHashCacheAgentResult<K, F, V> putAll(Map<K, Map<F, V>> valueMap);
 }

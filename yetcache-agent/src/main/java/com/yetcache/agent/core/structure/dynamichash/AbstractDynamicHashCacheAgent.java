@@ -1,22 +1,18 @@
 package com.yetcache.agent.core.structure.dynamichash;
 
+import cn.hutool.core.collection.CollUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.yetcache.agent.core.structure.AbstractCacheAgent;
 import com.yetcache.agent.core.CacheValueHolderHelper;
 import com.yetcache.agent.governance.plugin.MetricsInterceptor;
-import com.yetcache.agent.governance.plugin.PenetrationProtectInterceptor;
 import com.yetcache.agent.interceptor.CacheAccessKey;
-import com.yetcache.agent.protect.CaffeinePenetrationProtector;
-import com.yetcache.agent.protect.CompositePenetrationProtector;
-import com.yetcache.agent.protect.PenetrationProtector;
-import com.yetcache.agent.protect.RedisPenetrationProtector;
+import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
 import com.yetcache.agent.result.DynamicHashCacheAgentResult;
 import com.yetcache.core.cache.dynamichash.DefaultMultiTierDynamicHashCache;
 import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.trace.HitTier;
-import com.yetcache.core.config.PenetrationProtectConfig;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheEnhanceConfig;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheSpec;
@@ -29,11 +25,9 @@ import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author walter.yan
@@ -53,7 +47,7 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
                                          KeyConverter<K> keyConverter,
                                          FieldConverter<F> fieldConverter,
                                          DynamicHashCacheLoader<K, F, V> cacheLoader,
-                                         MeterRegistry registry) {
+                                         List<CacheInvocationInterceptor> interceptors) {
         super(componentNane);
         this.config = config;
         this.cacheLoader = cacheLoader;
@@ -66,19 +60,22 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
                 .build();
 
 
-        PenetrationProtectConfig localPpConfig = config.getEnhance().getLocalPenetrationProtect();
-        CaffeinePenetrationProtector localProtector = CaffeinePenetrationProtector.of(localPpConfig.getPrefix()
-                , getComponentName(), localPpConfig.getTtlSecs(), localPpConfig.getMaxSize());
-        PenetrationProtectConfig remotePpConfig = config.getEnhance().getRemotePenetrationProtect();
-        RedisPenetrationProtector redisProtector = RedisPenetrationProtector.of(redissonClient
-                , remotePpConfig.getPrefix(), getComponentName(), remotePpConfig.getTtlSecs(),
-                remotePpConfig.getMaxSize());
+//        PenetrationProtectConfig localPpConfig = config.getEnhance().getLocalPenetrationProtect();
+//        CaffeinePenetrationProtector localProtector = CaffeinePenetrationProtector.of(localPpConfig.getPrefix()
+//                , getComponentName(), localPpConfig.getTtlSecs(), localPpConfig.getMaxSize());
+//        PenetrationProtectConfig remotePpConfig = config.getEnhance().getRemotePenetrationProtect();
+//        RedisPenetrationProtector redisProtector = RedisPenetrationProtector.of(redissonClient
+//                , remotePpConfig.getPrefix(), getComponentName(), remotePpConfig.getTtlSecs(),
+//                remotePpConfig.getMaxSize());
+//
+//        PenetrationProtector penetrationProtector = new CompositePenetrationProtector(localProtector, redisProtector);
+//        boolean allowNullValue = config.getSpec().getAllowNullValue() != null
+//                ? config.getSpec().getAllowNullValue() : false;
+//        this.interceptors.add(new MetricsInterceptor(registry));
 
-        PenetrationProtector penetrationProtector = new CompositePenetrationProtector(localProtector, redisProtector);
-        boolean allowNullValue = config.getSpec().getAllowNullValue() != null
-                ? config.getSpec().getAllowNullValue() : false;
-        this.interceptors.add(new PenetrationProtectInterceptor(penetrationProtector, allowNullValue));
-        this.interceptors.add(new MetricsInterceptor(registry));
+        if (CollUtil.isNotEmpty(interceptors)){
+            this.interceptors.addAll(interceptors);
+        }
     }
 
     protected void registerDefaultInterceptors(DynamicHashCacheSpec spec, DynamicHashCacheEnhanceConfig enhanceConfig,
@@ -126,7 +123,7 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
 
     @Override
     public DynamicHashCacheAgentResult<K, F, V> batchGet(Map<K, List<F>> bizKeyMap) {
-        return invoke("batchGet", () -> doGet(bizKeyMap), CacheAccessKey.batchKey(bizKeyMap));
+        return invoke("batchGet", () -> doGet(bizKeyMap), CacheAccessKey.batch(bizKeyMap));
     }
 
     protected DynamicHashCacheAgentResult<K, F, V> doGet(Map<K, List<F>> bizKeyMap) {
@@ -185,7 +182,7 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
 
     @Override
     public DynamicHashCacheAgentResult<K, F, V> batchRefresh(Map<K, List<F>> bizKeyMap) {
-        return invoke("batchRefresh", () -> doBatchRefresh(bizKeyMap), CacheAccessKey.batchKey(bizKeyMap));
+        return invoke("batchRefresh", () -> doBatchRefresh(bizKeyMap), CacheAccessKey.batch(bizKeyMap));
     }
 
     public DynamicHashCacheAgentResult<K, F, V> doBatchRefresh(Map<K, List<F>> bizKeyMap) {
@@ -304,6 +301,50 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
     public DynamicHashCacheAgentResult<K, F, V> removeAll(K bizKey) {
         return invoke("invalidateAll", () -> doInvalidateAll(bizKey));
     }
+
+    @Override
+    public DynamicHashCacheAgentResult<K, F, V> put(K bizKey, F bizField, V value) {
+        return invoke("put", () -> doPut(bizKey, bizField, value), new CacheAccessKey(bizKey, bizField));
+    }
+
+    public DynamicHashCacheAgentResult<K, F, V> doPut(K bizKey, F bizField, V value) {
+        if (bizKey == null || bizField == null || value == null) {
+            return DynamicHashCacheAgentResult.badParam(componentName);
+        }
+        try {
+            cache.put(bizKey, bizField, value);
+            return DynamicHashCacheAgentResult.success(componentName);
+        } catch (Exception e) {
+            return DynamicHashCacheAgentResult.dynamicHashFail(componentName, e);
+        }
+    }
+
+    @Override
+    public DynamicHashCacheAgentResult<K, F, V> putAll(Map<K, Map<F, V>> valueMap) {
+        Map<K, List<F>> bizKeyMap = valueMap.entrySet().stream()
+                .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> new ArrayList<>(e.getValue().keySet())
+                ));
+        return invoke("putAll", () -> doPutAll(valueMap), CacheAccessKey.batch(bizKeyMap));
+    }
+
+    public DynamicHashCacheAgentResult<K, F, V> doPutAll(Map<K, Map<F, V>> valueMap) {
+        if (valueMap == null || valueMap.isEmpty()) {
+            return DynamicHashCacheAgentResult.badParam(componentName);
+        }
+
+        try {
+            for (Map.Entry<K, Map<F, V>> entry : valueMap.entrySet()) {
+                cache.putAll(entry.getKey(), entry.getValue());
+            }
+            return DynamicHashCacheAgentResult.success(componentName);
+        } catch (Exception e) {
+            return DynamicHashCacheAgentResult.dynamicHashFail(componentName, e);
+        }
+    }
+
 
     private DynamicHashCacheAgentResult<K, F, V> doInvalidateAll(K bizKey) {
         try {

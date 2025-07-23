@@ -21,7 +21,7 @@ public class CacheAccessKey {
         this.bizField = bizField;
     }
 
-    public static <K, F> CacheAccessKey batchKey(Map<K, List<F>> keyMap) {
+    public static <K, F> CacheAccessKey batch(Map<K, List<F>> keyMap) {
         int totalFields = keyMap.values().stream().mapToInt(List::size).sum();
         String summaryKey = "BATCH-" + keyMap.size() + "keys-" + totalFields + "fields";
         return new CacheAccessKey(summaryKey, null);

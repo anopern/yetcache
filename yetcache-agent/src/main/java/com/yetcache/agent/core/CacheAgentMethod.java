@@ -9,6 +9,7 @@ import java.util.Optional;
 public enum CacheAgentMethod {
     GET,
     LIST_ALL,
+    BATCH_REFRESH,
     REFRESH_ALL,
     INVALIDATE,
     INVALIDATE_ALL,

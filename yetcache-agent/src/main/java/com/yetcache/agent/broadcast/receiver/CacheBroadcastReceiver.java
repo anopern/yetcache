@@ -1,4 +1,6 @@
-package com.yetcache.agent.broadcast;
+package com.yetcache.agent.broadcast.receiver;
+
+import com.yetcache.agent.broadcast.command.AbstractCacheBroadcastCommand;
 
 /**
  * @author walter.yan
