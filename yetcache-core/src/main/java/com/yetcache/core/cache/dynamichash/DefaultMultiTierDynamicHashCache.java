@@ -10,6 +10,8 @@ import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.support.util.TtlRandomizer;
 import org.redisson.api.RedissonClient;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -71,6 +73,52 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
 
         // 3. 所有缓存都 miss
         return StorageCacheAccessResult.miss();
+    }
+
+    @Override
+    public Map<K, Map<F, StorageCacheAccessResult<CacheValueHolder<V>>>> batchGet(Map<K, List<F>> bizKeyMap) {
+        Map<K, Map<F, StorageCacheAccessResult<CacheValueHolder<V>>>> resultMap = new HashMap<>();
+
+        for (Map.Entry<K, List<F>> entry : bizKeyMap.entrySet()) {
+            K bizKey = entry.getKey();
+            String key = keyConverter.convert(bizKey);
+            List<F> fields = entry.getValue();
+
+            Map<F, StorageCacheAccessResult<CacheValueHolder<V>>> fieldResultMap = new HashMap<>();
+
+            for (F field : fields) {
+                String fieldStr = fieldConverter.convert(field);
+
+                // 1. 本地缓存尝试
+                if (localCache != null) {
+                    CacheValueHolder<V> localHolder = localCache.getIfPresent(key, fieldStr);
+                    if (localHolder != null && localHolder.isNotLogicExpired()) {
+                        fieldResultMap.put(field, StorageCacheAccessResult.hit(localHolder, HitTier.LOCAL));
+                        continue;
+                    }
+                }
+
+                // 2. 远程缓存尝试
+                if (remoteCache != null) {
+                    CacheValueHolder<V> remoteHolder = remoteCache.getIfPresent(key, fieldStr);
+                    if (remoteHolder != null && remoteHolder.isNotLogicExpired()) {
+                        // ✅ 回写本地缓存
+                        if (localCache != null) {
+                            localCache.put(key, fieldStr, remoteHolder);
+                        }
+                        fieldResultMap.put(field, StorageCacheAccessResult.hit(remoteHolder, HitTier.REMOTE));
+                        continue;
+                    }
+                }
+
+                // 3. miss
+                fieldResultMap.put(field, StorageCacheAccessResult.miss());
+            }
+
+            resultMap.put(bizKey, fieldResultMap);
+        }
+
+        return resultMap;
     }
 
     @Override

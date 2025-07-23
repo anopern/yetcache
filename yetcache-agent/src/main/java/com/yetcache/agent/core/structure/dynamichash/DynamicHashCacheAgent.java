@@ -2,6 +2,9 @@ package com.yetcache.agent.core.structure.dynamichash;
 
 import com.yetcache.agent.result.DynamicHashCacheAgentResult;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author walter.yan
  * @since 2025/7/14
@@ -9,7 +12,11 @@ import com.yetcache.agent.result.DynamicHashCacheAgentResult;
 public interface DynamicHashCacheAgent<K, F, V> {
     DynamicHashCacheAgentResult<K, F, V> get(K bizKey, F bizField);
 
+    DynamicHashCacheAgentResult<K, F, V> batchGet(Map<K, List<F>> bizKeyMap);
+
     DynamicHashCacheAgentResult<K, F, V> listAll(K bizKey);
+
+    DynamicHashCacheAgentResult<K, F, V> batchRefresh(Map<K, List<F>> bizKeyMap);
 
     DynamicHashCacheAgentResult<K, F, V> refreshAll(K bizKey);
 

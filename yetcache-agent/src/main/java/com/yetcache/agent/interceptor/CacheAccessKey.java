@@ -4,6 +4,8 @@ import lombok.Getter;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author walter.yan
@@ -17,6 +19,12 @@ public class CacheAccessKey {
     public CacheAccessKey(@NotNull Object bizKey, @Nullable Object bizField) {
         this.bizKey = bizKey;
         this.bizField = bizField;
+    }
+
+    public static <K, F> CacheAccessKey batchKey(Map<K, List<F>> keyMap) {
+        int totalFields = keyMap.values().stream().mapToInt(List::size).sum();
+        String summaryKey = "BATCH-" + keyMap.size() + "keys-" + totalFields + "fields";
+        return new CacheAccessKey(summaryKey, null);
     }
 
     @Override

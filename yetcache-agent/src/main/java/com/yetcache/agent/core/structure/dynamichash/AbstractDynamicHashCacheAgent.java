@@ -30,6 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -123,9 +125,105 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent<D
     }
 
     @Override
+    public DynamicHashCacheAgentResult<K, F, V> batchGet(Map<K, List<F>> bizKeyMap) {
+        return invoke("batchGet", () -> doGet(bizKeyMap), CacheAccessKey.batchKey(bizKeyMap));
+    }
+
+    protected DynamicHashCacheAgentResult<K, F, V> doGet(Map<K, List<F>> bizKeyMap) {
+        Map<F, CacheValueHolder<V>> finalResult = new HashMap<>();
+        HitTier finalTier = HitTier.MIXED;
+
+        try {
+            Map<K, Map<F, StorageCacheAccessResult<CacheValueHolder<V>>>> cacheResult = cache.batchGet(bizKeyMap);
+
+            for (Map.Entry<K, List<F>> entry : bizKeyMap.entrySet()) {
+                K bizKey = entry.getKey();
+                List<F> fields = entry.getValue();
+                Map<F, StorageCacheAccessResult<CacheValueHolder<V>>> perFieldResult = cacheResult.getOrDefault(bizKey, Collections.emptyMap());
+
+                for (F field : fields) {
+                    StorageCacheAccessResult<CacheValueHolder<V>> access = perFieldResult.get(field);
+                    if (access != null && access.outcome() == CacheOutcome.HIT && access.value().isNotLogicExpired()) {
+                        finalResult.put(field, access.value());
+                        finalTier = finalTier.merge(access.getTier());
+                        continue;
+                    }
+
+                    // miss → 回源 load
+                    try {
+                        V loaded = cacheLoader.load(bizKey, field);
+                        if (loaded != null) {
+                            CacheValueHolder<V> holder = CacheValueHolder.wrap(loaded, 0);
+                            cache.put(bizKey, field, loaded);
+                            finalResult.put(field, holder);
+                            finalTier = finalTier.merge(HitTier.SOURCE);
+                        }
+                    } catch (Exception ex) {
+                        log.warn("batchGet fallback load failed, agent = {}, key = {}, field = {}", componentName, bizKey, field, ex);
+                    }
+                }
+            }
+
+            if (finalResult.isEmpty()) {
+                return DynamicHashCacheAgentResult.dynamicHashNotFound(componentName);
+            }
+
+            return DynamicHashCacheAgentResult.success(componentName, finalResult, finalTier);
+        } catch (Exception e) {
+            log.warn("batchGet failed, agent = {}", componentName, e);
+            return DynamicHashCacheAgentResult.dynamicHashFail(componentName, e);
+        } finally {
+            CacheAccessContext.clear();
+        }
+    }
+
+    @Override
     public DynamicHashCacheAgentResult<K, F, V> listAll(K bizKey) {
         boolean force = CacheAccessContext.isForceRefresh();
         return invoke("listAll", () -> loadAllAndUpdate(bizKey, force), new CacheAccessKey(bizKey, null));
+    }
+
+    @Override
+    public DynamicHashCacheAgentResult<K, F, V> batchRefresh(Map<K, List<F>> bizKeyMap) {
+        return invoke("batchRefresh", () -> doBatchRefresh(bizKeyMap), CacheAccessKey.batchKey(bizKeyMap));
+    }
+
+    public DynamicHashCacheAgentResult<K, F, V> doBatchRefresh(Map<K, List<F>> bizKeyMap) {
+        Map<F, CacheValueHolder<V>> resultMap = new HashMap<>();
+
+        try {
+            for (Map.Entry<K, List<F>> entry : bizKeyMap.entrySet()) {
+                K key = entry.getKey();
+                List<F> fields = entry.getValue();
+
+                for (F field : fields) {
+                    try {
+                        V loaded = cacheLoader.load(key, field);
+                        if (loaded != null) {
+                            CacheValueHolder<V> holder = CacheValueHolder.wrap(loaded, 0);
+                            cache.put(key, field, loaded);
+                            resultMap.put(field, holder);
+                        } else {
+                            // source 为空，可选是否 invalidate（此处不处理）
+                            log.debug("batchRefresh skip null load, key = {}, field = {}", key, field);
+                        }
+                    } catch (Exception e) {
+                        log.warn("batchRefresh failed for key = {}, field = {}", key, field, e);
+                    }
+                }
+            }
+
+            if (resultMap.isEmpty()) {
+                return DynamicHashCacheAgentResult.dynamicHashNotFound(componentName);
+            }
+
+            return DynamicHashCacheAgentResult.success(componentName, resultMap, HitTier.SOURCE);
+        } catch (Exception e) {
+            log.warn("batchRefresh failed, agent = {}", componentName, e);
+            return DynamicHashCacheAgentResult.dynamicHashFail(componentName, e);
+        } finally {
+            CacheAccessContext.clear();
+        }
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.yetcache.core.cache.dynamichash;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.StorageCacheAccessResult;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -11,6 +12,8 @@ import java.util.Map;
  */
 public interface MultiTierDynamicHashCache<K, F, V> {
     StorageCacheAccessResult<CacheValueHolder<V>> get(K bizKey, F bizField);
+
+    Map<K, Map<F, StorageCacheAccessResult<CacheValueHolder<V>>>> batchGet(Map<K, List<F>>   bizKeyMap);
 
     StorageCacheAccessResult<Map<F, CacheValueHolder<V>>> listAll(K bizKey);
 
