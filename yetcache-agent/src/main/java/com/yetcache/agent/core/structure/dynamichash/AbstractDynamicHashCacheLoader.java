@@ -1,6 +1,7 @@
 package com.yetcache.agent.core.structure.dynamichash;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -11,6 +12,11 @@ public class AbstractDynamicHashCacheLoader<K, F, V> implements DynamicHashCache
     @Override
     public V load(K bizKey, F bizField) {
         return null;
+    }
+
+    @Override
+    public Map<F, V> batchLoad(K bizKey, List<F> bizFields) {
+        return new HashMap<>();
     }
 
     @Override
