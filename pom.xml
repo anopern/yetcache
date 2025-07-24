@@ -11,7 +11,7 @@
     <modules>
         <module>yetcache-agent</module>
         <module>yetcache-core</module>
-        <module>yetcache-example</module>
+        <module>saas-trade</module>
     </modules>
 
     <properties>
