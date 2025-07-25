@@ -1,6 +1,7 @@
 package com.yetcache.agent.core.structure.dynamichash;
 
-import com.yetcache.agent.result.DynamicHashCacheAgentResult;
+import com.yetcache.agent.result.DynamicHashCacheAgentBatchAccessResult;
+import com.yetcache.agent.result.DynamicHashCacheAgentSingleAccessResult;
 
 import java.util.List;
 import java.util.Map;
@@ -10,21 +11,21 @@ import java.util.Map;
  * @since 2025/7/14
  */
 public interface DynamicHashCacheAgent<K, F, V> {
-    DynamicHashCacheAgentResult<K, F, V> get(K bizKey, F bizField);
+    DynamicHashCacheAgentSingleAccessResult<V> get(K bizKey, F bizField);
 
-    DynamicHashCacheAgentResult<K, F, V> batchGet(Map<K, List<F>> bizKeyMap);
+    DynamicHashCacheAgentBatchAccessResult<F, V> batchGet(K bizKey, List<F> bizFields);
 
-    DynamicHashCacheAgentResult<K, F, V> listAll(K bizKey);
+    DynamicHashCacheAgentBatchAccessResult<F, V> listAll(K bizKey);
 
-    DynamicHashCacheAgentResult<K, F, V> batchRefresh(Map<K, List<F>> bizKeyMap);
+    DynamicHashCacheAgentBatchAccessResult<Void, Void> batchRefresh(K, List<F> bizKeyMap);
 
-    DynamicHashCacheAgentResult<K, F, V> refreshAll(K bizKey);
+    DynamicHashCacheAgentBatchAccessResult<Void, Void> refreshAll(K bizKey);
 
-    DynamicHashCacheAgentResult<K, F, V> remove(K bizKey, F bizField);
+    DynamicHashCacheAgentSingleAccessResult<Void> remove(K bizKey, F bizField);
 
-    DynamicHashCacheAgentResult<K, F, V> removeAll(K bizKey);
+    DynamicHashCacheAgentBatchAccessResult<Void, Void> removeAll(K bizKey);
 
-    DynamicHashCacheAgentResult<K, F, V> put(K bizKey, F bizField, V value);
+    DynamicHashCacheAgentSingleAccessResult<Void> put(K bizKey, F bizField, V value);
 
-    DynamicHashCacheAgentResult<K, F, V> putAll(Map<K, Map<F, V>> valueMap);
+    DynamicHashCacheAgentBatchAccessResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap);
 }

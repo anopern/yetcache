@@ -1,7 +1,7 @@
 package com.yetcache.core.cache.dynamichash;
 
-import com.yetcache.core.cache.support.CacheValueHolder;
-import com.yetcache.core.result.StorageCacheAccessResult;
+import com.yetcache.core.result.DynamicCacheStorageBatchAccessResult;
+import com.yetcache.core.result.DynamicCacheStorageSingleAccessResult;
 
 import java.util.List;
 import java.util.Map;
@@ -11,17 +11,17 @@ import java.util.Map;
  * @since 2025/7/14
  */
 public interface MultiTierDynamicHashCache<K, F, V> {
-    StorageCacheAccessResult<CacheValueHolder<V>> get(K bizKey, F bizField);
+    DynamicCacheStorageSingleAccessResult<V> get(K bizKey, F bizField);
 
-    Map<K, Map<F, StorageCacheAccessResult<CacheValueHolder<V>>>> batchGet(Map<K, List<F>>   bizKeyMap);
+    DynamicCacheStorageBatchAccessResult<F, V> batchGet(K bizKey, List<F> bizFields);
 
-    StorageCacheAccessResult<Map<F, CacheValueHolder<V>>> listAll(K bizKey);
+    DynamicCacheStorageBatchAccessResult<F, V> listAll(K bizKey);
 
-    StorageCacheAccessResult<Void> put(K bizKey, F bizField, V value);
+    DynamicCacheStorageSingleAccessResult<Void> put(K bizKey, F bizField, V value);
 
-    StorageCacheAccessResult<Void> putAll(K bizKey, Map<F, V> valueMap);
+    DynamicCacheStorageBatchAccessResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap);
 
-    StorageCacheAccessResult<Void> invalidate(K bizKey, F bizField);
+    DynamicCacheStorageSingleAccessResult<Void> invalidate(K bizKey, F bizField);
 
-    StorageCacheAccessResult<Void> invalidateAll(K bizKey);
+    DynamicCacheStorageBatchAccessResult<Void, Void> invalidateAll(K bizKey);
 }

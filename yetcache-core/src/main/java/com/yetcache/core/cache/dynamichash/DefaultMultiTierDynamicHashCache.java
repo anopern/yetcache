@@ -4,22 +4,23 @@ import cn.hutool.core.collection.CollUtil;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.trace.HitTier;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
-import com.yetcache.core.result.StorageCacheAccessResult;
+import com.yetcache.core.result.DynamicCacheStorageBatchAccessResult;
+import com.yetcache.core.result.DynamicCacheStorageSingleAccessResult;
+import com.yetcache.core.result.StorageCacheAccessResultBak;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.support.util.TtlRandomizer;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * @author walter.yan
  * @since 2025/7/14
  */
+@Slf4j
 public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynamicHashCache<K, F, V> {
     private final String cacheName;
     private final DynamicHashCacheConfig config;
@@ -47,15 +48,15 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
     }
 
     @Override
-    public StorageCacheAccessResult<CacheValueHolder<V>> get(K bizKey, F bizField) {
+    public DynamicCacheStorageSingleAccessResult<V> get(K bizKey, F bizField) {
         String key = keyConverter.convert(bizKey);
         String field = fieldConverter.convert(bizField);
 
         // 1. 尝试从本地缓存读取
         if (localCache != null) {
-            CacheValueHolder<V> holder = localCache.getIfPresent(key, field);
-            if (holder != null && holder.isNotLogicExpired()) {
-                return StorageCacheAccessResult.hit(holder, HitTier.LOCAL);
+            CacheValueHolder<V> valueHolder = localCache.getIfPresent(key, field);
+            if (valueHolder != null && valueHolder.isNotLogicExpired()) {
+                return DynamicCacheStorageSingleAccessResult.hit(valueHolder, HitTier.LOCAL);
             }
         }
 
@@ -67,69 +68,65 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
                 if (localCache != null) {
                     localCache.put(key, field, holder);
                 }
-                return StorageCacheAccessResult.hit(holder, HitTier.REMOTE);
+                return DynamicCacheStorageSingleAccessResult.hit(holder, HitTier.REMOTE);
             }
         }
 
         // 3. 所有缓存都 miss
-        return StorageCacheAccessResult.miss();
+        return DynamicCacheStorageSingleAccessResult.miss();
     }
 
     @Override
-    public Map<K, Map<F, StorageCacheAccessResult<CacheValueHolder<V>>>> batchGet(Map<K, List<F>> bizKeyMap) {
-        Map<K, Map<F, StorageCacheAccessResult<CacheValueHolder<V>>>> resultMap = new HashMap<>();
-
-        for (Map.Entry<K, List<F>> entry : bizKeyMap.entrySet()) {
-            K bizKey = entry.getKey();
+    public DynamicCacheStorageBatchAccessResult<F, V> batchGet(K bizKey, List<F> bizFields) {
+        try {
             String key = keyConverter.convert(bizKey);
-            List<F> fields = entry.getValue();
-
-            Map<F, StorageCacheAccessResult<CacheValueHolder<V>>> fieldResultMap = new HashMap<>();
-
-            for (F field : fields) {
-                String fieldStr = fieldConverter.convert(field);
-
-                // 1. 本地缓存尝试
-                if (localCache != null) {
-                    CacheValueHolder<V> localHolder = localCache.getIfPresent(key, fieldStr);
-                    if (localHolder != null && localHolder.isNotLogicExpired()) {
-                        fieldResultMap.put(field, StorageCacheAccessResult.hit(localHolder, HitTier.LOCAL));
-                        continue;
-                    }
+            // 批量转换为原始字段
+            List<String> rawFields = bizFields.stream().map(fieldConverter::convert).collect(Collectors.toList());
+            final Map<F, CacheValueHolder<V>> cacheValueHolderMap = new HashMap<>();
+            final Map<F, HitTier> hitTierMap = new HashMap<>();
+            // 本地缓存尝试
+            final Map<String, CacheValueHolder<V>> localResult = localCache != null
+                    ? localCache.batchGet(key, rawFields) : Map.of();
+            List<String> missingLocalFields = new ArrayList<>(rawFields);
+            for (Map.Entry<String, CacheValueHolder<V>> entry : localResult.entrySet()) {
+                F bizField = fieldConverter.revert(entry.getKey());
+                CacheValueHolder<V> valueHolder = entry.getValue();
+                if (null != valueHolder && valueHolder.isNotLogicExpired()) {
+                    cacheValueHolderMap.put(bizField, valueHolder);
+                    hitTierMap.put(bizField, HitTier.LOCAL);
+                    missingLocalFields.remove(entry.getKey());
                 }
-
-                // 2. 远程缓存尝试
-                if (remoteCache != null) {
-                    CacheValueHolder<V> remoteHolder = remoteCache.getIfPresent(key, fieldStr);
-                    if (remoteHolder != null && remoteHolder.isNotLogicExpired()) {
-                        // ✅ 回写本地缓存
-                        if (localCache != null) {
-                            localCache.put(key, fieldStr, remoteHolder);
-                        }
-                        fieldResultMap.put(field, StorageCacheAccessResult.hit(remoteHolder, HitTier.REMOTE));
-                        continue;
-                    }
-                }
-
-                // 3. miss
-                fieldResultMap.put(field, StorageCacheAccessResult.miss());
             }
 
-            resultMap.put(bizKey, fieldResultMap);
-        }
+            if (CollUtil.isNotEmpty(missingLocalFields) && remoteCache != null) {
+                Map<String, CacheValueHolder<V>> remoteResult = remoteCache.batchGet(key, missingLocalFields);
+                // 写回本地缓存（仅非过期）
+                for (Map.Entry<String, CacheValueHolder<V>> entry : remoteResult.entrySet()) {
+                    String field = entry.getKey();
+                    CacheValueHolder<V> valueHolder = entry.getValue();
+                    if (valueHolder != null && valueHolder.isNotLogicExpired()) {
+                        localCache.put(key, field, valueHolder);
+                        cacheValueHolderMap.put(fieldConverter.revert(field), valueHolder);
+                    }
+                }
+            }
 
-        return resultMap;
+            return DynamicCacheStorageBatchAccessResult.hit(cacheValueHolderMap, hitTierMap);
+        } catch (Exception e) {
+            log.warn("缓存回源加载失败，cacheName={}, bizKey={}, bizFields={}", cacheName, bizKey, bizFields, e);
+            return DynamicCacheStorageBatchAccessResult.error(e);
+        }
     }
 
     @Override
-    public StorageCacheAccessResult<Map<F, CacheValueHolder<V>>> listAll(K bizKey) {
+    public DynamicCacheStorageBatchAccessResult<F, V> listAll(K bizKey) {
         String key = keyConverter.convert(bizKey);
 
         // 1. 本地缓存尝试
         if (localCache != null) {
-            Map<String, CacheValueHolder<V>> localMap = localCache.listAll(key);
-            if (CollUtil.isNotEmpty(localMap)) {
-                return StorageCacheAccessResult.hitHolderMap(rawHolderMap2typeHolderMap(localMap), HitTier.LOCAL);
+            Map<String, CacheValueHolder<V>> localResult = localCache.listAll(key);
+            if (CollUtil.isNotEmpty(localResult)) {
+                return DynamicCacheStorageBatchAccessResult.hit(rawHolderMap2typeHolderMap(localResult), HitTier.LOCAL);
             }
         }
 
@@ -141,16 +138,16 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
                 if (localCache != null) {
                     localCache.putAll(key, remoteMap);
                 }
-                return StorageCacheAccessResult.hitHolderMap(rawHolderMap2typeHolderMap(remoteMap), HitTier.REMOTE);
+                return DynamicCacheStorageBatchAccessResult.hit(rawHolderMap2typeHolderMap(remoteMap), HitTier.REMOTE);
             }
         }
 
         // 3. miss
-        return StorageCacheAccessResult.miss();
+        return DynamicCacheStorageBatchAccessResult.miss();
     }
 
     @Override
-    public StorageCacheAccessResult<Void> put(K bizKey, F bizField, V value) {
+    public DynamicCacheStorageSingleAccessResult<Void> put(K bizKey, F bizField, V value) {
         String key = keyConverter.convert(bizKey);
         String field = fieldConverter.convert(bizField);
 
@@ -166,11 +163,11 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
             remoteCache.put(key, field, remoteHolder);
         }
 
-        return StorageCacheAccessResult.success();
+        return DynamicCacheStorageSingleAccessResult.success();
     }
 
     @Override
-    public StorageCacheAccessResult<Void> putAll(K bizKey, Map<F, V> valueMap) {
+    public DynamicCacheStorageBatchAccessResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap) {
         String key = keyConverter.convert(bizKey);
         final long localTtlSecs = TtlRandomizer.randomizeSecs(config.getLocal().getTtlSecs(),
                 config.getLocal().getTtlRandomPct());
@@ -188,12 +185,12 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
             localCache.putAll(key, localHolderMap);
         }
 
-        return StorageCacheAccessResult.success();
+        return DynamicCacheStorageBatchAccessResult.success();
     }
 
 
     @Override
-    public StorageCacheAccessResult<Void> invalidate(K bizKey, F bizField) {
+    public DynamicCacheStorageSingleAccessResult<Void> invalidate(K bizKey, F bizField) {
         String key = keyConverter.convert(bizKey);
         String field = fieldConverter.convert(bizField);
 
@@ -207,11 +204,11 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
             remoteCache.invalidate(key, field);
         }
 
-        return StorageCacheAccessResult.success();
+        return DynamicCacheStorageSingleAccessResult.success();
     }
 
     @Override
-    public StorageCacheAccessResult<Void> invalidateAll(K bizKey) {
+    public DynamicCacheStorageBatchAccessResult<Void, Void> invalidateAll(K bizKey) {
         String key = keyConverter.convert(bizKey);
 
         // 清除本地缓存
@@ -224,7 +221,7 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
             remoteCache.invalidateAll(key);
         }
 
-        return StorageCacheAccessResult.success();
+        return DynamicCacheStorageBatchAccessResult.success();
     }
 
     private Map<F, CacheValueHolder<V>> rawHolderMap2typeHolderMap(Map<String, CacheValueHolder<V>> rwaMap) {

@@ -7,6 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -31,6 +34,20 @@ public class RedisDynamicHashCache<V> {
     public CacheValueHolder<V> getIfPresent(String key, String field) {
         RMap<String, CacheValueHolder<V>> map = rClient.getMap(key);
         return map.get(field);
+    }
+
+    public Map<String, CacheValueHolder<V>> batchGet(String key, List<String> fields) {
+        if (fields == null || fields.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        RMap<String, CacheValueHolder<V>> redisMap = rClient.getMap(key);
+
+        // 使用 Redisson 的批量 getAll 接口，避免 N 次 get 请求
+        Map<String, CacheValueHolder<V>> resultMap = redisMap.getAll(new HashSet<>(fields));
+
+        // 返回非 null map（Redisson 不保证值一定不为 null）
+        return resultMap != null ? resultMap : Collections.emptyMap();
     }
 
     public void put(String key, String field, CacheValueHolder<V> value) {

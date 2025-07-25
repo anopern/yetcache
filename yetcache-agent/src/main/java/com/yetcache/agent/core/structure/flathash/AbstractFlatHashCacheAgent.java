@@ -3,16 +3,11 @@ package com.yetcache.agent.core.structure.flathash;
 import com.yetcache.agent.core.capability.ForceIntervalRefreshable;
 import com.yetcache.agent.core.structure.AbstractCacheAgent;
 import com.yetcache.agent.governance.plugin.MetricsInterceptor;
-import com.yetcache.agent.interceptor.CacheInvocationChain;
-import com.yetcache.agent.interceptor.CacheInvocationContext;
 import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
-import com.yetcache.agent.interceptor.DefaultInvocationChain;
 import com.yetcache.agent.core.capability.MandatoryStartupInitializable;
-import com.yetcache.agent.result.FlatHashCacheAgentResult;
+import com.yetcache.agent.result.ConfigCacheAgentSingleAccessResult;
 import com.yetcache.core.cache.flathash.*;
-import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.flathash.FlatHashCacheConfig;
-import com.yetcache.core.result.CacheAccessResult;
 import com.yetcache.core.result.CacheOutcome;
 import com.yetcache.core.result.FlatHashStorageResult;
 import com.yetcache.core.support.field.FieldConverter;
@@ -21,12 +16,10 @@ import com.yetcache.core.support.key.KeyConverterFactory;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 
 /**
  * 基于 FlatHashCacheAgentResult 的聚合层基类，实现统一的 trace / outcome / metrics 处理。
@@ -39,7 +32,7 @@ import java.util.function.Supplier;
  * @since 2025/07/13
  */
 @Slf4j
-public abstract class AbstractFlatHashCacheAgent<F, V> extends AbstractCacheAgent<FlatHashCacheAgentResult<F, V>>
+public abstract class AbstractFlatHashCacheAgent<F, V> extends AbstractCacheAgent<ConfigCacheAgentSingleAccessResult<F, V>>
         implements FlatHashCacheAgent<F, V>, MandatoryStartupInitializable, ForceIntervalRefreshable {
     protected final String componentNane;
     protected final MultiTierFlatHashCache<F, V> cache;
@@ -77,18 +70,18 @@ public abstract class AbstractFlatHashCacheAgent<F, V> extends AbstractCacheAgen
 
     @Override
     @SuppressWarnings("unchecked")
-    public FlatHashCacheAgentResult<F, V> initialize() {
+    public ConfigCacheAgentSingleAccessResult<F, V> initialize() {
         return invoke("initialize", this::doRefreshAllInternal);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public FlatHashCacheAgentResult<F, V> intervalRefresh() {
+    public ConfigCacheAgentSingleAccessResult<F, V> intervalRefresh() {
         return invoke("intervalRefresh", this::doRefreshAllInternal);
     }
 
     @Override
-    public FlatHashCacheAgentResult<F, V> listAll() {
+    public ConfigCacheAgentSingleAccessResult<F, V> listAll() {
         return invoke("listAll",
                 () -> convertToAgentResult(cache.listAll()));
     }
@@ -99,7 +92,7 @@ public abstract class AbstractFlatHashCacheAgent<F, V> extends AbstractCacheAgen
 
     @Override
     public void notifyDirty() {
-        FlatHashCacheAgentResult<F, V> res = refreshAllInternal();
+        ConfigCacheAgentSingleAccessResult<F, V> res = refreshAllInternal();
         if (!res.isSuccess()) {
             log.warn("[{}] refresh failed: {}", componentNane, res.trace().reason());
         }
@@ -108,23 +101,23 @@ public abstract class AbstractFlatHashCacheAgent<F, V> extends AbstractCacheAgen
     /**
      * 仅供运维 / 定时器调用，执行全量刷新。
      */
-    protected FlatHashCacheAgentResult<F, V> refreshAllInternal() {
+    protected ConfigCacheAgentSingleAccessResult<F, V> refreshAllInternal() {
         return invoke("refreshAllInternal", this::doRefreshAllInternal);
     }
 
-    protected FlatHashCacheAgentResult<F, V> doRefreshAllInternal() {
+    protected ConfigCacheAgentSingleAccessResult<F, V> doRefreshAllInternal() {
         try {
             Map<F, V> data = cacheLoader.loadAll();
             if (data == null || data.isEmpty()) {
-                return FlatHashCacheAgentResult.flatHashFail(componentNane, new IllegalStateException("Loaded map empty"));
+                return ConfigCacheAgentSingleAccessResult.flatHashFail(componentNane, new IllegalStateException("Loaded map empty"));
             }
             FlatHashStorageResult<F, V> putRes = cache.putAll(data);
             if (!putRes.outcome().equals(CacheOutcome.SUCCESS)) {
-                return FlatHashCacheAgentResult.flatHashFail(componentNane, new RuntimeException("putAll failed"));
+                return ConfigCacheAgentSingleAccessResult.flatHashFail(componentNane, new RuntimeException("putAll failed"));
             }
-            return FlatHashCacheAgentResult.success(componentNane);
+            return ConfigCacheAgentSingleAccessResult.success(componentNane);
         } catch (Exception e) {
-            return FlatHashCacheAgentResult.flatHashFail(componentNane, e);
+            return ConfigCacheAgentSingleAccessResult.flatHashFail(componentNane, e);
         }
     }
 
@@ -132,18 +125,18 @@ public abstract class AbstractFlatHashCacheAgent<F, V> extends AbstractCacheAgen
     /*                              HELPERS                                   */
     /* ====================================================================== */
 
-    private FlatHashCacheAgentResult<F, V> convertToAgentResult(FlatHashStorageResult<F, V> raw) {
+    private ConfigCacheAgentSingleAccessResult<F, V> convertToAgentResult(FlatHashStorageResult<F, V> raw) {
         switch (raw.outcome()) {
             case HIT:
-                return FlatHashCacheAgentResult.hit(componentNane, raw.value(), raw.hitTier());
+                return ConfigCacheAgentSingleAccessResult.hit(componentNane, raw.value(), raw.hitTier());
             case SUCCESS:
-                return FlatHashCacheAgentResult.success(componentNane);
+                return ConfigCacheAgentSingleAccessResult.success(componentNane);
             case MISS:
-                return FlatHashCacheAgentResult.miss(componentNane);
+                return ConfigCacheAgentSingleAccessResult.miss(componentNane);
             case BLOCK:
-                return FlatHashCacheAgentResult.flatHashBlock(componentNane, raw.trace().reason());
+                return ConfigCacheAgentSingleAccessResult.flatHashBlock(componentNane, raw.trace().reason());
             default:
-                return FlatHashCacheAgentResult.flatHashFail(componentNane, raw.trace().exception());
+                return ConfigCacheAgentSingleAccessResult.flatHashFail(componentNane, raw.trace().exception());
         }
     }
 
@@ -155,7 +148,7 @@ public abstract class AbstractFlatHashCacheAgent<F, V> extends AbstractCacheAgen
     }
 
     @Override
-    public String getComponentName() {
+    public String getCacheName() {
         return this.componentNane;
     }
 
@@ -166,7 +159,7 @@ public abstract class AbstractFlatHashCacheAgent<F, V> extends AbstractCacheAgen
 
     @Override
     @SuppressWarnings("unchecked")
-    protected FlatHashCacheAgentResult<F, V> defaultFail(String method, Throwable t) {
-        return FlatHashCacheAgentResult.flatHashFail(componentName, t);
+    protected ConfigCacheAgentSingleAccessResult<F, V> defaultFail(String method, Throwable t) {
+        return ConfigCacheAgentSingleAccessResult.flatHashFail(cacheName, t);
     }
 }

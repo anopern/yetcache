@@ -3,8 +3,7 @@ package com.yetcache.agent.governance.plugin;
 import com.yetcache.agent.interceptor.CacheInvocationChain;
 import com.yetcache.agent.interceptor.CacheInvocationContext;
 import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
-import com.yetcache.agent.result.CacheAgentResult;
-import com.yetcache.core.result.CacheAccessResult;
+import com.yetcache.agent.result.AbstractCacheAgentResult;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -23,7 +22,7 @@ public class MetricsInterceptor  implements CacheInvocationInterceptor {
     }
 
     @Override
-    public <R extends CacheAgentResult<?>> R intercept(CacheInvocationContext ctx, CacheInvocationChain<R> chain) throws Throwable {
+    public <R extends AbstractCacheAgentResult<?>> R intercept(CacheInvocationContext ctx, CacheInvocationChain<R> chain) throws Throwable {
         long startNs = System.nanoTime();
         R res = chain.proceed(ctx);
         long costNs = System.nanoTime() - startNs;

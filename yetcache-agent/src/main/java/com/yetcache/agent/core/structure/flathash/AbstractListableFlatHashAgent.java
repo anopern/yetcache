@@ -1,7 +1,7 @@
 package com.yetcache.agent.core.structure.flathash;
 
 import com.yetcache.agent.core.exception.CacheUnavailableException;
-import com.yetcache.agent.result.FlatHashCacheAgentResult;
+import com.yetcache.agent.result.ConfigCacheAgentSingleAccessResult;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -30,9 +30,9 @@ public abstract class AbstractListableFlatHashAgent<F, V> extends AbstractFlatHa
      * 业务常用：返回只读 Map<F,V>（无 Holder）
      */
     public Map<F, V> list() {
-        FlatHashCacheAgentResult<F, V> r = listAll();
+        ConfigCacheAgentSingleAccessResult<F, V> r = listAll();
         if (!r.isSuccess()) {
-            throw new CacheUnavailableException(getComponentName(), r.outcome(), r.trace());
+            throw new CacheUnavailableException(getCacheName(), r.outcome(), r.trace());
         }
         return unwrap(r.value());            // Map<F,CacheValueHolder<V>> ➜ Map<F,V>
     }

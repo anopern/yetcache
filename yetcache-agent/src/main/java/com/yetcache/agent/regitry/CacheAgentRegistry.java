@@ -44,14 +44,14 @@ public final class CacheAgentRegistry {
 //    }
 
     public void register(AbstractFlatHashCacheAgent<?, ?> agent) {
-        String name = agent.getComponentName();
+        String name = agent.getCacheName();
         checkDuplicate(name);
         flatHashAgentMap.put(name, agent);
         allAgentMap.put(name, agent);
     }
 
     public void register(AbstractDynamicHashCacheAgent<?, ?, ?> agent) {
-        String name = agent.getComponentName();
+        String name = agent.getCacheName();
         checkDuplicate(name);
         dynamicHashAgentMap.put(name, agent);
         allAgentMap.put(name, agent);

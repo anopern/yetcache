@@ -1,7 +1,7 @@
 package com.yetcache.agent.core.structure;
 
 import com.yetcache.agent.interceptor.*;
-import com.yetcache.agent.result.CacheAgentResult;
+import com.yetcache.agent.result.AbstractCacheAgentResult;
 import lombok.Getter;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -11,13 +11,13 @@ import java.util.function.Supplier;
  * @author walter.yan
  * @since 2025/7/15
  */
-public abstract class AbstractCacheAgent<T extends CacheAgentResult<?>> {
+public abstract class AbstractCacheAgent<T extends AbstractCacheAgentResult<?>> {
     @Getter
-    protected final String componentName;
+    protected final String cacheName;
     protected final List<CacheInvocationInterceptor> interceptors = new CopyOnWriteArrayList<>();
 
-    protected AbstractCacheAgent(String componentName) {
-        this.componentName = componentName;
+    protected AbstractCacheAgent(String cacheName) {
+        this.cacheName = cacheName;
     }
 
     protected <R extends T> R invoke(String method, Supplier<R> business) {
@@ -25,7 +25,7 @@ public abstract class AbstractCacheAgent<T extends CacheAgentResult<?>> {
     }
 
     protected <R extends T> R invoke(String method, Supplier<R> business, CacheAccessKey key) {
-        CacheInvocationContext ctx = CacheInvocationContext.start(componentName, method, key);
+        CacheInvocationContext ctx = CacheInvocationContext.start(cacheName, method, key);
         CacheInvocationChain<R> chain = new DefaultInvocationChain<>(interceptors, business);
 
         try {

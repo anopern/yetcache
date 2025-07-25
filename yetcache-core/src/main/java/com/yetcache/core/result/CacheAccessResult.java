@@ -16,13 +16,6 @@ public interface CacheAccessResult<T> extends Serializable {
 
     T value();
 
-    CacheAccessTrace trace();
-
-    /**
-     * Return a shallow copy holding the supplied trace.
-     */
-    CacheAccessResult<T> withTrace(CacheAccessTrace trace);
-
     default boolean isSuccess() {
         return outcome() == CacheOutcome.SUCCESS;
     }
