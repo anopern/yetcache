@@ -1,6 +1,6 @@
 package com.yetcache.agent.interceptor;
 
-import com.yetcache.agent.result.AbstractCacheAgentResult;
+import com.yetcache.core.result.Result;
 
 /**
  * @author walter.yan
@@ -8,8 +8,8 @@ import com.yetcache.agent.result.AbstractCacheAgentResult;
  */
 public interface CacheInvocationInterceptor {
 
-    <R extends AbstractCacheAgentResult<?>> R intercept(CacheInvocationContext ctx,
-                                                        CacheInvocationChain<R> chain) throws Throwable;
+    <R extends Result<?>> R intercept(CacheInvocationContext ctx,
+                                      CacheInvocationChain<R> chain) throws Throwable;
 
     /**
      * 增强器是否适用于当前方法名

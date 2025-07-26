@@ -1,6 +1,6 @@
 package com.yetcache.agent.core.capability;
 
-import com.yetcache.core.result.CacheAccessResult;
+import com.yetcache.core.result.Result;
 
 /**
  * @author walter.yan
@@ -23,5 +23,5 @@ public interface ForceIntervalRefreshable {
      * 执行一次强制刷新。
      * 失败应返回结构化结果用于上报和平台判断。
      */
-    <R extends CacheAccessResult<?>> R intervalRefresh();
+    <R extends Result<?>> R intervalRefresh();
 }

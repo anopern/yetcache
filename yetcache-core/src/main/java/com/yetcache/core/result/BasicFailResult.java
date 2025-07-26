@@ -8,7 +8,7 @@ import java.util.Objects;
  * @author walter.yan
  * @since 2025/7/13
  */
-public final class BasicFailResult implements CacheAccessResult<Void> {
+public final class BasicFailResult implements Result<Void> {
     private final CacheOutcome outcome;
     private final CacheAccessTrace trace;
     private final String note;

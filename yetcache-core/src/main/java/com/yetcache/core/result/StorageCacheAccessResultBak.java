@@ -13,7 +13,7 @@ import java.util.Objects;
  * @since 2025/7/15
  */
 @Getter
-public final class StorageCacheAccessResultBak<T> implements CacheAccessResult<T> {
+public final class StorageCacheAccessResultBak<T> implements Result<T> {
     private final CacheOutcome outcome;
     private final T value;
     private final HitTier tier;

@@ -2,20 +2,13 @@ package com.yetcache.agent.result;
 
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.trace.HitTier;
-import com.yetcache.core.result.CacheAccessTrace;
 import com.yetcache.core.result.CacheOutcome;
-import org.checkerframework.checker.units.qual.K;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author walter.yan
  * @since 2025/7/14
  */
-public final class DynamicHashCacheAgentSingleAccessResult<V> extends AbstractCacheAgentResult<CacheValueHolder<V>> {
+public final class DynamicHashCacheAgentSingleAccessResult<V> extends BaseResult<CacheValueHolder<V>> {
     private HitTier hitTier;
 
     DynamicHashCacheAgentSingleAccessResult(String cacheName,

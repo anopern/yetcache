@@ -4,7 +4,7 @@ import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.trace.HitTier;
 import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.core.result.BasicFailResult;
-import com.yetcache.core.result.CacheAccessResult;
+import com.yetcache.core.result.Result;
 import com.yetcache.core.result.CacheAccessTrace;
 import com.yetcache.core.result.FlatHashStorageResult;
 import com.yetcache.core.support.field.FieldConverter;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  *   <li><b>Fail‑Fast Init</b>：构造函数不做任何隐式加载；由上层 Agent 负责初始化。</li>
  * </ul>
  * <p>
- * 返回值全部使用 {@link CacheAccessResult} 衔接横切增强（metrics、trace、exception mask …）。
+ * 返回值全部使用 {@link Result} 衔接横切增强（metrics、trace、exception mask …）。
  *
  * @author walter.yan
  * @since 2025/07/10
@@ -58,7 +58,7 @@ public class DefaultMultiTierFlatHashCache<F, V> implements MultiTierFlatHashCac
     /* Template wrapper – ALWAYS attach trace + unify exception → FailResult  */
     /* ====================================================================== */
     @SuppressWarnings("unchecked")
-    private <R extends CacheAccessResult<?>> R invoke(String method, Supplier<R> business) {
+    private <R extends Result<?>> R invoke(String method, Supplier<R> business) {
         CacheAccessTrace trace = CacheAccessTrace.start();
         try {
             R res = business.get();

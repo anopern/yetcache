@@ -1,7 +1,6 @@
 package com.yetcache.agent.interceptor;
 
-import com.yetcache.agent.result.AbstractCacheAgentResult;
-
+import com.yetcache.core.result.Result;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -9,7 +8,7 @@ import java.util.function.Supplier;
  * @author walter.yan
  * @since 2025/7/14
  */
-public final class DefaultInvocationChain<R extends AbstractCacheAgentResult<?>>
+public final class DefaultInvocationChain<R extends Result<?>>
         implements CacheInvocationChain<R> {
 
     private final List<CacheInvocationInterceptor> interceptors;

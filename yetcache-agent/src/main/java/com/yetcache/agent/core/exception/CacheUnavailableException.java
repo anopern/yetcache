@@ -20,35 +20,27 @@ public class CacheUnavailableException extends RuntimeException {
 
     private final String          cacheName;
     private final CacheOutcome    outcome;
-    private final CacheAccessTrace trace;
 
     /* ------------- 构造器 ------------- */
 
     public CacheUnavailableException(String cacheName,
-                                     CacheOutcome outcome,
-                                     CacheAccessTrace trace) {
-        super(buildMessage(cacheName, outcome, trace));
+                                     CacheOutcome outcome) {
+        super(buildMessage(cacheName, outcome));
         this.cacheName = cacheName;
         this.outcome   = outcome;
-        this.trace     = trace;
     }
 
     public CacheUnavailableException(String cacheName,
                                      CacheOutcome outcome,
-                                     CacheAccessTrace trace,
                                      Throwable cause) {
-        super(buildMessage(cacheName, outcome, trace), cause);
+        super(buildMessage(cacheName, outcome), cause);
         this.cacheName = cacheName;
         this.outcome   = outcome;
-        this.trace     = trace;
     }
 
     /* ------------- 工具 ------------- */
     private static String buildMessage(String cache,
-                                       CacheOutcome outcome,
-                                       CacheAccessTrace trace) {
-        return "Cache \"" + cache + "\" unavailable: outcome=" + outcome +
-                ", reason=" + trace.reason() +
-                ", latency=" + trace.latencyMicros() + "µs";
+                                       CacheOutcome outcome) {
+        return "Cache \"" + cache + "\" unavailable: outcome=" + outcome;
     }
 }

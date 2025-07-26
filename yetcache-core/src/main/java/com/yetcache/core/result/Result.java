@@ -10,11 +10,13 @@ import java.io.Serializable;
  * @author walter.yan
  * @since 2025/7/13
  */
-public interface CacheAccessResult<T> extends Serializable {
+public interface Result<T> extends Serializable {
 
     CacheOutcome outcome();
 
     T value();
+
+    Throwable error();
 
     default boolean isSuccess() {
         return outcome() == CacheOutcome.SUCCESS;

@@ -13,7 +13,7 @@ import java.util.Objects;
  * @since 2025/7/13
  */
 public abstract class AbstractStorageResult<T>
-        implements CacheAccessResult<T>, Serializable {
+        implements Result<T>, Serializable {
 
     private static final long serialVersionUID = 1L;
 

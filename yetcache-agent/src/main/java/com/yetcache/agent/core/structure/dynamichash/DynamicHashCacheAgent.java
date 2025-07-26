@@ -15,17 +15,17 @@ public interface DynamicHashCacheAgent<K, F, V> {
 
     DynamicHashCacheAgentBatchAccessResult<F, V> batchGet(K bizKey, List<F> bizFields);
 
-    DynamicHashCacheAgentBatchAccessResult<F, V> listAll(K bizKey);
+//    DynamicHashCacheAgentBatchAccessResult<F, V> listAll(K bizKey);
 
-    DynamicHashCacheAgentBatchAccessResult<Void, Void> batchRefresh(K, List<F> bizKeyMap);
+    DynamicHashCacheAgentBatchAccessResult<Void, Void> batchRefresh(K bizKey, List<F> bizKeyMap);
 
-    DynamicHashCacheAgentBatchAccessResult<Void, Void> refreshAll(K bizKey);
+//    DynamicHashCacheAgentBatchAccessResult<Void, Void> refreshAll(K bizKey);
 
-    DynamicHashCacheAgentSingleAccessResult<Void> remove(K bizKey, F bizField);
+//    DynamicHashCacheAgentSingleAccessResult<Void> remove(K bizKey, F bizField);
 
-    DynamicHashCacheAgentBatchAccessResult<Void, Void> removeAll(K bizKey);
+//    DynamicHashCacheAgentBatchAccessResult<Void, Void> removeAll(K bizKey);
 
-    DynamicHashCacheAgentSingleAccessResult<Void> put(K bizKey, F bizField, V value);
+//    DynamicHashCacheAgentSingleAccessResult<Void> put(K bizKey, F bizField, V value);
 
-    DynamicHashCacheAgentBatchAccessResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap);
+//    DynamicHashCacheAgentBatchAccessResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap);
 }

@@ -1,0 +1,13 @@
+package com.yetcache.core.result;
+
+import com.yetcache.core.cache.trace.HitTier;
+
+import java.util.Map;
+
+/**
+ * @author walter.yan
+ * @since 2025/7/26
+ */
+public interface BatchHitTierAware<S> {
+    Map<S, HitTier> hitTierMap();
+}

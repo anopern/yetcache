@@ -10,7 +10,7 @@ import lombok.Data;
  * @since 2025/7/15
  */
 @Data
-public abstract class AbstractCacheStorageAccessResult<T> implements CacheAccessResult<T> {
+public abstract class AbstractCacheStorageAccessResult<T> implements Result<T> {
     protected CacheOutcome outcome;
     protected T value;
     protected Throwable error;

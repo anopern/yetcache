@@ -1,6 +1,6 @@
 package com.yetcache.agent.core.capability;
 
-import com.yetcache.core.result.CacheAccessResult;
+import com.yetcache.core.result.Result;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
@@ -70,7 +70,7 @@ public class MandatoryStartupInitializer implements ApplicationRunner {
                 return true;
             }
 
-            CacheAccessResult<?> res = c.initialize();
+            Result<?> res = c.initialize();
             if (res.isSuccess()) {
                 meter.counter("startup.init.count", "component", name, "outcome", "SUCCESS").increment();
                 sample.stop(meter.timer("startup.init.latency", "component", name, "status", "success"));

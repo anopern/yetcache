@@ -20,16 +20,16 @@ public class CacheInvocationContext implements AutoCloseable {
     // 用户可以挂载任意信息，例如计时、trace id、布隆过滤器等
     private final Map<String, Object> attributes = new ConcurrentHashMap<>();
 
-    public CacheInvocationContext(String componentNane, String methodName, CacheAccessContext.Context accessContext,
+    public CacheInvocationContext(String cacheName, String methodName, CacheAccessContext.Context accessContext,
                                   CacheAccessKey accessKey) {
-        this.componentNane = componentNane;
+        this.componentNane = cacheName;
         this.methodName = methodName;
         this.accessContext = accessContext;
         this.accessKey = accessKey;
     }
 
-    public static CacheInvocationContext start(String cache, String method, CacheAccessKey accessKey) {
-        return new CacheInvocationContext(cache, method, CacheAccessContext.begin(method), accessKey);
+    public static CacheInvocationContext start(String cacheName, String method, CacheAccessKey accessKey) {
+        return new CacheInvocationContext(cacheName, method, CacheAccessContext.begin(method), accessKey);
     }
 
     @Override

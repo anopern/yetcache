@@ -1,6 +1,6 @@
 package com.yetcache.agent.core.capability;
 
-import com.yetcache.core.result.CacheAccessResult;
+import com.yetcache.core.result.Result;
 
 /**
  * @author walter.yan
@@ -11,5 +11,5 @@ public interface MandatoryStartupInitializable {
 
     String getComponentName();
 
-    <R extends CacheAccessResult<?>> R initialize();
+    <R extends Result<?>> R initialize();
 }
