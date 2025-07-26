@@ -1,9 +1,5 @@
 package com.yetcache.agent.broadcast;
 
-import com.yetcache.agent.broadcast.handler.CacheBroadcastHandlerRegistry;
-import com.yetcache.agent.broadcast.sender.CacheBroadcastSender;
-import com.yetcache.agent.broadcast.sender.DefaultRabbitmqCacheBroadcastSender;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**

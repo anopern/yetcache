@@ -1,10 +1,11 @@
 package com.yetcache.agent.broadcast.receiver;
 
-import com.yetcache.agent.broadcast.command.AbstractCacheBroadcastCommand;
-import com.yetcache.agent.broadcast.handler.CacheBroadcastHandler;
-import com.yetcache.agent.broadcast.handler.CacheBroadcastHandlerRegistry;
+import com.yetcache.agent.broadcast.command.ExecutableCommand;
+import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandler;
+import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
 import com.yetcache.agent.regitry.CacheAgentRegistry;
 import lombok.extern.slf4j.Slf4j;
+
 import java.util.Optional;
 
 /**
@@ -15,12 +16,12 @@ import java.util.Optional;
 public class DefaultCacheBroadcastReceiver implements CacheBroadcastReceiver {
     private final CacheBroadcastHandlerRegistry handlerRegistry;
 
-    public DefaultCacheBroadcastReceiver(CacheAgentRegistry registry, CacheBroadcastHandlerRegistry handlerRegistry) {
+    public DefaultCacheBroadcastReceiver(CacheAgentRegistry<?> registry, CacheBroadcastHandlerRegistry handlerRegistry) {
         this.handlerRegistry = handlerRegistry;
     }
 
     @Override
-    public void onReceive(AbstractCacheBroadcastCommand cmd) {
+    public void onReceive(ExecutableCommand cmd) {
         Optional<CacheBroadcastHandler> optional = handlerRegistry.getHandler(cmd);
         if (optional.isPresent()) {
             optional.get().handle(cmd);

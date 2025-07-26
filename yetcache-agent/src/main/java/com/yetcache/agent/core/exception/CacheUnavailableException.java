@@ -1,6 +1,5 @@
 package com.yetcache.agent.core.exception;
 
-import com.yetcache.core.result.CacheAccessTrace;
 import com.yetcache.core.result.CacheOutcome;
 import lombok.Getter;
 

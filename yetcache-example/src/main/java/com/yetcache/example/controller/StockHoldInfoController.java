@@ -30,15 +30,15 @@ public class StockHoldInfoController {
     public StockHoldInfo get(@RequestBody StockHoldInfo dto) {
         return cacheService.get(dto.getFundAccount(), dto.getId());
     }
-
-    @PostMapping("/listAll")
-    public List<StockHoldInfo> listAll(@RequestBody StockHoldInfo dto) {
-        boolean forceRefresh = dto.getForceRefresh() != null && dto.getForceRefresh();
-        return cacheService.listAll(dto.getFundAccount(), forceRefresh);
-    }
-
-    @PostMapping("/refreshAll")
-    public Boolean refreshAll(@RequestBody StockHoldInfo dto) {
-        return cacheService.refreshAll(dto.getFundAccount());
-    }
+//
+//    @PostMapping("/listAll")
+//    public List<StockHoldInfo> listAll(@RequestBody StockHoldInfo dto) {
+//        boolean forceRefresh = dto.getForceRefresh() != null && dto.getForceRefresh();
+//        return cacheService.listAll(dto.getFundAccount(), forceRefresh);
+//    }
+//
+//    @PostMapping("/refreshAll")
+//    public Boolean refreshAll(@RequestBody StockHoldInfo dto) {
+//        return cacheService.refreshAll(dto.getFundAccount());
+//    }
 }

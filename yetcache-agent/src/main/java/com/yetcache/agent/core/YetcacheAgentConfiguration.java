@@ -3,12 +3,9 @@ package com.yetcache.agent.core;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.yetcache.agent.broadcast.BroadcastQueueInitializer;
-import com.yetcache.agent.broadcast.handler.CacheBroadcastHandlerRegistry;
-import com.yetcache.agent.broadcast.receiver.CacheBroadcastReceiver;
-import com.yetcache.agent.broadcast.receiver.DefaultCacheBroadcastReceiver;
-import com.yetcache.agent.broadcast.sender.CacheBroadcastSender;
-import com.yetcache.agent.broadcast.sender.DefaultRabbitmqCacheBroadcastSender;
-import com.yetcache.agent.regitry.CacheAgentRegistry;
+import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
+import com.yetcache.agent.broadcast.sender.CacheBroadcastSenderBak;
+import com.yetcache.agent.broadcast.sender.DefaultRabbitmqCacheBroadcastSenderBak;
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.config.YetCacheProperties;
 import com.yetcache.core.config.broadcast.RabbitMqConfig;
@@ -53,14 +50,14 @@ public class YetcacheAgentConfiguration {
     }
 
     @Bean
-    public CacheBroadcastSender cacheBroadcastSender(YetCacheProperties yetCacheProperties) {
+    public CacheBroadcastSenderBak cacheBroadcastSender(YetCacheProperties yetCacheProperties) {
         RabbitMqConfig config = yetCacheProperties.getBroadcast().getRabbitmq();
-        return new DefaultRabbitmqCacheBroadcastSender(config, rabbitTemplate);
+        return new DefaultRabbitmqCacheBroadcastSenderBak(config, rabbitTemplate);
     }
 
-    @Bean
-    public CacheBroadcastReceiver cacheBroadcastReceiver(CacheAgentRegistry registry,
-                                                         CacheBroadcastHandlerRegistry handlerRegistry) {
-        return new DefaultCacheBroadcastReceiver(registry, handlerRegistry);
-    }
+//    @Bean
+//    public CacheBroadcastReceiver cacheBroadcastReceiver(CacheAgentRegistryBak registry,
+//                                                         CacheBroadcastHandlerRegistry handlerRegistry) {
+//        return new DefaultCacheBroadcastReceiver(registry, handlerRegistry);
+//    }
 }

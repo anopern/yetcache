@@ -1,6 +1,6 @@
-package com.yetcache.agent.broadcast.handler;
+package com.yetcache.agent.broadcast.receiver.handler;
 
-import com.yetcache.agent.broadcast.command.AbstractCacheBroadcastCommand;
+import com.yetcache.agent.broadcast.command.ExecutableCommand;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ public class CacheBroadcastHandlerRegistry {
         handlers.add(handler);
     }
 
-    public Optional<CacheBroadcastHandler> getHandler(AbstractCacheBroadcastCommand cmd) {
+    public Optional<CacheBroadcastHandler> getHandler(ExecutableCommand cmd) {
         return handlers.stream()
                 .filter(h -> h.supports(cmd))
                 .findFirst();

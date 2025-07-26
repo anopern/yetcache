@@ -7,6 +7,7 @@ import com.yetcache.agent.interceptor.CacheInvocationContext;
 import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
 import com.yetcache.agent.protect.PenetrationProtector;
 import com.yetcache.core.result.Result;
+import com.yetcache.core.result.ResultFactory;
 
 /**
  * @author walter.yan
@@ -22,6 +23,7 @@ public class PenetrationProtectInterceptor implements CacheInvocationInterceptor
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <R extends Result<?>> R intercept(CacheInvocationContext ctx, CacheInvocationChain<R> chain) throws Throwable {
         // 获取 method 枚举（提前 parse）
         CacheAgentMethod method = CacheAgentMethod.from(ctx.getMethodName()).orElse(null);
@@ -37,9 +39,7 @@ public class PenetrationProtectInterceptor implements CacheInvocationInterceptor
 
         // 判断是否已被标记为 null，直接短路返回
         if (protector.isMarkedAsNull(accessKey)) {
-            @SuppressWarnings("unchecked")
-            R notFound = (R) Result.notFound(ctx.getComponentNane());
-            return notFound;
+            return (R) ResultFactory.notFound(ctx.getComponentNane());
         }
 
         // 正常执行链条

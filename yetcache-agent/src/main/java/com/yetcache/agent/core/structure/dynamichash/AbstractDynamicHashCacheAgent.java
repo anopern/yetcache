@@ -7,8 +7,6 @@ import com.yetcache.agent.core.structure.AbstractCacheAgent;
 import com.yetcache.agent.governance.plugin.MetricsInterceptor;
 import com.yetcache.agent.interceptor.CacheAccessKey;
 import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
-import com.yetcache.agent.result.DynamicHashCacheAgentBatchAccessResult;
-import com.yetcache.agent.result.DynamicHashCacheAgentSingleAccessResult;
 import com.yetcache.core.cache.dynamichash.DefaultMultiTierDynamicHashCache;
 import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
 import com.yetcache.core.cache.support.CacheValueHolder;
@@ -86,57 +84,57 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
     }
 
     @Override
-    public DynamicHashCacheAgentSingleAccessResult<V> get(K bizKey, F bizField) {
+    public BaseSingleResult<V> get(K bizKey, F bizField) {
         return invoke("get", () -> doGet(bizKey, bizField), new CacheAccessKey(bizKey, bizField));
     }
 
-    protected DynamicHashCacheAgentSingleAccessResult<V> doGet(K bizKey, F bizField) {
+    protected BaseSingleResult<V> doGet(K bizKey, F bizField) {
         try {
-            DynamicCacheStorageSingleAccessResult<V> result = multiTierCache.get(bizKey, bizField);
+            BaseSingleResult<V> result = multiTierCache.get(bizKey, bizField);
             if (result.outcome() == CacheOutcome.HIT) {
                 CacheValueHolder<V> holder = result.value();
                 if (holder.isNotLogicExpired()) {
-                    return DynamicHashCacheAgentSingleAccessResult.hit(getCacheName(), holder, result.getHitTier());
+                    return BaseSingleResult.hit(componentName, holder, result.hitTier());
                 }
             }
 
             // 回源加载数据
             V loaded = cacheLoader.load(bizKey, bizField);
             if (loaded == null) {
-                return DynamicHashCacheAgentSingleAccessResult.notFound(getCacheName());
+                return ResultFactory.notFoundSingle(componentName);
             }
 
             // 封装为缓存值并写入缓存
             multiTierCache.put(bizKey, bizField, loaded);
 
-            return DynamicHashCacheAgentSingleAccessResult.hit(getCacheName(), CacheValueHolder.wrap(loaded, 0),
+            return BaseSingleResult.hit(componentName, CacheValueHolder.wrap(loaded, 0),
                     HitTier.SOURCE);
         } catch (Exception e) {
-            log.warn("cache load failed, agent = {}, key = {}, field = {}", cacheName, bizKey, bizField, e);
-            return DynamicHashCacheAgentSingleAccessResult.fail(cacheName, e);
+            log.warn("cache load failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);
+            return BaseSingleResult.fail(componentName, e);
         } finally {
             CacheAccessContext.clear();
         }
     }
 
     @Override
-    public DynamicHashCacheAgentBatchAccessResult<F, V> batchGet(K bizKey, List<F> bizFields) {
+    public BaseBatchResult<F, V> batchGet(K bizKey, List<F> bizFields) {
         return invoke("batchGet", () -> doBatchGet(bizKey, bizFields), CacheAccessKey.batch(bizKey, bizFields));
     }
 
-    private DynamicHashCacheAgentBatchAccessResult<F, V> doBatchGet(K bizKey, List<F> bizFields) {
+    private BaseBatchResult<F, V> doBatchGet(K bizKey, List<F> bizFields) {
         Map<F, CacheValueHolder<V>> resultValueHolderMap = new HashMap<>();
         Map<F, HitTier> resultHitTierMap = new HashMap<>();
 
         try {
             // Step 1: 批量从缓存获取
-            DynamicCacheStorageBatchAccessResult<F, V> cacheStorageResult = multiTierCache.batchGet(bizKey, bizFields);
+            BaseBatchResult<F, V> cacheStorageResult = multiTierCache.batchGet(bizKey, bizFields);
 
             // Step 2: 识别需要回源的字段
             List<F> missedFields = new ArrayList<>();
 
-            Map<F, CacheValueHolder<V>> cacheValueHolderMap = cacheStorageResult.getValue();
-            Map<F, HitTier> cacheHitTierMap = cacheStorageResult.getHitTiers();
+            Map<F, CacheValueHolder<V>> cacheValueHolderMap = cacheStorageResult.value();
+            Map<F, HitTier> cacheHitTierMap = cacheStorageResult.hitTierMap();
             if (CollUtil.isNotEmpty(cacheValueHolderMap)) {
                 for (F bizField : cacheValueHolderMap.keySet()) {
                     CacheValueHolder<V> valueHolder = cacheValueHolderMap.get(bizField);
@@ -163,10 +161,10 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
                     multiTierCache.putAll(bizKey, loadedMap);
                 }
             }
-            return DynamicHashCacheAgentBatchAccessResult.hit(cacheName, resultValueHolderMap, resultHitTierMap);
+            return BaseBatchResult.hit(componentName, resultValueHolderMap, resultHitTierMap);
         } catch (Exception e) {
-            log.warn("batchGet with fallback failed, agent = {}, key = {}, fields = {}", cacheName, bizKey, bizFields, e);
-            return DynamicHashCacheAgentBatchAccessResult.fail(cacheName, e);
+            log.warn("batchGet with fallback failed, agent = {}, key = {}, fields = {}", componentName, bizKey, bizFields, e);
+            return BaseBatchResult.fail(componentName, e);
         } finally {
             CacheAccessContext.clear();
         }
@@ -181,12 +179,12 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
 //    }
 //
     @Override
-    public DynamicHashCacheAgentBatchAccessResult<Void, Void> batchRefresh(K bizKey, List<F> bizFields) {
+    public BaseBatchResult<Void, Void> batchRefresh(K bizKey, List<F> bizFields) {
         return invoke("batchRefresh", () -> doBatchRefresh(bizKey, bizFields),
                 CacheAccessKey.batch(bizKey, bizFields));
     }
 
-    public DynamicHashCacheAgentBatchAccessResult<Void, Void> doBatchRefresh(K bizKey, List<F> bizFields) {
+    public BaseBatchResult<Void, Void> doBatchRefresh(K bizKey, List<F> bizFields) {
         try {
             Map<F, V> loaded = cacheLoader.batchLoad(bizKey, bizFields);
             multiTierCache.putAll(bizKey, loaded);
@@ -198,10 +196,10 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
                     multiTierCache.invalidate(bizKey, entry.getKey());
                 }
             }
-            return DynamicHashCacheAgentBatchAccessResult.success(cacheName);
+            return BaseBatchResult.success(componentName);
         } catch (Exception e) {
-            log.warn("batchRefresh failed, agent = {}", cacheName, e);
-            return DynamicHashCacheAgentBatchAccessResult.fail(cacheName, e);
+            log.warn("batchRefresh failed, agent = {}", componentName, e);
+            return BaseBatchResult.fail(componentName, e);
         } finally {
             CacheAccessContext.clear();
         }
@@ -345,7 +343,12 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
 
     @Override
     @SuppressWarnings("unchecked")
-    protected DynamicHashCacheAgentSingleAccessResult<Void> defaultFail(String method, Throwable t) {
-        return DynamicHashCacheAgentSingleAccessResult.fail(cacheName, t);
+    protected BaseResult<Void> defaultFail(String method, Throwable t) {
+        return ResultFactory.fail(componentName, t);
+    }
+
+    @Override
+    public String componentName() {
+        return this.componentName;
     }
 }

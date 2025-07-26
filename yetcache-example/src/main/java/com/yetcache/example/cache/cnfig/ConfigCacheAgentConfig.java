@@ -2,7 +2,6 @@ package com.yetcache.example.cache.cnfig;
 
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.config.flathash.FlatHashCacheConfig;
-import com.yetcache.example.cache.agent.ConfigCommonInfoCacheAgent;
 import com.yetcache.example.enums.EnumCaches;
 import com.yetcache.example.service.loader.ConfigCommonInfoCacheLoader;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -24,10 +23,10 @@ public class ConfigCacheAgentConfig {
     @Autowired
     private ConfigCommonInfoCacheLoader configCommonInfoCacheLoader;
 
-    @Bean
-    public ConfigCommonInfoCacheAgent configCommonInfoCacheAgent() {
-        String cacheName = EnumCaches.CONFIG_COMMON_INFO_CACHE.getName();
-        FlatHashCacheConfig config = configResolver.resolveFlatHash(cacheName);
-        return new ConfigCommonInfoCacheAgent(cacheName, config, configCommonInfoCacheLoader, meterRegistry);
-    }
+//    @Bean
+//    public ConfigCommonInfoCacheAgent configCommonInfoCacheAgent() {
+//        String cacheName = EnumCaches.CONFIG_COMMON_INFO_CACHE.getName();
+//        FlatHashCacheConfig config = configResolver.resolveFlatHash(cacheName);
+//        return new ConfigCommonInfoCacheAgent(cacheName, config, configCommonInfoCacheLoader, meterRegistry);
+//    }
 }
