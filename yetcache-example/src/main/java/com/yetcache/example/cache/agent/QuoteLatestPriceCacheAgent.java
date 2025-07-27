@@ -1,5 +1,6 @@
 package com.yetcache.example.cache.agent;
 
+import com.yetcache.agent.broadcast.sender.CacheBroadcastPublisher;
 import com.yetcache.agent.core.structure.dynamichash.AbstractDynamicHashCacheAgent;
 import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheLoader;
 import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
@@ -24,7 +25,9 @@ public class QuoteLatestPriceCacheAgent extends
                                       KeyConverter<QuoteLatestPriceCacheKey> keyConverter,
                                       FieldConverter<String> fieldConverter,
                                       DynamicHashCacheLoader<QuoteLatestPriceCacheKey, String, QuoteSimpleQuoteRespVO> cacheLoader,
-                                      List<CacheInvocationInterceptor> interceptors) {
-        super(componentNane, config, redissonClient, keyConverter, fieldConverter, cacheLoader, interceptors);
+                                      List<CacheInvocationInterceptor> interceptors,
+                                      CacheBroadcastPublisher broadcastPublisher) {
+        super(componentNane, config, redissonClient, keyConverter, fieldConverter, cacheLoader, interceptors,
+                broadcastPublisher);
     }
 }

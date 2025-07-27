@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author walter.yan
@@ -21,9 +22,12 @@ public final class StockHoldInfoCacheService {
         this.stockHoldInfoCacheAgent = stockHoldInfoCacheAgent;
     }
 
-    public StockHoldInfo get(String fundAccount, Long id) {
+    public Optional<StockHoldInfo> get(String fundAccount, Long id) {
         BaseSingleResult<StockHoldInfo> result = stockHoldInfoCacheAgent.get(fundAccount, id);
-        return result.value().getValue();
+        if (null != result && null != result.value()) {
+            return Optional.of(result.value().getValue());
+        }
+        return Optional.empty();
     }
 
 //    public List<StockHoldInfo> listAll(String fundAccount) {

@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @TableName("stock_hold_info")
 @Data
@@ -19,9 +20,9 @@ public class StockHoldInfo {
     private String exchangeType;
     private String code;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdTime;
+    private Date createdTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updatedTime;
+    private Date updatedTime;
     private Integer deleted;
     @Transient
     @TableField(exist = false)

@@ -16,7 +16,7 @@ public class BaseSingleResult<V> extends BaseResult<CacheValueHolder<V>> impleme
     }
 
     public static <V> BaseSingleResult<V> hit(String componentName, CacheValueHolder<V> valueHolder, HitTier hitTier) {
-        return new BaseSingleResult<>(componentName, CacheOutcome.SUCCESS, valueHolder, hitTier, null);
+        return new BaseSingleResult<>(componentName, CacheOutcome.HIT, valueHolder, hitTier, null);
     }
 
     public static <V> BaseSingleResult<V> miss(String componentName) {

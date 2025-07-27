@@ -2,6 +2,7 @@ package com.yetcache.agent.broadcast.command.playload.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import java.util.Map;
  */
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class DynamicHashData<K, F, V> {
     private K bizKey;
     private Map<F, V> valueMap;

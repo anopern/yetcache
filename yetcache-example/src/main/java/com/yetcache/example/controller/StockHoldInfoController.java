@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author walter.yan
@@ -28,7 +29,8 @@ public class StockHoldInfoController {
 
     @PostMapping("/get")
     public StockHoldInfo get(@RequestBody StockHoldInfo dto) {
-        return cacheService.get(dto.getFundAccount(), dto.getId());
+        Optional<StockHoldInfo> optional = cacheService.get(dto.getFundAccount(), dto.getId());
+        return optional.orElse(null);
     }
 //
 //    @PostMapping("/listAll")

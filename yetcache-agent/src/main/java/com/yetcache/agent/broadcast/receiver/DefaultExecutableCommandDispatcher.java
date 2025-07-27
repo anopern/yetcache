@@ -3,9 +3,7 @@ package com.yetcache.agent.broadcast.receiver;
 import com.yetcache.agent.broadcast.command.ExecutableCommand;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandler;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
-import com.yetcache.agent.regitry.CacheAgentRegistry;
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.Optional;
 
 /**
@@ -13,10 +11,10 @@ import java.util.Optional;
  * @since 2025/7/16
  */
 @Slf4j
-public class DefaultCacheBroadcastReceiver implements CacheBroadcastReceiver {
+public class DefaultExecutableCommandDispatcher implements ExecutableCommandDispatcher {
     private final CacheBroadcastHandlerRegistry handlerRegistry;
 
-    public DefaultCacheBroadcastReceiver(CacheAgentRegistry<?> registry, CacheBroadcastHandlerRegistry handlerRegistry) {
+    public DefaultExecutableCommandDispatcher(CacheBroadcastHandlerRegistry handlerRegistry) {
         this.handlerRegistry = handlerRegistry;
     }
 

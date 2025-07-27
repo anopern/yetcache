@@ -28,6 +28,6 @@ public class StockHoldInfoServiceImpl extends ServiceImpl<StockHoldInfoMapper, S
         LambdaQueryWrapper<StockHoldInfo> queryWrapper = new LambdaQueryWrapper<StockHoldInfo>()
                 .eq(StockHoldInfo::getId, id)
                 .eq(StockHoldInfo::getDeleted, 0);
-        return getById(queryWrapper);
+        return getOne(queryWrapper);
     }
 }

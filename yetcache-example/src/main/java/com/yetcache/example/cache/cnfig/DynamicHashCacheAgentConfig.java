@@ -1,5 +1,7 @@
 package com.yetcache.example.cache.cnfig;
 
+import com.yetcache.agent.broadcast.sender.CacheBroadcastPublisher;
+import com.yetcache.agent.regitry.CacheAgentRegistryHub;
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
 import com.yetcache.core.support.field.TypeFieldConverter;
@@ -27,16 +29,21 @@ public class DynamicHashCacheAgentConfig {
     private RedissonClient redissonClient;
     @Autowired
     private StockHoldInfoCacheLoader stockHoldInfoCacheLoader;
+    @Autowired
+    private CacheBroadcastPublisher cacheBroadcastPublisher;
 
     @Bean
-    public StockHoldInfoCacheAgent stockHoldInfoCacheAgent() {
+    public StockHoldInfoCacheAgent stockHoldInfoCacheAgent(CacheAgentRegistryHub agentRegistryHub) {
         String componentName = EnumCaches.STOCK_HOLD_INFO_CACHE.getName();
         DynamicHashCacheConfig config = configResolver.resolveDynamicHash(componentName);
-        return new StockHoldInfoCacheAgent(componentName,
+        StockHoldInfoCacheAgent agent = new StockHoldInfoCacheAgent(componentName,
                 config, redissonClient,
                 KeyConverterFactory.createDefault(config.getSpec().getKeyPrefix(), config.getSpec().getUseHashTag()),
                 new TypeFieldConverter<>(Long.class),
                 stockHoldInfoCacheLoader,
-                null);
+                null,
+                cacheBroadcastPublisher);
+        agentRegistryHub.register(agent);
+        return agent;
     }
 }

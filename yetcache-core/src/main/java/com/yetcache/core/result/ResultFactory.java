@@ -25,4 +25,8 @@ public class ResultFactory {
     public static <V> BaseResult<V> fail(String componentName, Throwable throwable) {
         return new BaseResult<>(componentName, CacheOutcome.FAIL, null, throwable);
     }
+
+    public static BaseBatchResult<Void, Void> badParamBatch(String componentName) {
+        return new BaseBatchResult<>(componentName, CacheOutcome.BAD_PARAM, null, null, null);
+    }
 }

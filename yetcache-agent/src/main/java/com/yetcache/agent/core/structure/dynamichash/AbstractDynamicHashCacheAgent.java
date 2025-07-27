@@ -3,6 +3,9 @@ package com.yetcache.agent.core.structure.dynamichash;
 import cn.hutool.core.collection.CollUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.yetcache.agent.broadcast.command.ExecutableCommand;
+import com.yetcache.agent.broadcast.sender.CacheBroadcastPublisher;
+import com.yetcache.agent.core.CacheAgentMethod;
 import com.yetcache.agent.core.structure.AbstractCacheAgent;
 import com.yetcache.agent.governance.plugin.MetricsInterceptor;
 import com.yetcache.agent.interceptor.CacheAccessKey;
@@ -37,6 +40,7 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
     protected final DynamicHashCacheConfig config;
     protected final DynamicHashCacheLoader<K, F, V> cacheLoader;
     private final Cache<K, Long> fullyLoadedTs;
+    private final CacheBroadcastPublisher broadcastPublisher;
 
     public AbstractDynamicHashCacheAgent(String componentNane,
                                          DynamicHashCacheConfig config,
@@ -44,10 +48,13 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
                                          KeyConverter<K> keyConverter,
                                          FieldConverter<F> fieldConverter,
                                          DynamicHashCacheLoader<K, F, V> cacheLoader,
-                                         List<CacheInvocationInterceptor> interceptors) {
+                                         List<CacheInvocationInterceptor> interceptors,
+                                         CacheBroadcastPublisher broadcastPublisher) {
         super(componentNane);
         this.config = config;
         this.cacheLoader = cacheLoader;
+        this.broadcastPublisher = broadcastPublisher;
+
         this.multiTierCache = new DefaultMultiTierDynamicHashCache<>(componentNane, config, redissonClient, keyConverter,
                 fieldConverter);
 
@@ -106,6 +113,15 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
 
             // 封装为缓存值并写入缓存
             multiTierCache.put(bizKey, bizField, loaded);
+
+            try {
+                Map<F, V> loadedMap = Collections.singletonMap(bizField, loaded);
+                ExecutableCommand command = ExecutableCommand.dynamicHash(componentName, CacheAgentMethod.PUT_ALL,
+                        bizKey, loadedMap);
+                broadcastPublisher.publish(command);
+            } catch (Exception e) {
+                log.warn("broadcast failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);
+            }
 
             return BaseSingleResult.hit(componentName, CacheValueHolder.wrap(loaded, 0),
                     HitTier.SOURCE);
@@ -204,7 +220,8 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
             CacheAccessContext.clear();
         }
     }
-//
+
+    //
 //    @Override
 //    public DynamicHashCacheAgentSingleAccessResult<K, F, V> refreshAll(K bizKey) {
 //        return invoke("refreshAll", () -> loadAllAndUpdate(bizKey, true));
@@ -301,30 +318,27 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
 //        }
 //    }
 //
-//    @Override
-//    public DynamicHashCacheAgentSingleAccessResult<K, F, V> putAll(K bizKey, Map<F, V> valueMap) {
-//        Map<K, List<F>> bizKeyMap = valueMap.entrySet().stream()
-//                .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
-//                .collect(Collectors.toMap(
-//                        Map.Entry::getKey,
-//                        e -> new ArrayList<>(e.getValue().keySet())
-//                ));
-//        return invoke("putAll", () -> doPutAll(bizKey, valueMap), CacheAccessKey.batch(bizKeyMap));
-//    }
-//
-//    public DynamicHashCacheAgentSingleAccessResult<K, F, V> doPutAll(K bizKey, Map<F, V> valueMap) {
-//        if (valueMap == null || valueMap.isEmpty()) {
-//            return DynamicHashCacheAgentSingleAccessResult.badParam(cacheName);
-//        }
-//
-//        try {
-//            for (Map.Entry<K, Map<F, V>> entry : valueMap.entrySet()) {
-//                cache.putAll(entry.getKey(), entry.getValue());
-//            }
-//            return DynamicHashCacheAgentSingleAccessResult.success(cacheName);
-//        } catch (Exception e) {
-//            return DynamicHashCacheAgentSingleAccessResult.dynamicHashFail(cacheName, e);
-//        }
+    @Override
+    public BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap) {
+        return invoke("putAll", () -> doPutAll(bizKey, valueMap),
+                CacheAccessKey.batch(bizKey, new ArrayList<>(valueMap.keySet())));
+    }
+
+    public BaseBatchResult<Void, Void> doPutAll(K bizKey, Map<F, V> valueMap) {
+        if (bizKey == null || CollUtil.isEmpty(valueMap)) {
+            return ResultFactory.badParamBatch(componentName);
+        }
+
+        try {
+            multiTierCache.putAll(bizKey, valueMap);
+            return BaseBatchResult.success(componentName);
+        } catch (Exception e) {
+            log.warn("putAll failed, agent = {}, key = {}, fields = {}", componentName, bizKey, valueMap.keySet(), e);
+            return BaseBatchResult.fail(componentName, e);
+        } finally {
+            CacheAccessContext.clear();
+        }
+    }
 //}
 
 

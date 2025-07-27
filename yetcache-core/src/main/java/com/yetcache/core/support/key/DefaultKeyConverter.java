@@ -18,6 +18,7 @@ public class DefaultKeyConverter<K> implements KeyConverter<K> {
         StringBuilder sb = new StringBuilder(keyPrefix);
         if (null != bizKey) {
             String bizKeyStr = String.valueOf(bizKey);
+            sb.append(":");
             if (useHashTag) {
                 sb.append("{").append(bizKeyStr).append("}");
             } else {

@@ -5,6 +5,7 @@ import com.yetcache.core.result.BaseBatchResult;
 import com.yetcache.core.result.BaseSingleResult;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author walter.yan
@@ -27,5 +28,5 @@ public interface DynamicHashCacheAgent<K, F, V> extends CacheAgent {
 
 //    DynamicHashCacheAgentSingleAccessResult<Void> put(K bizKey, F bizField, V value);
 
-//    DynamicHashCacheAgentBatchAccessResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap);
+    BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap);
 }

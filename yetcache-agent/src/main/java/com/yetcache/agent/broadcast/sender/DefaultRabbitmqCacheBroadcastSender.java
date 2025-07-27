@@ -13,7 +13,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
  * @author walter.yan
  * @since 2025/7/23
  */
-public class DefaultRabbitmqCacheBroadcastSender implements CacheBroadcastSender {
+public class DefaultRabbitmqCacheBroadcastSender implements CacheBroadcastPublisher {
     private final RabbitMqConfig config;
     private final RabbitTemplate rabbitTemplate;
     private final MessageConverter messageConverter;
@@ -25,7 +25,7 @@ public class DefaultRabbitmqCacheBroadcastSender implements CacheBroadcastSender
     }
 
     @Override
-    public void send(ExecutableCommand command) {
+    public void publish(ExecutableCommand command) {
         try {
             Message message = messageConverter.toMessage(command, new MessageProperties());
             message.getMessageProperties().setDeliveryMode(
