@@ -16,4 +16,6 @@ import java.util.Map;
 public class DynamicHashData<K, F, V> {
     private K bizKey;
     private Map<F, V> valueMap;
+
+    private Long version;
 }

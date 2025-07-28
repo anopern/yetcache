@@ -1,5 +1,6 @@
 package com.yetcache.core.cache.dynamichash;
 
+import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.BaseBatchResult;
 import com.yetcache.core.result.BaseSingleResult;
 
@@ -17,9 +18,9 @@ public interface MultiTierDynamicHashCache<K, F, V> {
 
 //    DynamicCacheStorageBatchAccessResult<F, V> listAll(K bizKey);
 
-    BaseSingleResult<Void> put(K bizKey, F bizField, V value);
+    BaseSingleResult<Void> put(K bizKey, F bizField, CacheValueHolder<V> valueHolder);
 
-    BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap);
+    BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, CacheValueHolder<V>> valueHolderMap);
 
     BaseSingleResult<Void> invalidate(K bizKey, F bizField);
 

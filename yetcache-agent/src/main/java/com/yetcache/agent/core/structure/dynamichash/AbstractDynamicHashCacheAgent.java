@@ -200,6 +200,21 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
                 CacheAccessKey.batch(bizKey, bizFields));
     }
 
+    @Override
+    public BaseBatchResult<Void, Void> invalidateFields(K bizKey, List<F> bizFields) {
+        return null;
+    }
+
+    public BaseBatchResult<Void, Void> doInvalidateFields(K bizKey, List<F> bizFields) {
+        try {
+            multiTierCache.invalidateFields(bizKey, bizFields);
+        } catch (Exception e) {
+            log.warn("invalidateFields failed, agent = {}", componentName, e);
+            return BaseBatchResult.fail(componentName, e);
+        }
+        return null;
+    }
+
     public BaseBatchResult<Void, Void> doBatchRefresh(K bizKey, List<F> bizFields) {
         try {
             Map<F, V> loaded = cacheLoader.batchLoad(bizKey, bizFields);

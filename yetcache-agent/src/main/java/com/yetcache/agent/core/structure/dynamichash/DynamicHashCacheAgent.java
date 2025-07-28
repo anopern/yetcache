@@ -22,9 +22,12 @@ public interface DynamicHashCacheAgent<K, F, V> extends CacheAgent {
 
 //    DynamicHashCacheAgentBatchAccessResult<Void, Void> refreshAll(K bizKey);
 
-//    DynamicHashCacheAgentSingleAccessResult<Void> remove(K bizKey, F bizField);
+//    BaseSingleResult<Void> remove(K bizKey, F bizField);
 
-//    DynamicHashCacheAgentBatchAccessResult<Void, Void> removeAll(K bizKey);
+//    BaseSingleResult<Void, Void> removeAll(K bizKey);
+
+    BaseBatchResult<Void, Void> invalidateFields(K bizKey, List<F> bizFields);
+
 
 //    DynamicHashCacheAgentSingleAccessResult<Void> put(K bizKey, F bizField, V value);
 

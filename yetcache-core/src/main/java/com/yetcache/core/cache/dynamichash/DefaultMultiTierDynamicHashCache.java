@@ -167,7 +167,7 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
     }
 
     @Override
-    public BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap) {
+    public BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, CacheValueHolder<V>> valueMap) {
         String key = keyConverter.convert(bizKey);
         final long localTtlSecs = TtlRandomizer.randomizeSecs(config.getLocal().getTtlSecs(),
                 config.getLocal().getTtlRandomPct());
@@ -176,7 +176,6 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
 
         // 写入远程缓存
         if (remoteCache != null) {
-            Map<String, CacheValueHolder<V>> remoteHolderMap = typeMap2rawHolderMap(valueMap, remoteTtlSecs);
             remoteCache.putAll(key, remoteHolderMap);
         }
         // 写入本地缓存

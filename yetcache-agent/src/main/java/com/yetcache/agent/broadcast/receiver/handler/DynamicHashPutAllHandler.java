@@ -4,12 +4,14 @@ import com.yetcache.agent.broadcast.command.TypedPayloadResolver;
 import com.yetcache.agent.broadcast.command.ExecutableCommand;
 import com.yetcache.agent.broadcast.command.descriptor.CommandDescriptor;
 import com.yetcache.agent.broadcast.command.playload.data.DynamicHashData;
+import com.yetcache.agent.broadcast.inspector.CommandArrivalInspector;
 import com.yetcache.agent.core.CacheAgentMethod;
 import com.yetcache.agent.core.CacheStructureType;
 import com.yetcache.agent.core.structure.CacheAgent;
 import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheAgent;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
 import lombok.extern.slf4j.Slf4j;
+
 import java.util.Optional;
 
 /**
@@ -20,9 +22,12 @@ import java.util.Optional;
 @Slf4j
 public class DynamicHashPutAllHandler<K, F, V> implements CacheBroadcastHandler {
     protected final CacheAgentRegistryHub cacheAgentRegistryHub;
+    protected final CommandArrivalInspector commandArrivalInspector;
 
-    public DynamicHashPutAllHandler(CacheAgentRegistryHub cacheAgentRegistryHub) {
+    public DynamicHashPutAllHandler(CacheAgentRegistryHub cacheAgentRegistryHub,
+                                    CommandArrivalInspector commandArrivalInspector) {
         this.cacheAgentRegistryHub = cacheAgentRegistryHub;
+        this.commandArrivalInspector = commandArrivalInspector;
     }
 
     @Override
@@ -36,6 +41,9 @@ public class DynamicHashPutAllHandler<K, F, V> implements CacheBroadcastHandler 
     @Override
     @SuppressWarnings("unchecked")
     public void handle(ExecutableCommand cmd) {
+        if (commandArrivalInspector.isTooLate(cmd)) {
+
+        }
         Optional<CacheAgent> optional = cacheAgentRegistryHub.find(cmd.getDescriptor().getAgentName());
         if (optional.isPresent()) {
             CacheAgent agent = optional.get();
