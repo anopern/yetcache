@@ -22,7 +22,9 @@ public class ExecutableCommand {
 
     public <T> T getPayloadAs(String key, Class<T> type) {
         Object value = payload.get(key);
-        if (value == null) return null;
+        if (value == null) {
+            return null;
+        }
         if (!type.isInstance(value)) {
             throw new IllegalArgumentException("Payload value type mismatch for key: " + key);
         }

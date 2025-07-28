@@ -2,7 +2,6 @@ package com.yetcache.agent.broadcast.receiver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yetcache.agent.broadcast.command.ExecutableCommand;
-import com.yetcache.agent.broadcast.receiver.DefaultExecutableCommandDispatcher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -18,6 +17,7 @@ public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
     private final ExecutableCommandDispatcher dispatcher;
 
     @RabbitListener(queues = "#{broadcastQueueName}", concurrency = "1-3")
+    @Override
     public void onMessage(String messageJson) {
         try {
             ExecutableCommand cmd = objectMapper.readValue(messageJson, ExecutableCommand.class);

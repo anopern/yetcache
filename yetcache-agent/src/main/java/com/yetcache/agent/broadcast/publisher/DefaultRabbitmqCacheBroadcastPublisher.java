@@ -1,4 +1,4 @@
-package com.yetcache.agent.broadcast.sender;
+package com.yetcache.agent.broadcast.publisher;
 
 import com.yetcache.agent.broadcast.command.ExecutableCommand;
 import com.yetcache.core.config.broadcast.RabbitMqConfig;
@@ -13,15 +13,15 @@ import org.springframework.amqp.support.converter.MessageConverter;
  * @author walter.yan
  * @since 2025/7/23
  */
-public class DefaultRabbitmqCacheBroadcastSender implements CacheBroadcastPublisher {
+public class DefaultRabbitmqCacheBroadcastPublisher implements CacheBroadcastPublisher {
     private final RabbitMqConfig config;
     private final RabbitTemplate rabbitTemplate;
     private final MessageConverter messageConverter;
 
-    public DefaultRabbitmqCacheBroadcastSender(RabbitMqConfig config, RabbitTemplate rabbitTemplate) {
+    public DefaultRabbitmqCacheBroadcastPublisher(RabbitMqConfig config, RabbitTemplate rabbitTemplate) {
         this.config = config;
         this.rabbitTemplate = rabbitTemplate;
-        this.messageConverter = new Jackson2JsonMessageConverter(); // 可替换为你自定义的序列化器
+        this.messageConverter = new Jackson2JsonMessageConverter();
     }
 
     @Override

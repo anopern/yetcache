@@ -12,10 +12,14 @@ public class InstanceIdProvider {
     private static volatile String instanceId;
 
     public static String getInstanceId() {
-        if (instanceId != null) return instanceId;
+        if (instanceId != null) {
+            return instanceId;
+        }
 
         synchronized (InstanceIdProvider.class) {
-            if (instanceId != null) return instanceId;
+            if (instanceId != null) {
+                return instanceId;
+            }
 
             String appName = Optional.ofNullable(System.getProperty("spring.application.name")).orElse("yetcache");
             String ip = resolveLocalIp().replace(".", "_");

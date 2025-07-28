@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.yetcache.agent.broadcast.command.ExecutableCommand;
-import com.yetcache.agent.broadcast.sender.CacheBroadcastPublisher;
+import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.CacheAgentMethod;
 import com.yetcache.agent.core.structure.AbstractCacheAgent;
 import com.yetcache.agent.governance.plugin.MetricsInterceptor;

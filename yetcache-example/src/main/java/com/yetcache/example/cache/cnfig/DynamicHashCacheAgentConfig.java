@@ -1,6 +1,6 @@
 package com.yetcache.example.cache.cnfig;
 
-import com.yetcache.agent.broadcast.sender.CacheBroadcastPublisher;
+import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;

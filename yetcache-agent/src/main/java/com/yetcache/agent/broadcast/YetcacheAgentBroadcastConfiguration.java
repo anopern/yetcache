@@ -9,13 +9,12 @@ import com.yetcache.agent.broadcast.receiver.ExecutableCommandDispatcher;
 import com.yetcache.agent.broadcast.receiver.RabbitMqCacheBroadcastReceiver;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
 import com.yetcache.agent.broadcast.receiver.handler.DynamicHashPutAllHandler;
-import com.yetcache.agent.broadcast.sender.CacheBroadcastPublisher;
-import com.yetcache.agent.broadcast.sender.DefaultRabbitmqCacheBroadcastSender;
+import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
+import com.yetcache.agent.broadcast.publisher.DefaultRabbitmqCacheBroadcastPublisher;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.config.YetCacheProperties;
 import com.yetcache.core.config.broadcast.RabbitMqConfig;
-import org.checkerframework.checker.units.qual.K;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +60,7 @@ public class YetcacheAgentBroadcastConfiguration {
     @Bean
     public CacheBroadcastPublisher cacheBroadcastSender(YetCacheProperties yetCacheProperties) {
         RabbitMqConfig config = yetCacheProperties.getBroadcast().getRabbitmq();
-        return new DefaultRabbitmqCacheBroadcastSender(config, rabbitTemplate);
+        return new DefaultRabbitmqCacheBroadcastPublisher(config, rabbitTemplate);
     }
 
     @Bean

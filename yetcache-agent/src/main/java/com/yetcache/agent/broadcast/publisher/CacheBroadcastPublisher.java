@@ -1,4 +1,4 @@
-package com.yetcache.agent.broadcast.sender;
+package com.yetcache.agent.broadcast.publisher;
 
 import com.yetcache.agent.broadcast.command.ExecutableCommand;
 
