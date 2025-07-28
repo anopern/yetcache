@@ -319,12 +319,12 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
 //    }
 //
     @Override
-    public BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap) {
-        return invoke("putAll", () -> doPutAll(bizKey, valueMap),
+    public BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap, Long version) {
+        return invoke("putAll", () -> doPutAll(bizKey, valueMap, version),
                 CacheAccessKey.batch(bizKey, new ArrayList<>(valueMap.keySet())));
     }
 
-    public BaseBatchResult<Void, Void> doPutAll(K bizKey, Map<F, V> valueMap) {
+    public BaseBatchResult<Void, Void> doPutAll(K bizKey, Map<F, V> valueMap, Long version) {
         if (bizKey == null || CollUtil.isEmpty(valueMap)) {
             return ResultFactory.badParamBatch(componentName);
         }

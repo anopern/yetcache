@@ -7,6 +7,7 @@ import com.yetcache.agent.core.CacheStructureType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.util.Map;
 
 /**
@@ -17,8 +18,9 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExecutableCommand {
-    private  CommandDescriptor descriptor;
-    private  Map<String, Object> payload;
+    private CommandDescriptor descriptor;
+    private Map<String, Object> payload;
+    private Long createdTime;
 
     public <T> T getPayloadAs(String key, Class<T> type) {
         Object value = payload.get(key);
@@ -43,6 +45,6 @@ public class ExecutableCommand {
                 action,
                 InstanceIdProvider.getInstanceId());
         Map<String, Object> payload = TypedPayloadResolver.serialize(bizKey, valueMap);
-        return new ExecutableCommand(descriptor, payload);
+        return new ExecutableCommand(descriptor, payload, System.currentTimeMillis());
     }
 }

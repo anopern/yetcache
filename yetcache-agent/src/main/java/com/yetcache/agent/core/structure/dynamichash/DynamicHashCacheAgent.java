@@ -28,5 +28,5 @@ public interface DynamicHashCacheAgent<K, F, V> extends CacheAgent {
 
 //    DynamicHashCacheAgentSingleAccessResult<Void> put(K bizKey, F bizField, V value);
 
-    BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap);
+    BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap, Long version);
 }
