@@ -14,11 +14,11 @@ import java.util.Map;
 public interface DynamicHashCacheAgent<K, F, V> extends CacheAgent {
     BaseSingleResult<V> get(K bizKey, F bizField);
 
-    BaseBatchResult<F, V> batchGet(K bizKey, List<F> bizFields);
+//    BaseBatchResult<F, V> batchGet(K bizKey, List<F> bizFields);
 
 //    DynamicHashCacheAgentBatchAccessResult<F, V> listAll(K bizKey);
 
-    BaseBatchResult<Void, Void> batchRefresh(K bizKey, List<F> bizKeyMap);
+//    BaseBatchResult<Void, Void> batchRefresh(K bizKey, List<F> bizKeyMap);
 
 //    DynamicHashCacheAgentBatchAccessResult<Void, Void> refreshAll(K bizKey);
 
@@ -26,10 +26,10 @@ public interface DynamicHashCacheAgent<K, F, V> extends CacheAgent {
 
 //    BaseSingleResult<Void, Void> removeAll(K bizKey);
 
-    BaseBatchResult<Void, Void> invalidateFields(K bizKey, List<F> bizFields);
+//    BaseBatchResult<Void, Void> invalidateFields(K bizKey, List<F> bizFields);
 
 
 //    DynamicHashCacheAgentSingleAccessResult<Void> put(K bizKey, F bizField, V value);
 
-    BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap, Long version);
+//    BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap, Long version);
 }

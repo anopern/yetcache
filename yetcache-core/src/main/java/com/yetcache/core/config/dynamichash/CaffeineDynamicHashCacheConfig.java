@@ -10,20 +10,23 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class CaffeineDynamicHashCacheConfig {
-    protected Long ttlSecs;
+    protected Long logicTtlSecs;
+    protected Long physicalTtlSecs;
     protected Double ttlRandomPct;
     protected Integer maxSize;
 
     public CaffeineDynamicHashCacheConfig(CaffeineDynamicHashCacheConfig other) {
         if (other == null) return;
-        this.ttlSecs = other.ttlSecs;
+        this.logicTtlSecs = other.logicTtlSecs;
+        this.physicalTtlSecs = other.physicalTtlSecs;
         this.ttlRandomPct = other.ttlRandomPct;
         this.maxSize = other.maxSize;
     }
 
     public static CaffeineDynamicHashCacheConfig defaultConfig() {
         CaffeineDynamicHashCacheConfig defaultConfig = new CaffeineDynamicHashCacheConfig();
-        defaultConfig.setTtlSecs(300L);
+        defaultConfig.setLogicTtlSecs(300L);
+        defaultConfig.setPhysicalTtlSecs(7 * 24 * 60 * 60L);
         defaultConfig.setTtlRandomPct(0.15);
         defaultConfig.setMaxSize(10000);
         return defaultConfig;

@@ -50,7 +50,6 @@ public class DynamicHashPutAllHandler<K, F, V> implements CacheBroadcastHandler 
             if (agent instanceof DynamicHashCacheAgent) {
                 DynamicHashCacheAgent<K, F, V> dynamicHashCacheAgent = (DynamicHashCacheAgent<K, F, V>) agent;
                 DynamicHashData<K, F, V> data = TypedPayloadResolver.resolveByAgent(cmd, dynamicHashCacheAgent);
-                dynamicHashCacheAgent.putAll(data.getBizKey(), data.getValueMap());
             } else {
                 log.error("缓存代理类 {} 不是 DynamicHashCacheAgent 类型", agent.getClass().getName());
             }

@@ -36,4 +36,11 @@ public class InvocationChainRegistry {
             return new DefaultInvocationChain<>(applicable);
         });
     }
+
+    public <C extends InvocationContext, T, R extends Result<T>> R invoke(C context) throws Throwable {
+        // 1. 获取结构+行为对应的行为链
+        InvocationChain<C, T, R> chain = getChain(context.structureType(), context.behaviorType());
+        // 2. 驱动链执行，传入上下文
+        return chain.invoke(context);
+    }
 }

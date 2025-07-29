@@ -18,7 +18,7 @@ public interface InvocationInterceptor<C extends InvocationContext, T, R extends
     /** 是否启用 */
     boolean enabled();
 
-    boolean getOrder();
+    int getOrder();
 
     /** 支持的行为类型 */
     boolean supportBehavior(BehaviorType type);

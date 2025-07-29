@@ -7,9 +7,10 @@ import com.yetcache.agent.broadcast.command.ExecutableCommand;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.CacheAgentMethod;
 import com.yetcache.agent.core.StructureType;
+import com.yetcache.agent.core.structure.dynamichash.get.DynamicHashGetContext;
 import com.yetcache.agent.interceptor.BehaviorType;
 import com.yetcache.agent.interceptor.InvocationChainRegistry;
-import com.yetcache.agent.interceptor.DefaultInvocationContext;
+import com.yetcache.agent.interceptor.BaseInvocationContext;
 import com.yetcache.core.cache.dynamichash.DefaultMultiTierDynamicHashCache;
 import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
 import com.yetcache.core.cache.support.CacheValueHolder;
@@ -83,103 +84,70 @@ public class AbstractDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheA
 
     @Override
     public BaseSingleResult<V> get(K bizKey, F bizField) {
-        DefaultInvocationContext ctx = new DefaultInvocationContext(componentName, "get", StructureType.DYNAMIC_HASH,
-                BehaviorType.SINGLE_GET);
-        return chainRegistry.getChain(StructureType.DYNAMIC_HASH, BehaviorType.SINGLE_GET).invoke(ctx);
-//        return invoke("get", () -> doGet(bizKey, bizField), new CacheAccessKey(bizKey, bizField));
-    }
-
-    protected BaseSingleResult<V> doGet(K bizKey, F bizField) {
+        DynamicHashGetContext<K, F> ctx = new DynamicHashGetContext<>(componentName, "get",
+                StructureType.DYNAMIC_HASH, BehaviorType.SINGLE_GET, bizKey, bizField);
         try {
-            BaseSingleResult<V> result = multiTierCache.get(bizKey, bizField);
-            if (result.outcome() == CacheOutcome.HIT) {
-                CacheValueHolder<V> holder = result.value();
-                if (holder.isNotLogicExpired()) {
-                    return BaseSingleResult.hit(componentName, holder, result.hitTier());
-                }
-            }
-
-            // 回源加载数据
-            V loaded = cacheLoader.load(bizKey, bizField);
-            if (loaded == null) {
-                return ResultFactory.notFoundSingle(componentName);
-            }
-
-            // 封装为缓存值并写入缓存
-            CacheValueHolder<V> valueHolder = CacheValueHolder.wrap(loaded, config.getRemote().getTtlSecs());
-            multiTierCache.put(bizKey, bizField, valueHolder);
-
-            try {
-                Map<F, V> loadedMap = Collections.singletonMap(bizField, loaded);
-                ExecutableCommand command = ExecutableCommand.dynamicHash(componentName, CacheAgentMethod.PUT_ALL,
-                        bizKey, loadedMap);
-                broadcastPublisher.publish(command);
-            } catch (Exception e) {
-                log.warn("broadcast failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);
-            }
-
-            return BaseSingleResult.hit(componentName, CacheValueHolder.wrap(loaded, 0),
-                    HitTier.SOURCE);
-        } catch (Exception e) {
-            log.warn("cache load failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);
+            return chainRegistry.invoke(ctx);
+        } catch (Throwable e) {
             return BaseSingleResult.fail(componentName, e);
         } finally {
             CacheAccessContext.clear();
         }
     }
 
-    @Override
-    public BaseBatchResult<F, V> batchGet(K bizKey, List<F> bizFields) {
-        return invoke("batchGet", () -> doBatchGet(bizKey, bizFields), CacheAccessKey.batch(bizKey, bizFields));
-    }
-
-    private BaseBatchResult<F, V> doBatchGet(K bizKey, List<F> bizFields) {
-        Map<F, CacheValueHolder<V>> resultValueHolderMap = new HashMap<>();
-        Map<F, HitTier> resultHitTierMap = new HashMap<>();
-
-        try {
-            // Step 1: 批量从缓存获取
-            BaseBatchResult<F, V> cacheStorageResult = multiTierCache.batchGet(bizKey, bizFields);
-
-            // Step 2: 识别需要回源的字段
-            List<F> missedFields = new ArrayList<>();
-
-            Map<F, CacheValueHolder<V>> cacheValueHolderMap = cacheStorageResult.value();
-            Map<F, HitTier> cacheHitTierMap = cacheStorageResult.hitTierMap();
-            if (CollUtil.isNotEmpty(cacheValueHolderMap)) {
-                for (F bizField : cacheValueHolderMap.keySet()) {
-                    CacheValueHolder<V> valueHolder = cacheValueHolderMap.get(bizField);
-                    if (null != valueHolder && valueHolder.isNotLogicExpired()) {
-                        resultValueHolderMap.put(bizField, valueHolder); // 命中直接返回
-                        resultHitTierMap.put(bizField, cacheHitTierMap.get(bizField));
-                    } else {
-                        missedFields.add(bizField);      // miss 或过期，需回源
-                    }
-                }
-            }
-
-            // Step 3: 回源加载 + 回写缓存
-            if (!missedFields.isEmpty()) {
-                Map<F, V> loadedMap = cacheLoader.batchLoad(bizKey, missedFields);
-                if (CollUtil.isNotEmpty(loadedMap)) {
-                    for (F field : missedFields) {
-                        V loaded = loadedMap.get(field);
-                        if (loaded != null) {
-                            resultValueHolderMap.put(field, CacheValueHolder.wrap(loaded, 0));
-                            resultHitTierMap.put(field, HitTier.SOURCE);
-                        }
-                    }
-                    multiTierCache.putAll(bizKey, loadedMap);
-                }
-            }
-            return BaseBatchResult.hit(componentName, resultValueHolderMap, resultHitTierMap);
-        } catch (Exception e) {
-            log.warn("batchGet with fallback failed, agent = {}, key = {}, fields = {}", componentName, bizKey, bizFields, e);
-            return BaseBatchResult.fail(componentName, e);
-        } finally {
-            CacheAccessContext.clear();
-        }
-    }
+//
+//    @Override
+//    public BaseBatchResult<F, V> batchGet(K bizKey, List<F> bizFields) {
+//        return invoke("batchGet", () -> doBatchGet(bizKey, bizFields), CacheAccessKey.batch(bizKey, bizFields));
+//    }
+//
+//    private BaseBatchResult<F, V> doBatchGet(K bizKey, List<F> bizFields) {
+//        Map<F, CacheValueHolder<V>> resultValueHolderMap = new HashMap<>();
+//        Map<F, HitTier> resultHitTierMap = new HashMap<>();
+//
+//        try {
+//            // Step 1: 批量从缓存获取
+//            BaseBatchResult<F, V> cacheStorageResult = multiTierCache.batchGet(bizKey, bizFields);
+//
+//            // Step 2: 识别需要回源的字段
+//            List<F> missedFields = new ArrayList<>();
+//
+//            Map<F, CacheValueHolder<V>> cacheValueHolderMap = cacheStorageResult.value();
+//            Map<F, HitTier> cacheHitTierMap = cacheStorageResult.hitTierMap();
+//            if (CollUtil.isNotEmpty(cacheValueHolderMap)) {
+//                for (F bizField : cacheValueHolderMap.keySet()) {
+//                    CacheValueHolder<V> valueHolder = cacheValueHolderMap.get(bizField);
+//                    if (null != valueHolder && valueHolder.isNotLogicExpired()) {
+//                        resultValueHolderMap.put(bizField, valueHolder); // 命中直接返回
+//                        resultHitTierMap.put(bizField, cacheHitTierMap.get(bizField));
+//                    } else {
+//                        missedFields.add(bizField);      // miss 或过期，需回源
+//                    }
+//                }
+//            }
+//
+//            // Step 3: 回源加载 + 回写缓存
+//            if (!missedFields.isEmpty()) {
+//                Map<F, V> loadedMap = cacheLoader.batchLoad(bizKey, missedFields);
+//                if (CollUtil.isNotEmpty(loadedMap)) {
+//                    for (F field : missedFields) {
+//                        V loaded = loadedMap.get(field);
+//                        if (loaded != null) {
+//                            resultValueHolderMap.put(field, CacheValueHolder.wrap(loaded, 0));
+//                            resultHitTierMap.put(field, HitTier.SOURCE);
+//                        }
+//                    }
+//                    multiTierCache.putAll(bizKey, loadedMap);
+//                }
+//            }
+//            return BaseBatchResult.hit(componentName, resultValueHolderMap, resultHitTierMap);
+//        } catch (Exception e) {
+//            log.warn("batchGet with fallback failed, agent = {}, key = {}, fields = {}", componentName, bizKey, bizFields, e);
+//            return BaseBatchResult.fail(componentName, e);
+//        } finally {
+//            CacheAccessContext.clear();
+//        }
+//    }
 
     //
 //
@@ -189,47 +157,47 @@ public class AbstractDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheA
 //        return invoke("listAll", () -> loadAllAndUpdate(bizKey, force), new CacheAccessKey(bizKey, null));
 //    }
 //
-    @Override
-    public BaseBatchResult<Void, Void> batchRefresh(K bizKey, List<F> bizFields) {
-        return invoke("batchRefresh", () -> doBatchRefresh(bizKey, bizFields),
-                CacheAccessKey.batch(bizKey, bizFields));
-    }
+//    @Override
+//    public BaseBatchResult<Void, Void> batchRefresh(K bizKey, List<F> bizFields) {
+//        return invoke("batchRefresh", () -> doBatchRefresh(bizKey, bizFields),
+//                CacheAccessKey.batch(bizKey, bizFields));
+//    }
 
-    @Override
-    public BaseBatchResult<Void, Void> invalidateFields(K bizKey, List<F> bizFields) {
-        return null;
-    }
+//    @Override
+//    public BaseBatchResult<Void, Void> invalidateFields(K bizKey, List<F> bizFields) {
+//        return null;
+//    }
 
-    public BaseBatchResult<Void, Void> doInvalidateFields(K bizKey, List<F> bizFields) {
-        try {
-            multiTierCache.invalidateFields(bizKey, bizFields);
-        } catch (Exception e) {
-            log.warn("invalidateFields failed, agent = {}", componentName, e);
-            return BaseBatchResult.fail(componentName, e);
-        }
-        return null;
-    }
+//    public BaseBatchResult<Void, Void> doInvalidateFields(K bizKey, List<F> bizFields) {
+//        try {
+//            multiTierCache.invalidateFields(bizKey, bizFields);
+//        } catch (Exception e) {
+//            log.warn("invalidateFields failed, agent = {}", componentName, e);
+//            return BaseBatchResult.fail(componentName, e);
+//        }
+//        return null;
+//    }
 
-    public BaseBatchResult<Void, Void> doBatchRefresh(K bizKey, List<F> bizFields) {
-        try {
-            Map<F, V> loaded = cacheLoader.batchLoad(bizKey, bizFields);
-            multiTierCache.putAll(bizKey, loaded);
-            List<F> missedFields = bizFields.stream()
-                    .filter(field -> !loaded.containsKey(field))
-                    .collect(Collectors.toList());
-            if (CollUtil.isEmpty(missedFields)) {
-                for (Map.Entry<F, V> entry : loaded.entrySet()) {
-                    multiTierCache.invalidate(bizKey, entry.getKey());
-                }
-            }
-            return BaseBatchResult.success(componentName);
-        } catch (Exception e) {
-            log.warn("batchRefresh failed, agent = {}", componentName, e);
-            return BaseBatchResult.fail(componentName, e);
-        } finally {
-            CacheAccessContext.clear();
-        }
-    }
+//    public BaseBatchResult<Void, Void> doBatchRefresh(K bizKey, List<F> bizFields) {
+//        try {
+//            Map<F, V> loaded = cacheLoader.batchLoad(bizKey, bizFields);
+//            multiTierCache.putAll(bizKey, loaded);
+//            List<F> missedFields = bizFields.stream()
+//                    .filter(field -> !loaded.containsKey(field))
+//                    .collect(Collectors.toList());
+//            if (CollUtil.isEmpty(missedFields)) {
+//                for (Map.Entry<F, V> entry : loaded.entrySet()) {
+//                    multiTierCache.invalidate(bizKey, entry.getKey());
+//                }
+//            }
+//            return BaseBatchResult.success(componentName);
+//        } catch (Exception e) {
+//            log.warn("batchRefresh failed, agent = {}", componentName, e);
+//            return BaseBatchResult.fail(componentName, e);
+//        } finally {
+//            CacheAccessContext.clear();
+//        }
+//    }
 
     //
 //    @Override
@@ -328,27 +296,27 @@ public class AbstractDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheA
 //        }
 //    }
 //
-    @Override
-    public BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap, Long version) {
-        return invoke("putAll", () -> doPutAll(bizKey, valueMap, version),
-                CacheAccessKey.batch(bizKey, new ArrayList<>(valueMap.keySet())));
-    }
-
-    public BaseBatchResult<Void, Void> doPutAll(K bizKey, Map<F, V> valueMap, Long version) {
-        if (bizKey == null || CollUtil.isEmpty(valueMap)) {
-            return ResultFactory.badParamBatch(componentName);
-        }
-
-        try {
-            multiTierCache.putAll(bizKey, valueMap);
-            return BaseBatchResult.success(componentName);
-        } catch (Exception e) {
-            log.warn("putAll failed, agent = {}, key = {}, fields = {}", componentName, bizKey, valueMap.keySet(), e);
-            return BaseBatchResult.fail(componentName, e);
-        } finally {
-            CacheAccessContext.clear();
-        }
-    }
+//    @Override
+//    public BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap, Long version) {
+//        return invoke("putAll", () -> doPutAll(bizKey, valueMap, version),
+//                CacheAccessKey.batch(bizKey, new ArrayList<>(valueMap.keySet())));
+//    }
+//
+//    public BaseBatchResult<Void, Void> doPutAll(K bizKey, Map<F, V> valueMap, Long version) {
+//        if (bizKey == null || CollUtil.isEmpty(valueMap)) {
+//            return ResultFactory.badParamBatch(componentName);
+//        }
+//
+//        try {
+//            multiTierCache.putAll(bizKey, valueMap);
+//            return BaseBatchResult.success(componentName);
+//        } catch (Exception e) {
+//            log.warn("putAll failed, agent = {}, key = {}, fields = {}", componentName, bizKey, valueMap.keySet(), e);
+//            return BaseBatchResult.fail(componentName, e);
+//        } finally {
+//            CacheAccessContext.clear();
+//        }
+//    }
 //}
 
 
@@ -365,11 +333,11 @@ public class AbstractDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheA
 //        }
 //    }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    protected BaseResult<Void> defaultFail(String method, Throwable t) {
-        return ResultFactory.fail(componentName, t);
-    }
+//    @Override
+//    @SuppressWarnings("unchecked")
+//    protected BaseResult<Void> defaultFail(String method, Throwable t) {
+//        return ResultFactory.fail(componentName, t);
+//    }
 
     @Override
     public String componentName() {

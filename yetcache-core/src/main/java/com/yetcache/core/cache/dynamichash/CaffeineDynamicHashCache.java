@@ -16,13 +16,11 @@ import java.util.concurrent.TimeUnit;
  * @since 2025/6/29
  */
 public class CaffeineDynamicHashCache<V> {
-    private final CaffeineDynamicHashCacheConfig config;
     private final Cache<String, ConcurrentHashMap<String, CacheValueHolder<V>>> cache;
 
     public CaffeineDynamicHashCache(CaffeineDynamicHashCacheConfig config) {
-        this.config = config;
         this.cache = Caffeine.newBuilder()
-                .expireAfterWrite(TtlRandomizer.randomizeSecs(config.getTtlSecs(), config.getTtlRandomPct()), TimeUnit.SECONDS)
+                .expireAfterWrite(TtlRandomizer.randomizeSecs(config.getLogicTtlSecs(), config.getTtlRandomPct()), TimeUnit.SECONDS)
                 .maximumSize(config.getMaxSize())
                 .build();
     }

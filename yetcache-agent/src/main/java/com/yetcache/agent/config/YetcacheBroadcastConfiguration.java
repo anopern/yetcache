@@ -1,14 +1,14 @@
-package com.yetcache.agent.broadcast;
+package com.yetcache.agent.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
+import com.yetcache.agent.broadcast.BroadcastQueueInitializer;
 import com.yetcache.agent.broadcast.receiver.CacheBroadcastReceiver;
 import com.yetcache.agent.broadcast.receiver.DefaultExecutableCommandDispatcher;
 import com.yetcache.agent.broadcast.receiver.ExecutableCommandDispatcher;
 import com.yetcache.agent.broadcast.receiver.RabbitMqCacheBroadcastReceiver;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
-import com.yetcache.agent.broadcast.receiver.handler.DynamicHashPutAllHandler;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.broadcast.publisher.DefaultRabbitmqCacheBroadcastPublisher;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
@@ -30,7 +30,7 @@ import java.io.IOException;
  */
 @Configuration
 @EnableConfigurationProperties(YetCacheProperties.class)
-public class YetcacheAgentBroadcastConfiguration {
+public class YetcacheBroadcastConfiguration {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Autowired
@@ -78,11 +78,11 @@ public class YetcacheAgentBroadcastConfiguration {
         return new CacheAgentRegistryHub();
     }
 
-    @Bean
-    public DynamicHashPutAllHandler<?, ?, ?> dynamicHashPutAllHandler(CacheAgentRegistryHub cacheAgentRegistryHub,
-                                                                      CacheBroadcastHandlerRegistry handlerRegistry) {
-        DynamicHashPutAllHandler<?, ?, ?> handler = new DynamicHashPutAllHandler<>(cacheAgentRegistryHub);
-        handlerRegistry.register(handler);
-        return handler;
-    }
+//    @Bean
+//    public DynamicHashPutAllHandler<?, ?, ?> dynamicHashPutAllHandler(CacheAgentRegistryHub cacheAgentRegistryHub,
+//                                                                      CacheBroadcastHandlerRegistry handlerRegistry) {
+//        DynamicHashPutAllHandler<?, ?, ?> handler = new DynamicHashPutAllHandler<>(cacheAgentRegistryHub, handlerRegistry);
+//        handlerRegistry.register(handler);
+//        return handler;
+//    }
 }

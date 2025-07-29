@@ -14,15 +14,15 @@ import java.util.Map;
 public interface MultiTierDynamicHashCache<K, F, V> {
     BaseSingleResult<V> get(K bizKey, F bizField);
 
-    BaseBatchResult<F, V> batchGet(K bizKey, List<F> bizFields);
+//    BaseBatchResult<F, V> batchGet(K bizKey, List<F> bizFields);
 
 //    DynamicCacheStorageBatchAccessResult<F, V> listAll(K bizKey);
 
     BaseSingleResult<Void> put(K bizKey, F bizField, CacheValueHolder<V> valueHolder);
 
-    BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, CacheValueHolder<V>> valueHolderMap);
+//    BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, CacheValueHolder<V>> valueHolderMap);
 
-    BaseSingleResult<Void> invalidate(K bizKey, F bizField);
+//    BaseSingleResult<Void> invalidate(K bizKey, F bizField);
 
 //    BaseBatchResult<Void, Void> invalidateAll(K bizKey);
 }
