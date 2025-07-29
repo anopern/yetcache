@@ -1,34 +1,29 @@
 package com.yetcache.agent.interceptor;
 
+
 import com.yetcache.core.result.Result;
+
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * @author walter.yan
- * @since 2025/7/14
+ * @since 2025/7/29
  */
-public final class DefaultInvocationChain<R extends Result<?>>
-        implements CacheInvocationChain<R> {
+public class DefaultInvocationChain<C extends InvocationContext, T, R extends Result<T>> implements InvocationChain<C, T, R> {
 
-    private final List<CacheInvocationInterceptor> interceptors;
-    private final Supplier<R> target;
+    private final List<? extends InvocationInterceptor<C, T, R>> interceptors;
     private int index = 0;
 
-    public DefaultInvocationChain(List<CacheInvocationInterceptor> interceptors,
-                                  Supplier<R> target) {
+    public DefaultInvocationChain(List<? extends InvocationInterceptor<C, T, R>> interceptors) {
         this.interceptors = interceptors;
-        this.target = target;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public R proceed(CacheInvocationContext ctx) throws Throwable {
-        try (ctx) {                            // ctx 实现 AutoCloseable 仅负责 MDC 等资源
-            if (index < interceptors.size()) {
-                return interceptors.get(index++).intercept(ctx, this);
-            }
-            return target.get();               // 返回 R == CacheAccessResult<?>
+    public R invoke(C ctx) throws Throwable {
+        if (index >= interceptors.size()) {
+            throw new IllegalStateException("Invocation chain reached end without terminal interceptor. Behavior not handled: " + ctx);
         }
+        InvocationInterceptor<C, T, R> interceptor = interceptors.get(index++);
+        return interceptor.invoke(ctx, this);
     }
 }

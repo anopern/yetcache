@@ -6,22 +6,19 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.yetcache.agent.broadcast.command.ExecutableCommand;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.CacheAgentMethod;
-import com.yetcache.agent.core.structure.AbstractCacheAgent;
-import com.yetcache.agent.governance.plugin.MetricsInterceptor;
-import com.yetcache.agent.interceptor.CacheAccessKey;
-import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
+import com.yetcache.agent.core.StructureType;
+import com.yetcache.agent.interceptor.BehaviorType;
+import com.yetcache.agent.interceptor.InvocationChainRegistry;
+import com.yetcache.agent.interceptor.DefaultInvocationContext;
 import com.yetcache.core.cache.dynamichash.DefaultMultiTierDynamicHashCache;
 import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.trace.HitTier;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
-import com.yetcache.core.config.dynamichash.DynamicHashCacheEnhanceConfig;
-import com.yetcache.core.config.dynamichash.DynamicHashCacheSpec;
 import com.yetcache.core.context.CacheAccessContext;
 import com.yetcache.core.result.*;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
@@ -34,13 +31,14 @@ import java.util.stream.Collectors;
  * @since 2025/7/14
  */
 @Slf4j
-public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
-        implements DynamicHashCacheAgent<K, F, V> {
+public class AbstractDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheAgent<K, F, V> {
+    protected final String componentName;
     protected final MultiTierDynamicHashCache<K, F, V> multiTierCache;
     protected final DynamicHashCacheConfig config;
     protected final DynamicHashCacheLoader<K, F, V> cacheLoader;
     private final Cache<K, Long> fullyLoadedTs;
     private final CacheBroadcastPublisher broadcastPublisher;
+    private final InvocationChainRegistry chainRegistry;
 
     public AbstractDynamicHashCacheAgent(String componentNane,
                                          DynamicHashCacheConfig config,
@@ -48,12 +46,12 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
                                          KeyConverter<K> keyConverter,
                                          FieldConverter<F> fieldConverter,
                                          DynamicHashCacheLoader<K, F, V> cacheLoader,
-                                         List<CacheInvocationInterceptor> interceptors,
+                                         InvocationChainRegistry chainRegistry,
                                          CacheBroadcastPublisher broadcastPublisher) {
-        super(componentNane);
         this.config = config;
         this.cacheLoader = cacheLoader;
         this.broadcastPublisher = broadcastPublisher;
+        this.componentName = componentNane;
 
         this.multiTierCache = new DefaultMultiTierDynamicHashCache<>(componentNane, config, redissonClient, keyConverter,
                 fieldConverter);
@@ -77,22 +75,18 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
 //                ? config.getSpec().getAllowNullValue() : false;
 //        this.interceptors.add(new MetricsInterceptor(registry));
 
-        if (CollUtil.isNotEmpty(interceptors)) {
-            this.interceptors.addAll(interceptors);
-        }
-    }
-
-    protected void registerDefaultInterceptors(DynamicHashCacheSpec spec, DynamicHashCacheEnhanceConfig enhanceConfig,
-                                               MeterRegistry registry) {
-
-        if (registry != null) {
-            this.interceptors.add(new MetricsInterceptor(registry));
-        }
+//        if (CollUtil.isNotEmpty(interceptors)) {
+//            this.interceptors.addAll(interceptors);
+//        }
+        this.chainRegistry = chainRegistry;
     }
 
     @Override
     public BaseSingleResult<V> get(K bizKey, F bizField) {
-        return invoke("get", () -> doGet(bizKey, bizField), new CacheAccessKey(bizKey, bizField));
+        DefaultInvocationContext ctx = new DefaultInvocationContext(componentName, "get", StructureType.DYNAMIC_HASH,
+                BehaviorType.SINGLE_GET);
+        return chainRegistry.getChain(StructureType.DYNAMIC_HASH, BehaviorType.SINGLE_GET).invoke(ctx);
+//        return invoke("get", () -> doGet(bizKey, bizField), new CacheAccessKey(bizKey, bizField));
     }
 
     protected BaseSingleResult<V> doGet(K bizKey, F bizField) {
@@ -112,7 +106,8 @@ public class AbstractDynamicHashCacheAgent<K, F, V> extends AbstractCacheAgent
             }
 
             // 封装为缓存值并写入缓存
-            multiTierCache.put(bizKey, bizField, loaded);
+            CacheValueHolder<V> valueHolder = CacheValueHolder.wrap(loaded, config.getRemote().getTtlSecs());
+            multiTierCache.put(bizKey, bizField, valueHolder);
 
             try {
                 Map<F, V> loadedMap = Collections.singletonMap(bizField, loaded);

@@ -1,0 +1,9 @@
+package com.yetcache.agent.interceptor;
+
+/**
+ * @author walter.yan
+ * @since 2025/7/29
+ */
+public enum BehaviorType {
+    SINGLE_GET
+}

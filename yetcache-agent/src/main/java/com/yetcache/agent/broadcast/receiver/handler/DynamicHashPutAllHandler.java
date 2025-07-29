@@ -6,7 +6,7 @@ import com.yetcache.agent.broadcast.command.descriptor.CommandDescriptor;
 import com.yetcache.agent.broadcast.command.playload.data.DynamicHashData;
 import com.yetcache.agent.broadcast.inspector.CommandArrivalInspector;
 import com.yetcache.agent.core.CacheAgentMethod;
-import com.yetcache.agent.core.CacheStructureType;
+import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.CacheAgent;
 import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheAgent;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
@@ -34,7 +34,7 @@ public class DynamicHashPutAllHandler<K, F, V> implements CacheBroadcastHandler 
     public boolean supports(ExecutableCommand cmd) {
         CommandDescriptor descriptor = cmd.getDescriptor();
         return null != descriptor
-                && CacheStructureType.DYNAMIC_HASH.equals(descriptor.getStructureType())
+                && StructureType.DYNAMIC_HASH.equals(descriptor.getStructureType())
                 && CacheAgentMethod.PUT_ALL == descriptor.getAction();
     }
 

@@ -3,7 +3,7 @@ package com.yetcache.example.cache.agent;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.structure.dynamichash.AbstractDynamicHashCacheAgent;
 import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheLoader;
-import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
+import com.yetcache.agent.interceptor.InvocationInterceptor;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
@@ -23,7 +23,7 @@ public class StockHoldInfoCacheAgent extends AbstractDynamicHashCacheAgent<Strin
                                    KeyConverter<String> keyConverter,
                                    FieldConverter<Long> fieldConverter,
                                    DynamicHashCacheLoader<String, Long, StockHoldInfo> cacheLoader,
-                                   List<CacheInvocationInterceptor> interceptors,
+                                   List<InvocationInterceptor> interceptors,
                                    CacheBroadcastPublisher broadcastPublisher) {
         super(componentNane, config, redissonClient, keyConverter, fieldConverter, cacheLoader, interceptors,
                 broadcastPublisher);

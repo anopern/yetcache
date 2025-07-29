@@ -1,8 +1,8 @@
 package com.yetcache.agent.governance.plugin;
 
-import com.yetcache.agent.interceptor.CacheInvocationChain;
-import com.yetcache.agent.interceptor.CacheInvocationContext;
-import com.yetcache.agent.interceptor.CacheInvocationInterceptor;
+import com.yetcache.agent.interceptor.InvocationChain;
+import com.yetcache.agent.interceptor.DefaultInvocationContext;
+import com.yetcache.agent.interceptor.InvocationInterceptor;
 import com.yetcache.core.result.Result;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * @author walter.yan
  * @since 2025/7/14
  */
-public class MetricsInterceptor implements CacheInvocationInterceptor {
+public class MetricsInterceptor implements InvocationInterceptor {
     private final MeterRegistry registry;
 
     public MetricsInterceptor(MeterRegistry registry) {
@@ -22,9 +22,9 @@ public class MetricsInterceptor implements CacheInvocationInterceptor {
     }
 
     @Override
-    public <R extends Result<?>> R intercept(CacheInvocationContext ctx, CacheInvocationChain<R> chain) throws Throwable {
+    public <R extends Result<?>> R intercept(DefaultInvocationContext ctx, InvocationChain<R> chain) throws Throwable {
         long startNs = System.nanoTime();
-        R res = chain.proceed(ctx);
+        R res = chain.invoke(ctx);
         long costNs = System.nanoTime() - startNs;
 
         /* ---------- Counter ---------- */

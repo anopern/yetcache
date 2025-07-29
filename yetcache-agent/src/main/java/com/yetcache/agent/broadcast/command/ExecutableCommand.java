@@ -3,7 +3,7 @@ package com.yetcache.agent.broadcast.command;
 import com.yetcache.agent.broadcast.InstanceIdProvider;
 import com.yetcache.agent.broadcast.command.descriptor.CommandDescriptor;
 import com.yetcache.agent.core.CacheAgentMethod;
-import com.yetcache.agent.core.CacheStructureType;
+import com.yetcache.agent.core.StructureType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,7 +40,7 @@ public class ExecutableCommand {
 
     public static <K, F, V> ExecutableCommand dynamicHash(String agentName, CacheAgentMethod action, K bizKey,
                                                           Map<F, V> valueMap) {
-        CommandDescriptor descriptor = new CommandDescriptor(CacheStructureType.DYNAMIC_HASH,
+        CommandDescriptor descriptor = new CommandDescriptor(StructureType.DYNAMIC_HASH,
                 agentName,
                 action,
                 InstanceIdProvider.getInstanceId());
