@@ -33,12 +33,8 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class AbstractDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheAgent<K, F, V> {
-    protected final String componentName;
-    protected final MultiTierDynamicHashCache<K, F, V> multiTierCache;
-    protected final DynamicHashCacheConfig config;
-    protected final DynamicHashCacheLoader<K, F, V> cacheLoader;
+    private final DynamicHashAgentScope<K, F, V> scope;
     private final Cache<K, Long> fullyLoadedTs;
-    private final CacheBroadcastPublisher broadcastPublisher;
     private final InvocationChainRegistry chainRegistry;
 
     public AbstractDynamicHashCacheAgent(String componentNane,
@@ -49,13 +45,15 @@ public class AbstractDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheA
                                          DynamicHashCacheLoader<K, F, V> cacheLoader,
                                          InvocationChainRegistry chainRegistry,
                                          CacheBroadcastPublisher broadcastPublisher) {
-        this.config = config;
-        this.cacheLoader = cacheLoader;
-        this.broadcastPublisher = broadcastPublisher;
-        this.componentName = componentNane;
 
-        this.multiTierCache = new DefaultMultiTierDynamicHashCache<>(componentNane, config, redissonClient, keyConverter,
-                fieldConverter);
+        MultiTierDynamicHashCache<K, F, V> multiTierCache = new DefaultMultiTierDynamicHashCache<>(componentNane,
+                config, redissonClient, keyConverter, fieldConverter);
+
+        this.scope = new DynamicHashAgentScope<>(componentNane,
+                multiTierCache,
+                config,
+                cacheLoader,
+                broadcastPublisher);
 
         this.fullyLoadedTs = Caffeine.newBuilder()
                 .expireAfterWrite(config.getSpec().getFullyLoadedExpireSecs(), TimeUnit.MINUTES)
@@ -84,12 +82,12 @@ public class AbstractDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheA
 
     @Override
     public BaseSingleResult<V> get(K bizKey, F bizField) {
-        DynamicHashGetContext<K, F> ctx = new DynamicHashGetContext<>(componentName, "get",
+        DynamicHashGetContext<K, F> ctx = new DynamicHashGetContext<>(scope.getComponentName(), "get",
                 StructureType.DYNAMIC_HASH, BehaviorType.SINGLE_GET, bizKey, bizField);
         try {
             return chainRegistry.invoke(ctx);
         } catch (Throwable e) {
-            return BaseSingleResult.fail(componentName, e);
+            return BaseSingleResult.fail(scope.getComponentName(), e);
         } finally {
             CacheAccessContext.clear();
         }

@@ -4,6 +4,7 @@ import com.yetcache.agent.broadcast.command.ExecutableCommand;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.CacheAgentMethod;
 import com.yetcache.agent.core.StructureType;
+import com.yetcache.agent.core.structure.dynamichash.DynamicHashAgentScope;
 import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheLoader;
 import com.yetcache.agent.interceptor.BehaviorType;
 import com.yetcache.agent.interceptor.InvocationChain;
@@ -28,26 +29,11 @@ import java.util.Map;
 @Slf4j
 public class DynamicHashCacheGetInterceptor<K, F, V> implements InvocationInterceptor<DynamicHashGetContext<K, F>,
         CacheValueHolder<V>, BaseSingleResult<V>> {
-    protected final String componentName;
-    protected final MultiTierDynamicHashCache<K, F, V> multiTierCache;
-    protected final DynamicHashCacheConfig config;
-    protected final DynamicHashCacheLoader<K, F, V> cacheLoader;
-    private final CacheBroadcastPublisher broadcastPublisher;
-    private final InvocationChainRegistry chainRegistry;
+    private final DynamicHashAgentScope<K, F, V> agentScope;
 
 
-    public DynamicHashCacheGetInterceptor(String componentName,
-                                          MultiTierDynamicHashCache<K, F, V> multiTierCache,
-                                          DynamicHashCacheConfig config,
-                                          DynamicHashCacheLoader<K, F, V> cacheLoader,
-                                          CacheBroadcastPublisher broadcastPublisher,
-                                          InvocationChainRegistry chainRegistry) {
-        this.componentName = componentName;
-        this.multiTierCache = multiTierCache;
-        this.config = config;
-        this.cacheLoader = cacheLoader;
-        this.broadcastPublisher = broadcastPublisher;
-        this.chainRegistry = chainRegistry;
+    public DynamicHashCacheGetInterceptor(DynamicHashAgentScope<K, F, V> agentScope) {
+        this.agentScope = agentScope;
     }
 
     @Override
@@ -80,8 +66,9 @@ public class DynamicHashCacheGetInterceptor<K, F, V> implements InvocationInterc
             CacheValueHolder<V>, BaseSingleResult<V>> chain) throws Throwable {
         K bizKey = ctx.getBizKey();
         F bizField = ctx.getBizField();
+        String componentName = agentScope.getComponentName();
         try {
-            BaseSingleResult<V> result = multiTierCache.get(bizKey, bizField);
+            BaseSingleResult<V> result = agentScope.getMultiTierCache().get(bizKey, bizField);
             if (result.outcome() == CacheOutcome.HIT) {
                 CacheValueHolder<V> holder = result.value();
                 if (holder.isNotLogicExpired()) {
@@ -90,13 +77,14 @@ public class DynamicHashCacheGetInterceptor<K, F, V> implements InvocationInterc
             }
 
             // 回源加载数据
-            V loaded = cacheLoader.load(bizKey, bizField);
+            V loaded = agentScope.getCacheLoader().load(bizKey, bizField);
             if (loaded == null) {
                 return ResultFactory.notFoundSingle(componentName);
             }
 
             // 封装为缓存值并写入缓存
-            CacheValueHolder<V> valueHolder = CacheValueHolder.wrap(loaded, config.getRemote().getTtlSecs());
+            CacheValueHolder<V> valueHolder = CacheValueHolder.wrap(loaded,
+                    agentScope.getConfig().getRemote().getTtlSecs());
             multiTierCache.put(bizKey, bizField, valueHolder);
 
             try {
