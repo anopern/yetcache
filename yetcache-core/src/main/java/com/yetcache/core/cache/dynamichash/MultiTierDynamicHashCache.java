@@ -1,11 +1,7 @@
 package com.yetcache.core.cache.dynamichash;
 
-import com.yetcache.core.cache.support.CacheValueHolder;
-import com.yetcache.core.result.BaseBatchResult;
+import com.yetcache.core.cache.command.SingleHashCachePutCommand;
 import com.yetcache.core.result.BaseSingleResult;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author walter.yan
@@ -18,7 +14,7 @@ public interface MultiTierDynamicHashCache<K, F, V> {
 
 //    DynamicCacheStorageBatchAccessResult<F, V> listAll(K bizKey);
 
-    BaseSingleResult<Void> put(K bizKey, F bizField, CacheValueHolder<V> valueHolder);
+    BaseSingleResult<Void> put(SingleHashCachePutCommand<K, F, V> cmd);
 
 //    BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, CacheValueHolder<V>> valueHolderMap);
 

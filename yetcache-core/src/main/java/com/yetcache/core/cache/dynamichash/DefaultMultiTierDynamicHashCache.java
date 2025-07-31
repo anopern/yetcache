@@ -1,10 +1,9 @@
 package com.yetcache.core.cache.dynamichash;
 
-import cn.hutool.core.collection.CollUtil;
+import com.yetcache.core.cache.command.SingleHashCachePutCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.trace.HitTier;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
-import com.yetcache.core.result.BaseBatchResult;
 import com.yetcache.core.result.BaseSingleResult;
 import com.yetcache.core.result.ResultFactory;
 import com.yetcache.core.support.field.FieldConverter;
@@ -146,22 +145,36 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
 //        return DynamicCacheStorageBatchAccessResult.miss();
 //    }
 
+
+
     @Override
-    public BaseSingleResult<Void> put(K bizKey, F bizField, CacheValueHolder<V> valueHolder) {
-        String key = keyConverter.convert(bizKey);
-        String field = fieldConverter.convert(bizField);
+    public BaseSingleResult<Void> put(SingleHashCachePutCommand<K, F, V> cmd) {
+        String key = keyConverter.convert(cmd.getKey());
+        String field = fieldConverter.convert(cmd.getField());
+        V value = cmd.getValue();
 
-        // 写入本地缓存（如启用）
+        // Step 1: 写入本地缓存（如启用）
         if (localCache != null) {
-            localCache.put(key, field, valueHolder);
+            CacheValueHolder<V> localHolder = new CacheValueHolder<>(value, System.currentTimeMillis(),
+                    calcLogicExpireAt(cmd.getLocalLogicTtlSecs()));
+            localCache.put(key, field, localHolder);
         }
 
-        // 写入远程缓存（如启用）
+        // Step 2: 写入远程缓存（如启用）
         if (remoteCache != null) {
-            remoteCache.put(key, field, valueHolder);
+            CacheValueHolder<V> remoteHolder = new CacheValueHolder<>(value, System.currentTimeMillis(),
+                    calcLogicExpireAt(cmd.getRemoteLogicTtlSecs()));
+            long realTtlSecs = TtlRandomizer.randomizeSecs(cmd.getRemotePhysicalTtlSecs(),
+                    config.getRemote().getTtlRandomPct());
+            remoteCache.put(key, field, remoteHolder, realTtlSecs);
         }
 
+        // Step 3: 返回结构化结果
         return ResultFactory.successSingle(componentName);
+    }
+
+    private long calcLogicExpireAt(Long logicExpireSecs) {
+        return logicExpireSecs == null ? 0L : System.currentTimeMillis() + logicExpireSecs * 1000;
     }
 
 //    @Override

@@ -1,19 +1,15 @@
 package com.yetcache.agent.core.structure.dynamichash.get;
 
 import com.yetcache.agent.broadcast.command.ExecutableCommand;
-import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.CacheAgentMethod;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.dynamichash.DynamicHashAgentScope;
-import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheLoader;
 import com.yetcache.agent.interceptor.BehaviorType;
 import com.yetcache.agent.interceptor.InvocationChain;
-import com.yetcache.agent.interceptor.InvocationChainRegistry;
-import com.yetcache.agent.interceptor.InvocationInterceptor;
-import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
+import com.yetcache.agent.interceptor.CacheInterceptor;
+import com.yetcache.core.cache.command.SingleHashCachePutCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.trace.HitTier;
-import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
 import com.yetcache.core.result.BaseSingleResult;
 import com.yetcache.core.result.CacheOutcome;
 import com.yetcache.core.result.ResultFactory;
@@ -27,7 +23,7 @@ import java.util.Map;
  * @since 2025/7/30
  */
 @Slf4j
-public class DynamicHashCacheGetInterceptor<K, F, V> implements InvocationInterceptor<DynamicHashGetContext<K, F>,
+public class DynamicHashCacheGetInterceptor<K, F, V> implements CacheInterceptor<DynamicHashGetContext<K, F>,
         CacheValueHolder<V>, BaseSingleResult<V>> {
     private final DynamicHashAgentScope<K, F, V> agentScope;
 
@@ -83,15 +79,20 @@ public class DynamicHashCacheGetInterceptor<K, F, V> implements InvocationInterc
             }
 
             // 封装为缓存值并写入缓存
-            CacheValueHolder<V> valueHolder = CacheValueHolder.wrap(loaded,
-                    agentScope.getConfig().getRemote().getTtlSecs());
-            multiTierCache.put(bizKey, bizField, valueHolder);
+            SingleHashCachePutCommand<K, F, V> cmd = new SingleHashCachePutCommand<>(
+                    componentName, bizKey, bizField, loaded,
+                    agentScope.getConfig().getLocal().getLogicTtlSecs(),
+                    agentScope.getConfig().getLocal().getPhysicalTtlSecs(),
+                    agentScope.getConfig().getRemote().getLogicTtlSecs(),
+                    agentScope.getConfig().getRemote().getPhysicalTtlSecs(),
+                    null);
+            agentScope.getMultiTierCache().put(cmd);
 
             try {
                 Map<F, V> loadedMap = Collections.singletonMap(bizField, loaded);
                 ExecutableCommand command = ExecutableCommand.dynamicHash(componentName, CacheAgentMethod.PUT_ALL,
                         bizKey, loadedMap);
-                broadcastPublisher.publish(command);
+                agentScope.getBroadcastPublisher().publish(command);
             } catch (Exception e) {
                 log.warn("broadcast failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);
             }

@@ -23,9 +23,7 @@ import com.yetcache.core.support.key.KeyConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
-import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @author walter.yan
@@ -339,6 +337,6 @@ public class AbstractDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheA
 
     @Override
     public String componentName() {
-        return this.componentName;
+        return this.scope.getComponentName();
     }
 }

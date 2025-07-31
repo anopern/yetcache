@@ -1,6 +1,5 @@
 package com.yetcache.core.config.dynamichash;
 
-import com.yetcache.core.config.PenetrationProtectConfig;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,20 +10,20 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class RedisDynamicHashCacheConfig {
-    protected Long ttlSecs;
+    protected Long logicTtlSecs;
+    protected Long physicalTtlSecs;
     protected Double ttlRandomPct;
-    protected PenetrationProtectConfig penetrationProtect;
 
     public RedisDynamicHashCacheConfig(RedisDynamicHashCacheConfig other) {
-        this.ttlSecs = other.ttlSecs;
+        this.logicTtlSecs = other.logicTtlSecs;
+        this.physicalTtlSecs = other.physicalTtlSecs;
         this.ttlRandomPct = other.ttlRandomPct;
-        this.penetrationProtect = other.penetrationProtect;
     }
     public static RedisDynamicHashCacheConfig defaultConfig() {
         RedisDynamicHashCacheConfig config = new RedisDynamicHashCacheConfig();
-        config.setTtlSecs(20 * 60L);
+        config.setLogicTtlSecs(20 * 60L);
+        config.setPhysicalTtlSecs(3 * 24 * 3600L);
         config.setTtlRandomPct(0.15);
-        config.setPenetrationProtect(PenetrationProtectConfig.defaultConfig());
         return config;
     }
 }

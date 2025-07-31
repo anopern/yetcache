@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
  */
 public class InvocationChainRegistry {
     private final Map<StructureBehaviorKey, InvocationChain<? extends InvocationContext, ?, ? extends Result<?>>> chainMap = new HashMap<>();
-    private final List<InvocationInterceptor<? extends InvocationContext, ?, ? extends Result<?>>> interceptors = new ArrayList<>();
+    private final List<CacheInterceptor<? extends InvocationContext, ?, ? extends Result<?>>> interceptors = new ArrayList<>();
 
-    public InvocationChainRegistry(List<InvocationInterceptor<? extends InvocationContext, ?, ? extends Result<?>>> interceptors) {
+    public InvocationChainRegistry(List<CacheInterceptor<? extends InvocationContext, ?, ? extends Result<?>>> interceptors) {
         this.interceptors.addAll(interceptors);
     }
 
@@ -26,12 +26,12 @@ public class InvocationChainRegistry {
     public <C extends InvocationContext, T, R extends Result<T>> InvocationChain<C, T, R> getChain(StructureType structureType, BehaviorType behaviorType) {
         StructureBehaviorKey key = new StructureBehaviorKey(structureType, behaviorType);
         return (InvocationChain<C, T, R>) chainMap.computeIfAbsent(key, k -> {
-            List<InvocationInterceptor<C, T, R>> applicable = interceptors.stream()
-                    .filter(InvocationInterceptor::enabled)
+            List<CacheInterceptor<C, T, R>> applicable = interceptors.stream()
+                    .filter(CacheInterceptor::enabled)
                     .filter(i -> i.supportStructure(k.getStructureType()))
                     .filter(i -> i.supportBehavior(k.getBehaviorType()))
-                    .map(i -> (InvocationInterceptor<C, T, R>) i)
-                    .sorted(Comparator.comparing(InvocationInterceptor::getOrder))
+                    .map(i -> (CacheInterceptor<C, T, R>) i)
+                    .sorted(Comparator.comparing(CacheInterceptor::getOrder))
                     .collect(Collectors.toList());
             return new DefaultInvocationChain<>(applicable);
         });
