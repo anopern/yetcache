@@ -6,7 +6,7 @@ import com.yetcache.agent.core.StructureType;
  * @author walter.yan
  * @since 2025/7/29
  */
-public interface InvocationContext {
+public interface CacheInvocationContext {
     String componentNane();
 
     StructureType structureType();

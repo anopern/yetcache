@@ -37,7 +37,7 @@ public class TypedPayloadResolver {
     }
 
     public static <K, F, V> Map<String, Object> serialize(K bizKey, Map<F, V> valueMap) {
-        DynamicHashData<K, F, V> data = new DynamicHashData<>(bizKey, valueMap);
+        DynamicHashData<K, F, V> data = new DynamicHashData<>(bizKey, valueMap, System.currentTimeMillis());
         Map<String, Object> playload = new HashMap<>();
         playload.put("data", data);
         return playload;

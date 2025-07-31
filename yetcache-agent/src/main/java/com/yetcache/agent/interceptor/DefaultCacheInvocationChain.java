@@ -9,12 +9,13 @@ import java.util.List;
  * @author walter.yan
  * @since 2025/7/29
  */
-public class DefaultInvocationChain<C extends InvocationContext, T, R extends Result<T>> implements InvocationChain<C, T, R> {
+public class DefaultCacheInvocationChain<C extends CacheInvocationContext, T, R extends Result<T>>
+        implements CacheInvocationChain<C, T, R> {
 
     private final List<? extends CacheInterceptor<C, T, R>> interceptors;
     private int index = 0;
 
-    public DefaultInvocationChain(List<? extends CacheInterceptor<C, T, R>> interceptors) {
+    public DefaultCacheInvocationChain(List<CacheInterceptor<C, T, R>> interceptors) {
         this.interceptors = interceptors;
     }
 

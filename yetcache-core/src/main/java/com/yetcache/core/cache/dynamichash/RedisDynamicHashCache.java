@@ -62,10 +62,10 @@ public class RedisDynamicHashCache<V> {
         return map.readAllMap();
     }
 
-    public void putAll(String key, Map<String, CacheValueHolder<V>> holderMap) {
+    public void putAll(String key, Map<String, CacheValueHolder<V>> holderMap, long physicalTtlSecs) {
         RMap<String, CacheValueHolder<V>> map = rClient.getMap(key);
         map.putAll(holderMap);
-        long realTtlSecs = TtlRandomizer.randomizeSecs(config.getTtlSecs(), config.getTtlRandomPct());
+        long realTtlSecs = TtlRandomizer.randomizeSecs(physicalTtlSecs, config.getTtlRandomPct());
         map.expire(realTtlSecs, TimeUnit.SECONDS);
     }
 

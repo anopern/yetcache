@@ -1,20 +1,17 @@
 package com.yetcache.agent.core.structure.dynamichash;
 
-import cn.hutool.core.collection.CollUtil;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.yetcache.agent.broadcast.command.ExecutableCommand;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
-import com.yetcache.agent.core.CacheAgentMethod;
 import com.yetcache.agent.core.StructureType;
-import com.yetcache.agent.core.structure.dynamichash.get.DynamicHashGetContext;
+import com.yetcache.agent.core.structure.dynamichash.get.DynamicHashCacheGetContext;
 import com.yetcache.agent.interceptor.BehaviorType;
-import com.yetcache.agent.interceptor.InvocationChainRegistry;
-import com.yetcache.agent.interceptor.BaseInvocationContext;
+import com.yetcache.agent.interceptor.CacheInvocationChain;
+import com.yetcache.agent.interceptor.CacheInvocationChainRegistry;
+import com.yetcache.agent.interceptor.StructureBehaviorKey;
 import com.yetcache.core.cache.dynamichash.DefaultMultiTierDynamicHashCache;
 import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
 import com.yetcache.core.cache.support.CacheValueHolder;
-import com.yetcache.core.cache.trace.HitTier;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
 import com.yetcache.core.context.CacheAccessContext;
 import com.yetcache.core.result.*;
@@ -30,19 +27,19 @@ import java.util.concurrent.TimeUnit;
  * @since 2025/7/14
  */
 @Slf4j
-public class AbstractDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheAgent<K, F, V> {
+public class BaseDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheAgent<K, F, V> {
     private final DynamicHashAgentScope<K, F, V> scope;
     private final Cache<K, Long> fullyLoadedTs;
-    private final InvocationChainRegistry chainRegistry;
+    private final CacheInvocationChainRegistry chainRegistry;
 
-    public AbstractDynamicHashCacheAgent(String componentNane,
-                                         DynamicHashCacheConfig config,
-                                         RedissonClient redissonClient,
-                                         KeyConverter<K> keyConverter,
-                                         FieldConverter<F> fieldConverter,
-                                         DynamicHashCacheLoader<K, F, V> cacheLoader,
-                                         InvocationChainRegistry chainRegistry,
-                                         CacheBroadcastPublisher broadcastPublisher) {
+    public BaseDynamicHashCacheAgent(String componentNane,
+                                     DynamicHashCacheConfig config,
+                                     RedissonClient redissonClient,
+                                     KeyConverter<K> keyConverter,
+                                     FieldConverter<F> fieldConverter,
+                                     DynamicHashCacheLoader<K, F, V> cacheLoader,
+                                     CacheInvocationChainRegistry chainRegistry,
+                                     CacheBroadcastPublisher broadcastPublisher) {
 
         MultiTierDynamicHashCache<K, F, V> multiTierCache = new DefaultMultiTierDynamicHashCache<>(componentNane,
                 config, redissonClient, keyConverter, fieldConverter);
@@ -80,10 +77,14 @@ public class AbstractDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheA
 
     @Override
     public BaseSingleResult<V> get(K bizKey, F bizField) {
-        DynamicHashGetContext<K, F> ctx = new DynamicHashGetContext<>(scope.getComponentName(), "get",
-                StructureType.DYNAMIC_HASH, BehaviorType.SINGLE_GET, bizKey, bizField);
+        StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH,
+                BehaviorType.SINGLE_GET);
+        DynamicHashCacheGetContext<K, F, V> ctx = new DynamicHashCacheGetContext<>(scope.getComponentName(), "get",
+                StructureType.DYNAMIC_HASH, BehaviorType.SINGLE_GET, scope, bizKey, bizField);
         try {
-            return chainRegistry.invoke(ctx);
+            CacheInvocationChain<DynamicHashCacheGetContext<K, F, V>, CacheValueHolder<V>, BaseSingleResult<V>> chain
+                    = chainRegistry.getChain(structureBehaviorKey);
+            return chain.invoke(ctx);
         } catch (Throwable e) {
             return BaseSingleResult.fail(scope.getComponentName(), e);
         } finally {

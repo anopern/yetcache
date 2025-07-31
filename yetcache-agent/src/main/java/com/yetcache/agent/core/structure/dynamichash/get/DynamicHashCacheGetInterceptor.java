@@ -5,7 +5,7 @@ import com.yetcache.agent.core.CacheAgentMethod;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.dynamichash.DynamicHashAgentScope;
 import com.yetcache.agent.interceptor.BehaviorType;
-import com.yetcache.agent.interceptor.InvocationChain;
+import com.yetcache.agent.interceptor.CacheInvocationChain;
 import com.yetcache.agent.interceptor.CacheInterceptor;
 import com.yetcache.core.cache.command.SingleHashCachePutCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
@@ -14,7 +14,6 @@ import com.yetcache.core.result.BaseSingleResult;
 import com.yetcache.core.result.CacheOutcome;
 import com.yetcache.core.result.ResultFactory;
 import lombok.extern.slf4j.Slf4j;
-
 import java.util.Collections;
 import java.util.Map;
 
@@ -23,14 +22,8 @@ import java.util.Map;
  * @since 2025/7/30
  */
 @Slf4j
-public class DynamicHashCacheGetInterceptor<K, F, V> implements CacheInterceptor<DynamicHashGetContext<K, F>,
-        CacheValueHolder<V>, BaseSingleResult<V>> {
-    private final DynamicHashAgentScope<K, F, V> agentScope;
-
-
-    public DynamicHashCacheGetInterceptor(DynamicHashAgentScope<K, F, V> agentScope) {
-        this.agentScope = agentScope;
-    }
+public class DynamicHashCacheGetInterceptor<K, F, V>
+        implements CacheInterceptor<DynamicHashCacheGetContext<K, F, V>, CacheValueHolder<V>, BaseSingleResult<V>> {
 
     @Override
     public String id() {
@@ -57,11 +50,14 @@ public class DynamicHashCacheGetInterceptor<K, F, V> implements CacheInterceptor
         return StructureType.DYNAMIC_HASH.equals(type);
     }
 
+
     @Override
-    public BaseSingleResult<V> invoke(DynamicHashGetContext<K, F> ctx, InvocationChain<DynamicHashGetContext<K, F>,
-            CacheValueHolder<V>, BaseSingleResult<V>> chain) throws Throwable {
+    public BaseSingleResult<V> invoke(DynamicHashCacheGetContext<K, F, V> ctx,
+                                      CacheInvocationChain<DynamicHashCacheGetContext<K, F, V>, CacheValueHolder<V>,
+                                              BaseSingleResult<V>> chain) throws Throwable {
         K bizKey = ctx.getBizKey();
         F bizField = ctx.getBizField();
+        DynamicHashAgentScope<K, F, V> agentScope = ctx.getAgentScope();
         String componentName = agentScope.getComponentName();
         try {
             BaseSingleResult<V> result = agentScope.getMultiTierCache().get(bizKey, bizField);

@@ -11,17 +11,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2025/7/13
  */
 @Data
-public abstract class BaseInvocationContext implements InvocationContext {
+public abstract class BaseCacheInvocationContext implements CacheInvocationContext {
     protected final String componentNane;
     protected final String methodName;
     protected final StructureType structureType;
     protected final BehaviorType behaviorType;
     protected final Map<String, Object> attributes = new ConcurrentHashMap<>();
 
-    public BaseInvocationContext(String componentNane,
-                                 String methodName,
-                                 StructureType structureType,
-                                 BehaviorType behaviorType) {
+    public BaseCacheInvocationContext(String componentNane,
+                                      String methodName,
+                                      StructureType structureType,
+                                      BehaviorType behaviorType) {
         this.componentNane = componentNane;
         this.methodName = methodName;
         this.structureType = structureType;

@@ -1,6 +1,7 @@
 package com.yetcache.example.cache.cnfig;
 
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
+import com.yetcache.agent.interceptor.CacheInvocationChainRegistry;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
@@ -31,6 +32,8 @@ public class DynamicHashCacheAgentConfig {
     private StockHoldInfoCacheLoader stockHoldInfoCacheLoader;
     @Autowired
     private CacheBroadcastPublisher cacheBroadcastPublisher;
+    @Autowired
+    private CacheInvocationChainRegistry cacheInvocationChainRegistry;
 
     @Bean
     public StockHoldInfoCacheAgent stockHoldInfoCacheAgent(CacheAgentRegistryHub agentRegistryHub) {
@@ -41,7 +44,7 @@ public class DynamicHashCacheAgentConfig {
                 KeyConverterFactory.createDefault(config.getSpec().getKeyPrefix(), config.getSpec().getUseHashTag()),
                 new TypeFieldConverter<>(Long.class),
                 stockHoldInfoCacheLoader,
-                null,
+                cacheInvocationChainRegistry,
                 cacheBroadcastPublisher);
         agentRegistryHub.register(agent);
         return agent;
