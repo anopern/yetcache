@@ -2,13 +2,12 @@ package com.yetcache.core.cache.dynamichash;
 
 import com.yetcache.core.cache.command.SingleHashCachePutCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
-import com.yetcache.core.cache.trace.HitTier;
+import com.yetcache.core.result.*;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
-import com.yetcache.core.result.BaseSingleResult;
-import com.yetcache.core.result.ResultFactory;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.support.util.TtlRandomizer;
+import jodd.cache.Cache;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
@@ -47,7 +46,7 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
     }
 
     @Override
-    public BaseSingleResult<V> get(K bizKey, F bizField) {
+    public CacheResult get(K bizKey, F bizField) {
         String key = keyConverter.convert(bizKey);
         String field = fieldConverter.convert(bizField);
 
@@ -55,7 +54,7 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
         if (localCache != null) {
             CacheValueHolder<V> valueHolder = localCache.getIfPresent(key, field);
             if (valueHolder != null && valueHolder.isNotLogicExpired()) {
-                return BaseSingleResult.hit(componentName, valueHolder, HitTier.LOCAL);
+                return SingleCacheResultV2.hit(componentName, valueHolder, HitTier.LOCAL);
             }
         }
 
@@ -67,12 +66,12 @@ public class DefaultMultiTierDynamicHashCache<K, F, V> implements MultiTierDynam
                 if (localCache != null) {
                     localCache.put(key, field, holder);
                 }
-                return BaseSingleResult.hit(componentName, holder, HitTier.REMOTE);
+                return SingleCacheResultV2.hit(componentName, holder, HitTier.REMOTE);
             }
         }
 
         // 3. 所有缓存都 miss
-        return BaseSingleResult.miss(componentName);
+        return SingleCacheResultV2.miss(componentName);
     }
 
 //    @Override

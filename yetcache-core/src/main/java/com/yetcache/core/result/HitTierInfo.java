@@ -7,7 +7,7 @@ import java.util.Map;
  * @since 2025/8/6
  */
 public interface HitTierInfo {
-    HitTier getHitTier();
+    HitTier hitTier();
 
     Map<Object, HitTier> getHitTierMap();
 }

@@ -1,7 +1,5 @@
 package com.yetcache.core.result;
 
-import java.util.Map;
-
 /**
  * 缓存系统统一结果封装组件
  *
@@ -17,9 +15,9 @@ public interface CacheResult {
 
     HitTierInfo hitTierInfo();
 
-    Throwable error();
+    ErrorInfo errorInfo();
 
-    Map<String, Object> metadata();
+    Metadata metadata();
 
     boolean isSuccess();
 }
