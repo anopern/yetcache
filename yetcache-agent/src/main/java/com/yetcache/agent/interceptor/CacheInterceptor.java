@@ -36,5 +36,7 @@ public interface CacheInterceptor<C extends CacheInvocationContext, T, R extends
      */
     boolean supportStructure(StructureType type);
 
+    boolean supportStructureAndBehavior(StructureBehaviorKey structureBehaviorKey);
+
     R invoke(C context, CacheInvocationChain<C, T, R> chain) throws Throwable;
 }

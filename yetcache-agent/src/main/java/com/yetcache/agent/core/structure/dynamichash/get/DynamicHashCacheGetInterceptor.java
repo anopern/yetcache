@@ -7,6 +7,7 @@ import com.yetcache.agent.core.structure.dynamichash.DynamicHashAgentScope;
 import com.yetcache.agent.interceptor.BehaviorType;
 import com.yetcache.agent.interceptor.CacheInvocationChain;
 import com.yetcache.agent.interceptor.CacheInterceptor;
+import com.yetcache.agent.interceptor.StructureBehaviorKey;
 import com.yetcache.core.cache.command.SingleHashCachePutCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.cache.trace.HitTier;
@@ -48,6 +49,12 @@ public class DynamicHashCacheGetInterceptor<K, F, V>
     @Override
     public boolean supportStructure(StructureType type) {
         return StructureType.DYNAMIC_HASH.equals(type);
+    }
+
+    @Override
+    public boolean supportStructureAndBehavior(StructureBehaviorKey structureBehaviorKey) {
+        return StructureType.DYNAMIC_HASH.equals(structureBehaviorKey.getStructureType())
+                && BehaviorType.SINGLE_GET.equals(structureBehaviorKey.getBehaviorType());
     }
 
 
