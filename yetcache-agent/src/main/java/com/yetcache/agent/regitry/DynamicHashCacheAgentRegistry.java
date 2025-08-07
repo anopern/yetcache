@@ -16,12 +16,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DynamicHashCacheAgentRegistry {
 
     // 存储 agent 实例，按 componentName 唯一标识
-    private final Map<String, DynamicHashCacheAgent<?, ?, ?>> agentMap = new ConcurrentHashMap<>();
+    private final Map<String, DynamicHashCacheAgent> agentMap = new ConcurrentHashMap<>();
 
     /**
      * 注册一个 Agent，如果重复 componentName 将覆盖
      */
-    public void register(DynamicHashCacheAgent<?, ?, ?> agent) {
+    public void register(DynamicHashCacheAgent agent) {
         Objects.requireNonNull(agent, "Agent must not be null");
         String name = agent.componentName();
         agentMap.put(name, agent);
@@ -30,7 +30,7 @@ public class DynamicHashCacheAgentRegistry {
     /**
      * 根据名称获取 agent，找不到返回 null
      */
-    public DynamicHashCacheAgent<?, ?, ?> get(String componentName) {
+    public DynamicHashCacheAgent get(String componentName) {
         return agentMap.get(componentName);
     }
 
@@ -51,7 +51,7 @@ public class DynamicHashCacheAgentRegistry {
     /**
      * 获取所有 Agent 实例
      */
-    public Collection<DynamicHashCacheAgent<?, ?, ?>> listAgents() {
+    public Collection<DynamicHashCacheAgent> listAgents() {
         return agentMap.values();
     }
 

@@ -1,6 +1,5 @@
 package com.yetcache.core.result;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +9,7 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @NoArgsConstructor
-public abstract class BaseCacheResultV2<T> implements CacheResult {
+public class BaseCacheResult<T> implements CacheResult {
     private String componentName;
     private Integer code;
     private String message;
@@ -19,7 +18,7 @@ public abstract class BaseCacheResultV2<T> implements CacheResult {
     private ErrorInfo errorInfo;
     private Metadata metadata;
 
-    public BaseCacheResultV2(String componentName, Integer code, String message, T value, HitTierInfo hitTierInfo, ErrorInfo errorInfo, Metadata metadata) {
+    public BaseCacheResult(String componentName, Integer code, String message, T value, HitTierInfo hitTierInfo, ErrorInfo errorInfo, Metadata metadata) {
         this.componentName = componentName;
         this.code = code;
         this.message = message;
@@ -40,8 +39,8 @@ public abstract class BaseCacheResultV2<T> implements CacheResult {
     }
 
     @Override
-    public Object value() {
-        return null;
+    public T value() {
+        return this.value;
     }
 
     @Override
@@ -61,6 +60,10 @@ public abstract class BaseCacheResultV2<T> implements CacheResult {
 
     @Override
     public boolean isSuccess() {
-        return false;
+        return code == 0;
+    }
+
+    public static <T> BaseCacheResult<T> fail(String componentName) {
+        return new BaseCacheResult<>(componentName, -1, "操作失败", null, null, null, null);
     }
 }

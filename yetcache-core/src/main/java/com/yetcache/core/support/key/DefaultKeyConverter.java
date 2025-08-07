@@ -4,7 +4,7 @@ package com.yetcache.core.support.key;
  * @author walter.yan
  * @since 2025/6/28
  */
-public class DefaultKeyConverter<K> implements KeyConverter<K> {
+public class DefaultKeyConverter implements KeyConverter {
     protected final String keyPrefix;
     protected final boolean useHashTag;
 
@@ -14,7 +14,7 @@ public class DefaultKeyConverter<K> implements KeyConverter<K> {
     }
 
     @Override
-    public String convert(K bizKey) {
+    public String convert(Object bizKey) {
         StringBuilder sb = new StringBuilder(keyPrefix);
         if (null != bizKey) {
             String bizKeyStr = String.valueOf(bizKey);

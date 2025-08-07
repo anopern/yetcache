@@ -1,15 +1,32 @@
 package com.yetcache.agent.interceptor;
 
-import com.yetcache.agent.core.StructureType;
+import com.yetcache.agent.core.AgentScope;
+import com.yetcache.core.result.CacheResult;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author walter.yan
  * @since 2025/7/29
  */
-public interface CacheInvocationContext {
-    String componentNane();
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public final class CacheInvocationContext {
+    private CacheInvocationCommand command;
+    private CacheResult result;
+    private AgentScope agentScope;
+    private boolean interrupted;
+    private String interruptReason;
 
-    StructureType structureType();
+    public CacheInvocationContext(CacheInvocationCommand command, AgentScope agentScope) {
+        this.command = command;
+        this.agentScope = agentScope;
+    }
 
-    BehaviorType behaviorType();
+    public void interrupt(String reason) {
+        interrupted = true;
+        interruptReason = reason;
+    }
 }

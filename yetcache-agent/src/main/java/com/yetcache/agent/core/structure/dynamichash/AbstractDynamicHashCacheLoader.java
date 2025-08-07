@@ -1,26 +1,16 @@
 package com.yetcache.agent.core.structure.dynamichash;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import com.yetcache.core.result.CacheResult;
 
 /**
  * @author walter.yan
  * @since 2025/7/15
  */
-public class AbstractDynamicHashCacheLoader<K, F, V> implements DynamicHashCacheLoader<K, F, V> {
-    @Override
-    public V load(K bizKey, F bizField) {
-        return null;
-    }
+public abstract class AbstractDynamicHashCacheLoader implements DynamicHashCacheLoader {
 
     @Override
-    public Map<F, V> batchLoad(K bizKey, List<F> bizFields) {
-        return new HashMap<>();
-    }
-
-    @Override
-    public Map<F, V> loadAll(K bizKey) {
-        return new HashMap<>();
+    public CacheResult load(HashCacheSingleLoadCommand cmd) {
+        throw new UnsupportedOperationException();
     }
 }

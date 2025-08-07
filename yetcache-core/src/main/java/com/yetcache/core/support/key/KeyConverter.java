@@ -5,6 +5,6 @@ package com.yetcache.core.support.key;
  * @since 2025/6/28
  */
 @FunctionalInterface
-public interface KeyConverter<K> {
-    String convert(K bizKey);
+public interface KeyConverter {
+    String convert(Object bizKey);
 }

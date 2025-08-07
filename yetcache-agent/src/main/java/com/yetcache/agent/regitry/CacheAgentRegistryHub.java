@@ -16,7 +16,7 @@ public class CacheAgentRegistryHub {
 
     public void register(CacheAgent agent) {
         if (agent instanceof DynamicHashCacheAgent) {
-            dhRegistry.register((DynamicHashCacheAgent<?, ?, ?>) agent);
+            dhRegistry.register((DynamicHashCacheAgent) agent);
         }
     }
 

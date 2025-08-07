@@ -1,12 +1,14 @@
 package com.yetcache.example.cache.service;
 
-import com.yetcache.core.result.BaseSingleResult;
+import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.result.CacheResultUtils;
+import com.yetcache.core.result.HitTier;
+import com.yetcache.core.result.SingleCacheResult;
 import com.yetcache.example.cache.agent.StockHoldInfoCacheAgent;
 import com.yetcache.example.entity.StockHoldInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -15,17 +17,18 @@ import java.util.Optional;
  */
 @Component
 public final class StockHoldInfoCacheService {
-    private final StockHoldInfoCacheAgent stockHoldInfoCacheAgent;
+    private final StockHoldInfoCacheAgent<StockHoldInfo> stockHoldInfoCacheAgent;
 
     @Autowired
-    public StockHoldInfoCacheService(StockHoldInfoCacheAgent stockHoldInfoCacheAgent) {
+    public StockHoldInfoCacheService(StockHoldInfoCacheAgent<StockHoldInfo> stockHoldInfoCacheAgent) {
         this.stockHoldInfoCacheAgent = stockHoldInfoCacheAgent;
     }
 
     public Optional<StockHoldInfo> get(String fundAccount, Long id) {
-        BaseSingleResult<StockHoldInfo> result = stockHoldInfoCacheAgent.get(fundAccount, id);
-        if (null != result && null != result.value()) {
-            return Optional.of(result.value().getValue());
+        SingleCacheResult<CacheValueHolder<StockHoldInfo>> result = CacheResultUtils.getTypedValue(stockHoldInfoCacheAgent.get(fundAccount, id));
+        if (result.isSuccess() && HitTier.NONE != result.hitTierInfo().hitTier()) {
+            CacheValueHolder<StockHoldInfo> valueHolder = result.value();
+            return Optional.of(valueHolder.getValue());
         }
         return Optional.empty();
     }

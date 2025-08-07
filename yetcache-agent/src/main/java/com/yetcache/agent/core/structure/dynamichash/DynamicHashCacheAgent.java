@@ -1,18 +1,14 @@
 package com.yetcache.agent.core.structure.dynamichash;
 
 import com.yetcache.agent.core.structure.CacheAgent;
-import com.yetcache.core.result.BaseBatchResult;
-import com.yetcache.core.result.BaseSingleResult;
-
-import java.util.List;
-import java.util.Map;
+import com.yetcache.core.result.CacheResult;
 
 /**
  * @author walter.yan
  * @since 2025/7/14
  */
-public interface DynamicHashCacheAgent<K, F, V> extends CacheAgent {
-    BaseSingleResult<V> get(K bizKey, F bizField);
+public interface DynamicHashCacheAgent extends CacheAgent {
+    CacheResult get(Object bizKey, Object bizField);
 
 //    BaseBatchResult<F, V> batchGet(K bizKey, List<F> bizFields);
 

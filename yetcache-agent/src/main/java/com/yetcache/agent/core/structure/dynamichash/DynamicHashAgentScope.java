@@ -1,6 +1,5 @@
 package com.yetcache.agent.core.structure.dynamichash;
 
-import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.AgentScope;
 import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
@@ -11,22 +10,19 @@ import lombok.Getter;
  * @since 2025/7/30
  */
 @Getter
-public class DynamicHashAgentScope<K, F, V> implements AgentScope {
+public class DynamicHashAgentScope implements AgentScope {
     private final String componentName;
-    private final MultiTierDynamicHashCache<K, F, V> multiTierCache;
+    private final MultiTierDynamicHashCache multiTierCache;
     private final DynamicHashCacheConfig config;
-    private final DynamicHashCacheLoaderV2 cacheLoader;
-    private final CacheBroadcastPublisher broadcastPublisher;
+    private final DynamicHashCacheLoader cacheLoader;
 
     public DynamicHashAgentScope(String componentName,
-                                 MultiTierDynamicHashCache<K, F, V> multiTierCache,
+                                 MultiTierDynamicHashCache multiTierCache,
                                  DynamicHashCacheConfig config,
-                                 DynamicHashCacheLoaderV2 cacheLoader,
-                                 CacheBroadcastPublisher broadcastPublisher) {
+                                 DynamicHashCacheLoader cacheLoader  ) {
         this.componentName = componentName;
         this.multiTierCache = multiTierCache;
         this.config = config;
         this.cacheLoader = cacheLoader;
-        this.broadcastPublisher = broadcastPublisher;
     }
 }

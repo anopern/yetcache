@@ -2,11 +2,10 @@ package com.yetcache.agent.core.structure.dynamichash.get;
 
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.interceptor.BehaviorType;
+import com.yetcache.agent.interceptor.CacheInvocationCommand;
 import com.yetcache.agent.interceptor.StructureBehaviorKey;
-import com.yetcache.agent.interceptor.v2.CacheInvocationCommandV2;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
@@ -16,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DynamicHashCacheAgentGetInvocationCommandV2 implements CacheInvocationCommandV2 {
+public class DynamicHashCacheAgentGetInvocationCommand implements CacheInvocationCommand {
     private Object bizKey;
     private Object bizField;
 

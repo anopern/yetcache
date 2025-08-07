@@ -1,59 +1,42 @@
 package com.yetcache.agent.core.structure.dynamichash;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.StructureType;
-import com.yetcache.agent.core.structure.dynamichash.get.DynamicHashCacheGetContext;
-import com.yetcache.agent.interceptor.BehaviorType;
-import com.yetcache.agent.interceptor.CacheInvocationChain;
-import com.yetcache.agent.interceptor.CacheInvocationChainRegistry;
-import com.yetcache.agent.interceptor.StructureBehaviorKey;
+import com.yetcache.agent.core.structure.dynamichash.get.DynamicHashCacheAgentGetInvocationCommand;
+import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.dynamichash.DefaultMultiTierDynamicHashCache;
 import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
-import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
-import com.yetcache.core.context.CacheAccessContext;
-import com.yetcache.core.result.*;
+import com.yetcache.core.result.CacheResult;
+import com.yetcache.core.result.SingleCacheResult;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author walter.yan
  * @since 2025/7/14
  */
 @Slf4j
-public class BaseDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheAgent<K, F, V> {
-    private final DynamicHashAgentScope<K, F, V> scope;
-    private final Cache<K, Long> fullyLoadedTs;
+public class BaseDynamicHashCacheAgent<V> implements DynamicHashCacheAgent {
+    private final DynamicHashAgentScope scope;
     private final CacheInvocationChainRegistry chainRegistry;
 
     public BaseDynamicHashCacheAgent(String componentNane,
                                      DynamicHashCacheConfig config,
                                      RedissonClient redissonClient,
-                                     KeyConverter<K> keyConverter,
-                                     FieldConverter<F> fieldConverter,
-                                     DynamicHashCacheLoaderV2 cacheLoader,
-                                     CacheInvocationChainRegistry chainRegistry,
-                                     CacheBroadcastPublisher broadcastPublisher) {
+                                     KeyConverter keyConverter,
+                                     FieldConverter fieldConverter,
+                                     DynamicHashCacheLoader cacheLoader,
+                                     CacheInvocationChainRegistry chainRegistry) {
 
-        MultiTierDynamicHashCache<K, F, V> multiTierCache = new DefaultMultiTierDynamicHashCache<>(componentNane,
+        MultiTierDynamicHashCache multiTierCache = new DefaultMultiTierDynamicHashCache<>(componentNane,
                 config, redissonClient, keyConverter, fieldConverter);
 
-        this.scope = new DynamicHashAgentScope<>(componentNane,
+        this.scope = new DynamicHashAgentScope(componentNane,
                 multiTierCache,
                 config,
-                cacheLoader,
-                broadcastPublisher);
-
-        this.fullyLoadedTs = Caffeine.newBuilder()
-                .expireAfterWrite(config.getSpec().getFullyLoadedExpireSecs(), TimeUnit.MINUTES)
-                .maximumSize(100_000)
-                .build();
+                cacheLoader);
 
 
 //        PenetrationProtectConfig localPpConfig = config.getEnhance().getLocalPenetrationProtect();
@@ -76,19 +59,26 @@ public class BaseDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheAgent
     }
 
     @Override
-    public BaseSingleResult<V> get(K bizKey, F bizField) {
+    public CacheResult get(Object bizKey, Object bizField) {
         StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH,
                 BehaviorType.SINGLE_GET);
-        DynamicHashCacheGetContext<K, F, V> ctx = new DynamicHashCacheGetContext<>(scope.getComponentName(), "get",
-                StructureType.DYNAMIC_HASH, BehaviorType.SINGLE_GET, scope, bizKey, bizField);
+
+        CacheInvocationCommand command = new DynamicHashCacheAgentGetInvocationCommand(bizKey, bizField);
+        CacheInvocationContext ctx = new CacheInvocationContext(command, scope);
         try {
-            CacheInvocationChain<DynamicHashCacheGetContext<K, F, V>, CacheValueHolder<V>, BaseSingleResult<V>> chain
-                    = chainRegistry.getChain(structureBehaviorKey);
-            return chain.invoke(ctx);
+            CacheInvocationChain chain = chainRegistry.getChain(structureBehaviorKey);
+            CacheResult rawResult = chain.proceed(ctx);
+
+            // 🔒 类型恢复与封装点：调用泛型 loader，进行包装
+            // ⚠️ 注意：必须由 Agent 主动完成类型决策，不能交给业务方
+            @SuppressWarnings("unchecked")
+            V typedValue = (V) rawResult.value(); // 这是 holder，或者直接是数据
+
+            // ✅ 统一构造泛型结构体返回（仍然声明为 CacheResult）
+            return SingleCacheResult.hit(scope.getComponentName(), typedValue, rawResult.hitTierInfo().hitTier());
+
         } catch (Throwable e) {
-            return BaseSingleResult.fail(scope.getComponentName(), e);
-        } finally {
-            CacheAccessContext.clear();
+            return SingleCacheResult.fail(scope.getComponentName(), e);
         }
     }
 

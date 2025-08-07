@@ -6,38 +6,37 @@ package com.yetcache.core.support.field;
  * @author walter.yan
  * @since 2025/7/12
  */
-public class TypeFieldConverter<F> implements FieldConverter<F> {
+public class TypeFieldConverter implements FieldConverter {
 
-    private final Class<F> fieldType;
+    private final Class<?> fieldType;
 
-    public TypeFieldConverter(Class<F> fieldType) {
+    public TypeFieldConverter(Class<?> fieldType) {
         this.fieldType = fieldType;
     }
 
     @Override
-    public String convert(F bizField) {
+    public String convert(Object bizField) {
         return bizField == null ? null : bizField.toString();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public F revert(String field) {
+    public Object revert(String field) {
         if (field == null) {
             return null;
         }
 
         if (fieldType == String.class) {
-            return (F) field;
+            return field;
         } else if (fieldType == Integer.class || fieldType == int.class) {
-            return (F) Integer.valueOf(field);
+            return Integer.valueOf(field);
         } else if (fieldType == Long.class || fieldType == long.class) {
-            return (F) Long.valueOf(field);
+            return  Long.valueOf(field);
         } else if (fieldType == Boolean.class || fieldType == boolean.class) {
-            return (F) Boolean.valueOf(field);
+            return  Boolean.valueOf(field);
         } else if (fieldType == Double.class || fieldType == double.class) {
-            return (F) Double.valueOf(field);
+            return  Double.valueOf(field);
         } else if (fieldType == Float.class || fieldType == float.class) {
-            return (F) Float.valueOf(field);
+            return  Float.valueOf(field);
         } else {
             throw new UnsupportedOperationException("Unsupported field type: " + fieldType.getName());
         }

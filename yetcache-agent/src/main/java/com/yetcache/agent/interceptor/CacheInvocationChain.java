@@ -1,11 +1,11 @@
 package com.yetcache.agent.interceptor;
 
-import com.yetcache.core.result.Result;
+import com.yetcache.core.result.CacheResult;
 
 /**
  * @author walter.yan
  * @since 2025/7/13
  */
-public interface CacheInvocationChain<C extends CacheInvocationContext, T, R extends Result<T>> {
-    R invoke(C ctx) throws Throwable;
+public interface CacheInvocationChain {
+    CacheResult proceed(CacheInvocationContext ctx) throws Throwable;
 }
