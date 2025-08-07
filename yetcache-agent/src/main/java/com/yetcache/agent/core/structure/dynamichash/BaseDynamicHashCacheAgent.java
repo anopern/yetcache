@@ -1,6 +1,7 @@
 package com.yetcache.agent.core.structure.dynamichash;
 
 import com.yetcache.agent.core.StructureType;
+import com.yetcache.agent.core.structure.dynamichash.batchget.DynamicHashCacheAgentBatchGetInvocationCommand;
 import com.yetcache.agent.core.structure.dynamichash.get.DynamicHashCacheAgentGetInvocationCommand;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.dynamichash.DefaultMultiTierDynamicHashCache;
@@ -13,12 +14,14 @@ import com.yetcache.core.support.key.KeyConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
+import java.util.List;
+
 /**
  * @author walter.yan
  * @since 2025/7/14
  */
 @Slf4j
-public class BaseDynamicHashCacheAgent<V> implements DynamicHashCacheAgent {
+public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
     private final DynamicHashAgentScope scope;
     private final CacheInvocationChainRegistry chainRegistry;
 
@@ -62,79 +65,30 @@ public class BaseDynamicHashCacheAgent<V> implements DynamicHashCacheAgent {
     public CacheResult get(Object bizKey, Object bizField) {
         StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH,
                 BehaviorType.SINGLE_GET);
-
         CacheInvocationCommand command = new DynamicHashCacheAgentGetInvocationCommand(bizKey, bizField);
+        return invoke(structureBehaviorKey, command);
+    }
+
+    @Override
+    public CacheResult batchGet(Object bizKey, List<Object> bizFields) {
+        StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH,
+                BehaviorType.BATCH_GET);
+        CacheInvocationCommand command = new DynamicHashCacheAgentBatchGetInvocationCommand(bizKey, bizFields);
+        return invoke(structureBehaviorKey, command);
+    }
+
+    private CacheResult invoke(StructureBehaviorKey structureBehaviorKey, CacheInvocationCommand command) {
         CacheInvocationContext ctx = new CacheInvocationContext(command, scope);
         try {
             CacheInvocationChain chain = chainRegistry.getChain(structureBehaviorKey);
             CacheResult rawResult = chain.proceed(ctx);
-
-            // 🔒 类型恢复与封装点：调用泛型 loader，进行包装
-            // ⚠️ 注意：必须由 Agent 主动完成类型决策，不能交给业务方
-            @SuppressWarnings("unchecked")
-            V typedValue = (V) rawResult.value(); // 这是 holder，或者直接是数据
-
             // ✅ 统一构造泛型结构体返回（仍然声明为 CacheResult）
-            return SingleCacheResult.hit(scope.getComponentName(), typedValue, rawResult.hitTierInfo().hitTier());
-
+            return SingleCacheResult.hit(scope.getComponentName(), rawResult.value(), rawResult.hitTierInfo().hitTier());
         } catch (Throwable e) {
             return SingleCacheResult.fail(scope.getComponentName(), e);
         }
     }
 
-//
-//    @Override
-//    public BaseBatchResult<F, V> batchGet(K bizKey, List<F> bizFields) {
-//        return invoke("batchGet", () -> doBatchGet(bizKey, bizFields), CacheAccessKey.batch(bizKey, bizFields));
-//    }
-//
-//    private BaseBatchResult<F, V> doBatchGet(K bizKey, List<F> bizFields) {
-//        Map<F, CacheValueHolder<V>> resultValueHolderMap = new HashMap<>();
-//        Map<F, HitTier> resultHitTierMap = new HashMap<>();
-//
-//        try {
-//            // Step 1: 批量从缓存获取
-//            BaseBatchResult<F, V> cacheStorageResult = multiTierCache.batchGet(bizKey, bizFields);
-//
-//            // Step 2: 识别需要回源的字段
-//            List<F> missedFields = new ArrayList<>();
-//
-//            Map<F, CacheValueHolder<V>> cacheValueHolderMap = cacheStorageResult.value();
-//            Map<F, HitTier> cacheHitTierMap = cacheStorageResult.hitTierMap();
-//            if (CollUtil.isNotEmpty(cacheValueHolderMap)) {
-//                for (F bizField : cacheValueHolderMap.keySet()) {
-//                    CacheValueHolder<V> valueHolder = cacheValueHolderMap.get(bizField);
-//                    if (null != valueHolder && valueHolder.isNotLogicExpired()) {
-//                        resultValueHolderMap.put(bizField, valueHolder); // 命中直接返回
-//                        resultHitTierMap.put(bizField, cacheHitTierMap.get(bizField));
-//                    } else {
-//                        missedFields.add(bizField);      // miss 或过期，需回源
-//                    }
-//                }
-//            }
-//
-//            // Step 3: 回源加载 + 回写缓存
-//            if (!missedFields.isEmpty()) {
-//                Map<F, V> loadedMap = cacheLoader.batchLoad(bizKey, missedFields);
-//                if (CollUtil.isNotEmpty(loadedMap)) {
-//                    for (F field : missedFields) {
-//                        V loaded = loadedMap.get(field);
-//                        if (loaded != null) {
-//                            resultValueHolderMap.put(field, CacheValueHolder.wrap(loaded, 0));
-//                            resultHitTierMap.put(field, HitTier.SOURCE);
-//                        }
-//                    }
-//                    multiTierCache.putAll(bizKey, loadedMap);
-//                }
-//            }
-//            return BaseBatchResult.hit(componentName, resultValueHolderMap, resultHitTierMap);
-//        } catch (Exception e) {
-//            log.warn("batchGet with fallback failed, agent = {}, key = {}, fields = {}", componentName, bizKey, bizFields, e);
-//            return BaseBatchResult.fail(componentName, e);
-//        } finally {
-//            CacheAccessContext.clear();
-//        }
-//    }
 
     //
 //

@@ -12,7 +12,7 @@ import org.redisson.api.RedissonClient;
  * @author walter.yan
  * @since 2025/7/15
  */
-public class StockHoldInfoCacheAgent<V> extends BaseDynamicHashCacheAgent<V> {
+public class StockHoldInfoCacheAgent extends BaseDynamicHashCacheAgent {
     public StockHoldInfoCacheAgent(String componentNane,
                                    DynamicHashCacheConfig config,
                                    RedissonClient redissonClient,

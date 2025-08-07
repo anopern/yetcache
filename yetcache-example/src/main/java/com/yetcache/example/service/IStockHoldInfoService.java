@@ -9,4 +9,5 @@ import java.util.List;
 public interface IStockHoldInfoService extends IService<StockHoldInfo> {
     List<StockHoldInfo> listByFundAccount(@NotNull String fundAccount);
     StockHoldInfo getById(@NotNull Long id);
+    List<StockHoldInfo> listByIds(@NotNull List<Long> ids);
 }

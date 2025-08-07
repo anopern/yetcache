@@ -30,4 +30,12 @@ public class StockHoldInfoServiceImpl extends ServiceImpl<StockHoldInfoMapper, S
                 .eq(StockHoldInfo::getDeleted, 0);
         return getOne(queryWrapper);
     }
+
+    @Override
+    public List<StockHoldInfo> listByIds(List<Long> ids) {
+        LambdaQueryWrapper<StockHoldInfo> queryWrapper = new LambdaQueryWrapper<StockHoldInfo>()
+                .in(StockHoldInfo::getId, ids)
+                .eq(StockHoldInfo::getDeleted, 0);
+        return list(queryWrapper);
+    }
 }

@@ -8,4 +8,5 @@ import com.yetcache.core.result.CacheResult;
  */
 public interface DynamicHashCacheLoader {
     CacheResult load(HashCacheSingleLoadCommand cmd);
+    CacheResult batchLoad(HashCacheBatchLoadCommand cmd);
 }

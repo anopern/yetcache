@@ -9,5 +9,5 @@ import java.util.Map;
 public interface HitTierInfo {
     HitTier hitTier();
 
-    Map<Object, HitTier> getHitTierMap();
+    Map<Object, HitTier> hitTierMap();
 }

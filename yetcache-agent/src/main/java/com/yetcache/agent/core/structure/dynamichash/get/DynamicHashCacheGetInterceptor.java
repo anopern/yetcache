@@ -50,13 +50,13 @@ public class DynamicHashCacheGetInterceptor implements CacheInterceptor {
         try {
             HashCacheSingleGetCommand storeGetCmd = new HashCacheSingleGetCommand(bizKey, bizField);
             CacheResult storeResult = agentScope.getMultiTierCache().get(storeGetCmd);
-            if (storeResult.code() == 0) {
+            if (storeResult.code() == 0 && HitTier.NONE != storeResult.hitTierInfo().hitTier()) {
                 CacheValueHolder<?> holder = (CacheValueHolder<?>) storeResult.value();
                 if (holder.isNotLogicExpired()) {
                     return SingleCacheResult.hit(componentName, holder, storeResult.hitTierInfo().hitTier());
                 }
             }
-            HashCacheSingleLoadCommand loadCmd = new HashCacheSingleLoadCommand(bizKey, bizField, null, null);
+            HashCacheSingleLoadCommand loadCmd = new HashCacheSingleLoadCommand(bizKey, bizField);
             // 回源加载数据
             CacheResult loadResult = agentScope.getCacheLoader().load(loadCmd);
             if (loadResult.isSuccess() && null == loadResult.value()) {

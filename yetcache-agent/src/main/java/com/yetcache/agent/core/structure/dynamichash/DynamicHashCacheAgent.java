@@ -2,6 +2,9 @@ package com.yetcache.agent.core.structure.dynamichash;
 
 import com.yetcache.agent.core.structure.CacheAgent;
 import com.yetcache.core.result.CacheResult;
+import org.checkerframework.checker.units.qual.K;
+
+import java.util.List;
 
 /**
  * @author walter.yan
@@ -10,7 +13,7 @@ import com.yetcache.core.result.CacheResult;
 public interface DynamicHashCacheAgent extends CacheAgent {
     CacheResult get(Object bizKey, Object bizField);
 
-//    BaseBatchResult<F, V> batchGet(K bizKey, List<F> bizFields);
+    CacheResult batchGet(Object bizKey, List<Object> bizFields);
 
 //    DynamicHashCacheAgentBatchAccessResult<F, V> listAll(K bizKey);
 

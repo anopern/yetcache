@@ -28,6 +28,18 @@ public class BaseCacheResult<T> implements CacheResult {
         this.metadata = metadata;
     }
 
+
+    public BaseCacheResult(String componentName, ResultCode resultCode, T value, HitTierInfo hitTierInfo,
+                           ErrorInfo errorInfo, Metadata metadata) {
+        this.componentName = componentName;
+        this.code = resultCode.code();
+        this.message = resultCode.message();
+        this.value = value;
+        this.hitTierInfo = hitTierInfo;
+        this.errorInfo = errorInfo;
+        this.metadata = metadata;
+    }
+
     @Override
     public int code() {
         return code;
@@ -55,15 +67,24 @@ public class BaseCacheResult<T> implements CacheResult {
 
     @Override
     public HitTierInfo hitTierInfo() {
-        return null;
+        return this.hitTierInfo;
     }
 
     @Override
     public boolean isSuccess() {
-        return code == 0;
+        return BaseResultCode.SUCCESS.code().equals(this.code);
     }
 
-    public static <T> BaseCacheResult<T> fail(String componentName) {
-        return new BaseCacheResult<>(componentName, -1, "操作失败", null, null, null, null);
+    public static <T> BaseCacheResult<T> hit(String componentName, T value, HitTierInfo hitTierInfo) {
+        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitTierInfo, null, null);
+    }
+
+    public static <T> BaseCacheResult<T> fail(String componentName, Throwable e) {
+        ErrorInfo errorInfo = new ErrorInfo(e);
+        return new BaseCacheResult<>(componentName, BaseResultCode.FAIL, null, null, errorInfo, null);
+    }
+
+    public static <T> BaseCacheResult<T> success(String componentName) {
+        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, null, null, null, null);
     }
 }

@@ -10,20 +10,16 @@ import java.util.Optional;
  */
 public class CacheResultUtils {
     @SuppressWarnings("unchecked")
-    public static <T> T getTypedValue(CacheResult result) {
+    public static <T> T getTypedResult(CacheResult result) {
         if (!(result instanceof SingleCacheResult)) {
             throw new IllegalStateException("Not a SingleCacheResult: " + result);
         }
-        Object value = ((SingleCacheResult<?>) result).value();
-        if (!(value instanceof CacheValueHolder)) {
-            throw new IllegalStateException("Missing CacheValueHolder: " + value);
-        }
-        return (T) ((CacheValueHolder<?>) value).getValue();
+        return (T) result;
     }
 
     public static <T> Optional<T> optional(CacheResult result, Class<T> clazz) {
         try {
-            T value = getTypedValue(result);
+            T value = getTypedResult(result);
             return clazz.isInstance(value) ? Optional.of(clazz.cast(value)) : Optional.empty();
         } catch (Exception e) {
             return Optional.empty();

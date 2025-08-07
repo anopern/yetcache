@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * @author walter.yan
  * @since 2025/8/7
@@ -11,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class DynamicHashCacheAgentGetCommand {
+public class HashCacheBatchLoadCommand {
     private Object bizKey;
-    private Object bizField;
+    private List<Object> bizFields;
 }

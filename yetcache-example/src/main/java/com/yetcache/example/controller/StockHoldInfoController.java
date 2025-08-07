@@ -32,6 +32,11 @@ public class StockHoldInfoController {
         Optional<StockHoldInfo> optional = cacheService.get(dto.getFundAccount(), dto.getId());
         return optional.orElse(null);
     }
+
+    @PostMapping("/batchGet")
+    public List<StockHoldInfo> batchGet(@RequestBody StockHoldInfoBatchGetReq req) {
+        return cacheService.batchGet(req.getFundAccount(), req.getIds());
+    }
 //
 //    @PostMapping("/listAll")
 //    public List<StockHoldInfo> listAll(@RequestBody StockHoldInfo dto) {
