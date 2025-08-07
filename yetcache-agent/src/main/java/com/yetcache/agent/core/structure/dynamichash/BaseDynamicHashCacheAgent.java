@@ -37,7 +37,7 @@ public class BaseDynamicHashCacheAgent<K, F, V> implements DynamicHashCacheAgent
                                      RedissonClient redissonClient,
                                      KeyConverter<K> keyConverter,
                                      FieldConverter<F> fieldConverter,
-                                     DynamicHashCacheLoader<K, F, V> cacheLoader,
+                                     DynamicHashCacheLoaderV2 cacheLoader,
                                      CacheInvocationChainRegistry chainRegistry,
                                      CacheBroadcastPublisher broadcastPublisher) {
 

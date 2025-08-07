@@ -4,6 +4,7 @@ import com.yetcache.agent.broadcast.command.ExecutableCommand;
 import com.yetcache.agent.core.CacheAgentMethod;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.dynamichash.DynamicHashAgentScope;
+import com.yetcache.agent.core.structure.dynamichash.HashLoadCommand;
 import com.yetcache.agent.interceptor.BehaviorType;
 import com.yetcache.agent.interceptor.CacheInterceptor;
 import com.yetcache.agent.interceptor.CacheInvocationChain;
@@ -76,14 +77,15 @@ public class DynamicHashCacheGetInterceptorV2<K, F, V> implements CacheIntercept
             }
 
             // 回源加载数据
-            V loaded = agentScope.getCacheLoader().load(bizKey, bizField);
-            if (loaded == null) {
-                return ResultFactory.notFoundSingle(componentName);
+            HashLoadCommand loadCmd = new HashLoadCommand(bizKey, bizField, null);
+            CacheResult loadResult = agentScope.getCacheLoader().load(loadCmd);
+            if (!loadResult.isSuccess()) {
+                return SingleCacheResultV2.miss(componentName);
             }
 
             // 封装为缓存值并写入缓存
             SingleHashCachePutCommand<K, F, V> cmd = new SingleHashCachePutCommand<>(
-                    componentName, bizKey, bizField, loaded,
+                    componentName, bizKey, bizField, loadResult,
                     agentScope.getConfig().getLocal().getLogicTtlSecs(),
                     agentScope.getConfig().getLocal().getPhysicalTtlSecs(),
                     agentScope.getConfig().getRemote().getLogicTtlSecs(),
@@ -92,7 +94,7 @@ public class DynamicHashCacheGetInterceptorV2<K, F, V> implements CacheIntercept
             agentScope.getMultiTierCache().put(cmd);
 
             try {
-                Map<F, V> loadedMap = Collections.singletonMap(bizField, loaded);
+                Map<F, V> loadedMap = Collections.singletonMap(bizField, loadResult);
                 ExecutableCommand command = ExecutableCommand.dynamicHash(componentName, CacheAgentMethod.PUT_ALL,
                         bizKey, loadedMap);
                 agentScope.getBroadcastPublisher().publish(command);
@@ -100,7 +102,7 @@ public class DynamicHashCacheGetInterceptorV2<K, F, V> implements CacheIntercept
                 log.warn("broadcast failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);
             }
 
-            return BaseSingleResult.hit(componentName, CacheValueHolder.wrap(loaded, 0),
+            return BaseSingleResult.hit(componentName, CacheValueHolder.wrap(loadResult, 0),
                     HitTier.SOURCE);
         } catch (Exception e) {
             log.warn("cache load failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);

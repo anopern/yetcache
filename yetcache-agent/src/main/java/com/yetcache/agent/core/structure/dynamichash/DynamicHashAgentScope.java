@@ -15,13 +15,13 @@ public class DynamicHashAgentScope<K, F, V> implements AgentScope {
     private final String componentName;
     private final MultiTierDynamicHashCache<K, F, V> multiTierCache;
     private final DynamicHashCacheConfig config;
-    private final DynamicHashCacheLoader<K, F, V> cacheLoader;
+    private final DynamicHashCacheLoaderV2 cacheLoader;
     private final CacheBroadcastPublisher broadcastPublisher;
 
     public DynamicHashAgentScope(String componentName,
                                  MultiTierDynamicHashCache<K, F, V> multiTierCache,
                                  DynamicHashCacheConfig config,
-                                 DynamicHashCacheLoader<K, F, V> cacheLoader,
+                                 DynamicHashCacheLoaderV2 cacheLoader,
                                  CacheBroadcastPublisher broadcastPublisher) {
         this.componentName = componentName;
         this.multiTierCache = multiTierCache;
