@@ -1,6 +1,7 @@
 package com.yetcache.agent.config;
 
 import com.yetcache.agent.core.StructureType;
+import com.yetcache.agent.core.structure.dynamichash.batchget.DynamicHashCacheBatchGetInterceptor;
 import com.yetcache.agent.core.structure.dynamichash.get.DynamicHashCacheGetInterceptor;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.config.YetCacheProperties;
@@ -40,12 +41,23 @@ public class YetcacheInterceptorConfiguration {
     }
 
     @Bean
+    public DynamicHashCacheBatchGetInterceptor dynamicHashCacheBatchGetInterceptor(
+            CacheInvocationInterceptorRegistry interceptorRegistry) {
+        DynamicHashCacheBatchGetInterceptor interceptor = new DynamicHashCacheBatchGetInterceptor();
+        interceptorRegistry.register(interceptor);
+        return interceptor;
+    }
+
+    @Bean
     public ApplicationRunner registerDefaultChains(CacheInvocationChainRegistry registry,
                                                    CacheInvocationChainBuilder chainBuilder) {
         return args -> {
-            StructureBehaviorKey sbKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.SINGLE_GET);
-            CacheInvocationChain chin = chainBuilder.build(sbKey);
-            registry.register(sbKey, chin);
+            StructureBehaviorKey dhGetSb = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.SINGLE_GET);
+            StructureBehaviorKey dhBatchGetSb = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.BATCH_GET);
+            CacheInvocationChain dhGetChain = chainBuilder.build(dhGetSb);
+            CacheInvocationChain dhBatchGetChain = chainBuilder.build(dhBatchGetSb);
+            registry.register(dhGetSb, dhGetChain);
+            registry.register(dhBatchGetSb, dhBatchGetChain);
         };
     }
 }

@@ -1,23 +1,25 @@
 package com.yetcache.agent.interceptor;
 
-
 import com.yetcache.core.result.CacheResult;
 
 import java.util.List;
 
 /**
  * @author walter.yan
- * @since 2025/7/29
+ * @since 2025/8/7
  */
-public class DefaultCacheInvocationChain implements CacheInvocationChain {
+public class ChainRunner {
     private final List<CacheInterceptor> interceptors;
+    private int index = 0;
 
-    public DefaultCacheInvocationChain(List<CacheInterceptor> interceptors) {
+    public ChainRunner(List<CacheInterceptor> interceptors) {
         this.interceptors = interceptors;
     }
 
-    @Override
     public CacheResult proceed(CacheInvocationContext ctx) throws Throwable {
-        return new ChainRunner(this.interceptors).proceed(ctx);
+        if (index >= interceptors.size()) {
+            throw new IllegalStateException("Chain reached end");
+        }
+        return interceptors.get(index++).invoke(ctx, this);
     }
 }

@@ -47,8 +47,7 @@ public class DynamicHashCacheBatchGetInterceptor implements CacheInterceptor {
 
     @Override
     @SuppressWarnings("unchecked")
-    public CacheResult invoke(CacheInvocationContext ctx,
-                              CacheInvocationChain chain) throws Throwable {
+    public CacheResult invoke(CacheInvocationContext ctx, ChainRunner runner) throws Throwable {
         DynamicHashCacheAgentBatchGetInvocationCommand cmd =
                 (DynamicHashCacheAgentBatchGetInvocationCommand) ctx.getCommand();
         Object bizKey = cmd.getBizKey();
@@ -99,7 +98,7 @@ public class DynamicHashCacheBatchGetInterceptor implements CacheInterceptor {
                             agentScope.getConfig().getLocal().getLogicTtlSecs(),
                             agentScope.getConfig().getLocal().getPhysicalTtlSecs(),
                             agentScope.getConfig().getRemote().getLogicTtlSecs(),
-                            agentScope.getConfig() .getRemote().getPhysicalTtlSecs());
+                            agentScope.getConfig().getRemote().getPhysicalTtlSecs());
                     agentScope.getMultiTierCache().putAll(putAllCmd);
                 }
             }

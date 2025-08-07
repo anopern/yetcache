@@ -40,8 +40,7 @@ public class DynamicHashCacheGetInterceptor implements CacheInterceptor {
 
 
     @Override
-    public CacheResult invoke(CacheInvocationContext ctx,
-                              CacheInvocationChain chain) throws Throwable {
+    public CacheResult invoke(CacheInvocationContext ctx, ChainRunner runner) throws Throwable {
         DynamicHashCacheAgentGetInvocationCommand cmd = (DynamicHashCacheAgentGetInvocationCommand) ctx.getCommand();
         Object bizKey = cmd.getBizKey();
         Object bizField = cmd.getBizField();

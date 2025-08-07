@@ -1,5 +1,6 @@
 package com.yetcache.example.service.loader;
 
+import cn.hutool.core.collection.CollUtil;
 import com.yetcache.agent.core.structure.dynamichash.AbstractDynamicHashCacheLoader;
 import com.yetcache.agent.core.structure.dynamichash.HashCacheBatchLoadCommand;
 import com.yetcache.agent.core.structure.dynamichash.HashCacheSingleLoadCommand;
@@ -10,7 +11,10 @@ import com.yetcache.example.service.IStockHoldInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -34,7 +38,12 @@ public class StockHoldInfoCacheLoader extends AbstractDynamicHashCacheLoader {
                 .map(item -> (Long) item)
                 .collect(Collectors.toList());
         List<StockHoldInfo> stockHoldInfos = stockHoldInfoService.listByIds(ids);
-        return SingleCacheResult.success(stockHoldInfos);
+        if (CollUtil.isNotEmpty(stockHoldInfos)) {
+            Map<Long, StockHoldInfo> stockHoldInfoMap = stockHoldInfos.stream()
+                    .collect(Collectors.toMap(StockHoldInfo::getId, stockHoldInfo -> stockHoldInfo));
+            return SingleCacheResult.success(stockHoldInfoMap);
+        }
+        return SingleCacheResult.success(Collections.emptyMap());
     }
 
     //    @Override

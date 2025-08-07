@@ -1,7 +1,5 @@
 package com.yetcache.core.result;
 
-import com.yetcache.core.cache.support.CacheValueHolder;
-
 import java.util.Optional;
 
 /**

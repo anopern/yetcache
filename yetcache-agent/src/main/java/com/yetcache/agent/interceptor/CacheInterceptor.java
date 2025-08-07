@@ -7,7 +7,7 @@ import com.yetcache.core.result.CacheResult;
  * @author walter.yan
  * @since 2025/7/13
  */
-public interface CacheInterceptor  {
+public interface CacheInterceptor {
 
     /**
      * 唯一标识
@@ -23,5 +23,5 @@ public interface CacheInterceptor  {
 
     boolean supportStructureBehaviorKey(StructureBehaviorKey structureBehaviorKey);
 
-    CacheResult invoke(CacheInvocationContext context, CacheInvocationChain  chain) throws Throwable;
+    CacheResult invoke(CacheInvocationContext context, ChainRunner runner) throws Throwable;
 }
