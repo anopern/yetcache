@@ -1,7 +1,10 @@
 package com.yetcache.agent.interceptor;
 
 import com.yetcache.agent.core.StructureType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.Objects;
 
@@ -10,10 +13,12 @@ import java.util.Objects;
  * @since 2025/7/29
  */
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public final class StructureBehaviorKey {
-    private final StructureType structureType;
-    private final BehaviorType behaviorType;
-    private final int hash; // 缓存 hashCode
+    private StructureType structureType;
+    private BehaviorType behaviorType;
+    private int hash; // 缓存 hashCode
 
     private StructureBehaviorKey(StructureType structureType, BehaviorType behaviorType) {
         this.structureType = Objects.requireNonNull(structureType);

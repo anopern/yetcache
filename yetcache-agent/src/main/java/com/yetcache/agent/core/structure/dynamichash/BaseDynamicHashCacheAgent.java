@@ -1,8 +1,13 @@
 package com.yetcache.agent.core.structure.dynamichash;
 
-import cn.hutool.core.collection.CollUtil;
+import com.yetcache.agent.broadcast.InstanceIdProvider;
+import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
+import com.yetcache.agent.broadcast.command.CommandDescriptor;
+import com.yetcache.agent.broadcast.command.Playload;
+import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.PutAllOptions;
 import com.yetcache.agent.core.StructureType;
+import com.yetcache.agent.core.port.HashCacheFillPort;
 import com.yetcache.agent.core.structure.dynamichash.batchget.DynamicHashCacheAgentBatchGetInvocationCommand;
 import com.yetcache.agent.core.structure.dynamichash.get.DynamicHashCacheAgentGetInvocationCommand;
 import com.yetcache.agent.interceptor.*;
@@ -12,7 +17,6 @@ import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.dynamichash.DefaultMultiTierDynamicHashCache;
 import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
-import com.yetcache.core.context.CacheAccessContext;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.SingleCacheResult;
 import com.yetcache.core.support.field.FieldConverter;
@@ -38,15 +42,19 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
                                      KeyConverter keyConverter,
                                      FieldConverter fieldConverter,
                                      DynamicHashCacheLoader cacheLoader,
+                                     CacheBroadcastPublisher broadcastPublisher,
                                      CacheInvocationChainRegistry chainRegistry) {
 
         MultiTierDynamicHashCache multiTierCache = new DefaultMultiTierDynamicHashCache<>(componentNane,
                 config, redissonClient, keyConverter, fieldConverter);
 
+        HashCacheFillPort fillPort = (bizKey, valueMap) -> this.putAll(bizKey, valueMap, PutAllOptions.defaultOptions());
         this.scope = new DynamicHashAgentScope(componentNane,
                 multiTierCache,
                 config,
-                cacheLoader);
+                cacheLoader,
+                broadcastPublisher,
+                fillPort);
 
 
 //        PenetrationProtectConfig localPpConfig = config.getEnhance().getLocalPenetrationProtect();
@@ -89,7 +97,6 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
         try {
             CacheInvocationChain chain = chainRegistry.getChain(structureBehaviorKey);
             CacheResult rawResult = chain.proceed(ctx);
-            // ✅ 统一构造泛型结构体返回（仍然声明为 CacheResult）
             return SingleCacheResult.hit(scope.getComponentName(), rawResult.value(), rawResult.hitTierInfo().hitTier());
         } catch (Throwable e) {
             return SingleCacheResult.fail(scope.getComponentName(), e);
@@ -279,7 +286,16 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
         // 3) 本实例 local 广播（仅在写入成功且开启时）
         if (writeResult.isSuccess() && normalized.isBroadcast()) {
             try {
-//                this.localBroadcaster.broadcastPutAll(bizKey, safeMap);
+                CacheUpdateCommand broadcastCmd = CacheUpdateCommand.builder()
+                        .descriptor(CommandDescriptor.builder()
+                                .componentName(scope.getComponentName())
+                                .structureBehaviorKey(StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.PUT_ALL))
+                                .instanceId(InstanceIdProvider.getInstanceId())
+                                .build())
+                        .payload(Playload.builder().bizKey(bizKey).bizFieldValueMap(valueMap).build())
+                        .createdTime(System.currentTimeMillis())
+                        .build();
+                this.scope.getBroadcastPublisher().publish(broadcastCmd);
             } catch (Exception e) {
                 // 不让广播失败影响主流程；按需记录日志/埋点
                 log.warn("broadcastPutAll(local) failed, bizKey={}, cause={}", bizKey, e.toString());

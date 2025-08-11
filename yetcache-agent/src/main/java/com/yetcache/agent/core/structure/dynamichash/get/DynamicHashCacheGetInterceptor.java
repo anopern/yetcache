@@ -9,6 +9,9 @@ import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.*;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * @author walter.yan
  * @since 2025/7/30
@@ -60,26 +63,12 @@ public class DynamicHashCacheGetInterceptor implements CacheInterceptor {
             if (loadResult.isSuccess() && null == loadResult.value()) {
                 return SingleCacheResult.miss(componentName);
             }
-
+            Map<Object, Object> bizFieldValueNap = Collections.singletonMap(bizField, loadResult.value());
             // 封装为缓存值并写入缓存
-            HashCacheSinglePutCommand storePutCmd = new HashCacheSinglePutCommand(
-                    bizKey, bizField, loadResult.value(),
-                    agentScope.getConfig().getLocal().getLogicTtlSecs(),
-                    agentScope.getConfig().getLocal().getPhysicalTtlSecs(),
-                    agentScope.getConfig().getRemote().getLogicTtlSecs(),
-                    agentScope.getConfig().getRemote().getPhysicalTtlSecs());
-            agentScope.getMultiTierCache().put(storePutCmd);
 
-//            try {
-//                Map<F, V> loadedMap = Collections.singletonMap(bizField, loadResult);
-//                ExecutableCommand command = ExecutableCommand.dynamicHash(componentName, CacheAgentMethod.PUT_ALL,
-//                        bizKey, loadedMap);
-//                agentScope.getBroadcastPublisher().publish(command);
-//            } catch (Exception e) {
-//                log.warn("broadcast failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);
-//            }
+            agentScope.getHashCacheFillPort().fillAndBroadcast(bizKey, bizFieldValueNap);
 
-            return SingleCacheResult.hit(componentName, CacheValueHolder.wrap(loadResult, 0), HitTier.SOURCE);
+            return SingleCacheResult.hit(componentName, CacheValueHolder.wrap(loadResult.value(), 0), HitTier.SOURCE);
         } catch (Exception e) {
             log.warn("cache load failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);
             return SingleCacheResult.fail(componentName, e);

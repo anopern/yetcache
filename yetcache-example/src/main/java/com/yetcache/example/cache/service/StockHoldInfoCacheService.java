@@ -1,11 +1,11 @@
 package com.yetcache.example.cache.service;
 
 import cn.hutool.core.collection.CollUtil;
+import com.yetcache.agent.core.structure.dynamichash.BaseDynamicHashCacheAgent;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.CacheResultUtils;
 import com.yetcache.core.result.HitTier;
 import com.yetcache.core.result.SingleCacheResult;
-import com.yetcache.example.cache.agent.StockHoldInfoCacheAgent;
 import com.yetcache.example.entity.StockHoldInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,10 +19,10 @@ import java.util.stream.Collectors;
  */
 @Component
 public final class StockHoldInfoCacheService {
-    private final StockHoldInfoCacheAgent stockHoldInfoCacheAgent;
+    private final BaseDynamicHashCacheAgent stockHoldInfoCacheAgent;
 
     @Autowired
-    public StockHoldInfoCacheService(StockHoldInfoCacheAgent stockHoldInfoCacheAgent) {
+    public StockHoldInfoCacheService(BaseDynamicHashCacheAgent stockHoldInfoCacheAgent) {
         this.stockHoldInfoCacheAgent = stockHoldInfoCacheAgent;
     }
 
