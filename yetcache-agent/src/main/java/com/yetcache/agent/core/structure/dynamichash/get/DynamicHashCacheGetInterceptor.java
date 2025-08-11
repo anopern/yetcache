@@ -5,7 +5,6 @@ import com.yetcache.agent.core.structure.dynamichash.DynamicHashAgentScope;
 import com.yetcache.agent.core.structure.dynamichash.HashCacheSingleLoadCommand;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.command.HashCacheSingleGetCommand;
-import com.yetcache.core.cache.command.HashCacheSinglePutCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.*;
 import lombok.extern.slf4j.Slf4j;

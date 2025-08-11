@@ -5,8 +5,10 @@ import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.dynamichash.DynamicHashAgentScope;
 import com.yetcache.agent.core.structure.dynamichash.HashCacheBatchLoadCommand;
 import com.yetcache.agent.interceptor.*;
+import com.yetcache.core.cache.CacheTtl;
+import com.yetcache.core.cache.WriteTier;
 import com.yetcache.core.cache.command.HashCacheBatchGetCommand;
-import com.yetcache.core.cache.command.HashCacheSinglePutAllCommand;
+import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.*;
 import lombok.extern.slf4j.Slf4j;
@@ -94,11 +96,17 @@ public class DynamicHashCacheBatchGetInterceptor implements CacheInterceptor {
                         }
                     }
                     // Step 3: 回写缓存
-                    HashCacheSinglePutAllCommand putAllCmd = new HashCacheSinglePutAllCommand(bizKey, loadedMap,
-                            agentScope.getConfig().getLocal().getLogicTtlSecs(),
-                            agentScope.getConfig().getLocal().getPhysicalTtlSecs(),
-                            agentScope.getConfig().getRemote().getLogicTtlSecs(),
-                            agentScope.getConfig().getRemote().getPhysicalTtlSecs());
+                    HashCachePutAllCommand putAllCmd = HashCachePutAllCommand.builder()
+                            .bizKey(bizKey)
+                            .valueMap(loadedMap)
+                            .ttl(CacheTtl.builder()
+                                    .localLogicSecs(agentScope.getConfig().getLocal().getLogicTtlSecs())
+                                    .localPhysicalSecs(agentScope.getConfig().getLocal().getPhysicalTtlSecs())
+                                    .remoteLogicSecs(agentScope.getConfig().getRemote().getLogicTtlSecs())
+                                    .remotePhysicalSecs(agentScope.getConfig().getRemote().getPhysicalTtlSecs())
+                                    .build())
+                            .writeTier(WriteTier.ALL)
+                            .build();
                     agentScope.getMultiTierCache().putAll(putAllCmd);
                 }
             }

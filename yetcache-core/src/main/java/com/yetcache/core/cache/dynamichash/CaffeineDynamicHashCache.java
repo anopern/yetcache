@@ -6,6 +6,7 @@ import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.dynamichash.CaffeineDynamicHashCacheConfig;
 import com.yetcache.core.support.util.TtlRandomizer;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,7 +37,7 @@ public class CaffeineDynamicHashCache<V> {
     public Map<String, CacheValueHolder<V>> batchGet(String key, List<String> fields) {
         ConcurrentHashMap<String, CacheValueHolder<V>> fieldMap = cache.getIfPresent(key);
         if (fieldMap == null || fields == null || fields.isEmpty()) {
-            return Map.of(); // 返回不可变空 map
+            return Collections.emptyMap();
         }
 
         Map<String, CacheValueHolder<V>> result = new ConcurrentHashMap<>();

@@ -1,10 +1,10 @@
 package com.yetcache.agent.core.structure.dynamichash;
 
+import com.yetcache.agent.core.PutAllOptions;
 import com.yetcache.agent.core.structure.CacheAgent;
 import com.yetcache.core.result.CacheResult;
-import org.checkerframework.checker.units.qual.K;
-
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author walter.yan
@@ -30,5 +30,5 @@ public interface DynamicHashCacheAgent extends CacheAgent {
 
 //    DynamicHashCacheAgentSingleAccessResult<Void> put(K bizKey, F bizField, V value);
 
-//    BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap, Long version);
+    CacheResult putAll(Object bizKey, Map<Object, Object> valueMap, PutAllOptions opts);
 }

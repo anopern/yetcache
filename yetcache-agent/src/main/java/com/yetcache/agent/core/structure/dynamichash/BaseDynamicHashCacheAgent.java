@@ -1,20 +1,27 @@
 package com.yetcache.agent.core.structure.dynamichash;
 
+import cn.hutool.core.collection.CollUtil;
+import com.yetcache.agent.core.PutAllOptions;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.dynamichash.batchget.DynamicHashCacheAgentBatchGetInvocationCommand;
 import com.yetcache.agent.core.structure.dynamichash.get.DynamicHashCacheAgentGetInvocationCommand;
 import com.yetcache.agent.interceptor.*;
+import com.yetcache.core.cache.CacheTtl;
+import com.yetcache.core.cache.WriteTier;
+import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.dynamichash.DefaultMultiTierDynamicHashCache;
 import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
+import com.yetcache.core.context.CacheAccessContext;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.SingleCacheResult;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.K;
 import org.redisson.api.RedissonClient;
 
-import java.util.List;
+import java.util.*;
 
 /**
  * @author walter.yan
@@ -237,28 +244,50 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
 //        }
 //    }
 //
-//    @Override
-//    public BaseBatchResult<Void, Void> putAll(K bizKey, Map<F, V> valueMap, Long version) {
-//        return invoke("putAll", () -> doPutAll(bizKey, valueMap, version),
-//                CacheAccessKey.batch(bizKey, new ArrayList<>(valueMap.keySet())));
-//    }
-//
-//    public BaseBatchResult<Void, Void> doPutAll(K bizKey, Map<F, V> valueMap, Long version) {
-//        if (bizKey == null || CollUtil.isEmpty(valueMap)) {
-//            return ResultFactory.badParamBatch(componentName);
-//        }
-//
-//        try {
-//            multiTierCache.putAll(bizKey, valueMap);
-//            return BaseBatchResult.success(componentName);
-//        } catch (Exception e) {
-//            log.warn("putAll failed, agent = {}, key = {}, fields = {}", componentName, bizKey, valueMap.keySet(), e);
-//            return BaseBatchResult.fail(componentName, e);
-//        } finally {
-//            CacheAccessContext.clear();
-//        }
-//    }
-//}
+    @Override
+    public CacheResult putAll(Object bizKey, Map<Object, Object> valueMap, PutAllOptions opts) {
+        // 0) 入参校验
+        if (bizKey == null) {
+            throw new IllegalArgumentException("bizKey is null");
+        }
+        if (valueMap == null || valueMap.isEmpty()) {
+            throw new IllegalArgumentException("valueMap is empty");
+        }
+
+        // 1) 归一化选项：null -> 默认广播到本实例 local
+        final PutAllOptions normalized = (opts != null) ? opts : PutAllOptions.defaultOptions();
+
+        // 2) 写入缓存（按你已有的默认策略执行：ALL 层/默认 TTL）
+        //    这里保留拷贝，避免调用方后续修改 valueMap 影响到存储/广播
+        Map<Object, Object> safeMap = Collections.unmodifiableMap(new LinkedHashMap<>(valueMap));
+
+        // Step 3: 回写缓存
+        HashCachePutAllCommand putAllCmd = HashCachePutAllCommand.builder()
+                .bizKey(bizKey)
+                .valueMap(safeMap)
+                .ttl(CacheTtl.builder()
+                        .localLogicSecs(scope.getConfig().getLocal().getLogicTtlSecs())
+                        .localPhysicalSecs(scope.getConfig().getLocal().getPhysicalTtlSecs())
+                        .remoteLogicSecs(scope.getConfig().getRemote().getLogicTtlSecs())
+                        .remotePhysicalSecs(scope.getConfig().getRemote().getPhysicalTtlSecs())
+                        .build())
+                .writeTier(WriteTier.ALL)
+                .build();
+
+        CacheResult writeResult = this.scope.getMultiTierCache().putAll(putAllCmd);
+
+        // 3) 本实例 local 广播（仅在写入成功且开启时）
+        if (writeResult.isSuccess() && normalized.isBroadcast()) {
+            try {
+//                this.localBroadcaster.broadcastPutAll(bizKey, safeMap);
+            } catch (Exception e) {
+                // 不让广播失败影响主流程；按需记录日志/埋点
+                log.warn("broadcastPutAll(local) failed, bizKey={}, cause={}", bizKey, e.toString());
+            }
+        }
+
+        return writeResult;
+    }
 
 
 //    private DynamicHashCacheAgentSingleAccessResult<K, F, V> doInvalidateAll(K bizKey) {

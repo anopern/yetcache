@@ -1,10 +1,10 @@
 package com.yetcache.core.cache.dynamichash;
 
 import cn.hutool.core.collection.CollUtil;
+import com.yetcache.core.cache.WriteTier;
 import com.yetcache.core.cache.command.HashCacheBatchGetCommand;
 import com.yetcache.core.cache.command.HashCacheSingleGetCommand;
-import com.yetcache.core.cache.command.HashCacheSinglePutAllCommand;
-import com.yetcache.core.cache.command.HashCacheSinglePutCommand;
+import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.*;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DefaultMultiTierDynamicHashCache<V> implements MultiTierDynamicHashCache {
     private final String componentName;
-    private final DynamicHashCacheConfig config;
     private CaffeineDynamicHashCache<V> localCache;
     private RedisDynamicHashCache<V> remoteCache;
     private final KeyConverter keyConverter;
@@ -36,7 +35,6 @@ public class DefaultMultiTierDynamicHashCache<V> implements MultiTierDynamicHash
                                             KeyConverter keyConverter,
                                             FieldConverter fieldConverter) {
         this.componentName = Objects.requireNonNull(componentName, "cacheName");
-        this.config = Objects.requireNonNull(config, "config");
         this.keyConverter = Objects.requireNonNull(keyConverter, "keyConverter");
         this.fieldConverter = Objects.requireNonNull(fieldConverter, "fieldConverter");
 
@@ -89,7 +87,7 @@ public class DefaultMultiTierDynamicHashCache<V> implements MultiTierDynamicHash
             final Map<Object, HitTier> hitTierMap = new HashMap<>();
             // 本地缓存尝试
             final Map<String, CacheValueHolder<V>> localResult = localCache != null
-                    ? localCache.batchGet(key, rawFields) : Map.of();
+                    ? localCache.batchGet(key, rawFields) : Collections.emptyMap();
             List<String> missingLocalFields = new ArrayList<>(rawFields);
             for (Map.Entry<String, CacheValueHolder<V>> entry : localResult.entrySet()) {
                 Object bizField = fieldConverter.revert(entry.getKey());
@@ -150,56 +148,63 @@ public class DefaultMultiTierDynamicHashCache<V> implements MultiTierDynamicHash
 //    }
 
 
+//    @Override
+//    @SuppressWarnings("unchecked")
+//    public CacheResult put(HashCacheSinglePutCommand cmd) {
+//        String key = keyConverter.convert(cmd.getBizKey());
+//        String field = fieldConverter.convert(cmd.getBizField());
+//        Object value = cmd.getValue();
+//
+//        // Step 1: 写入本地缓存（如启用）
+//        if (localCache != null) {
+//            CacheValueHolder<V> localHolder = (CacheValueHolder<V>) CacheValueHolder.wrap(value,
+//                    cmd.getLocalLogicTtlSecs());
+//            localCache.put(key, field, localHolder);
+//        }
+//
+//        // Step 2: 写入远程缓存（如启用）
+//        if (remoteCache != null) {
+//            CacheValueHolder<V> remoteHolder = (CacheValueHolder<V>) CacheValueHolder.wrap(value,
+//                    cmd.getRemoteLogicTtlSecs());
+//            long realTtlSecs = TtlRandomizer.randomizeSecs(cmd.getRemotePhysicalTtlSecs(),
+//                    config.getRemote().getTtlRandomPct());
+//            remoteCache.put(key, field, remoteHolder, realTtlSecs);
+//        }
+//
+//        // Step 3: 返回结构化结果
+//        return SingleCacheResult.success(componentName);
+//    }
+
     @Override
     @SuppressWarnings("unchecked")
-    public CacheResult put(HashCacheSinglePutCommand cmd) {
-        String key = keyConverter.convert(cmd.getBizKey());
-        String field = fieldConverter.convert(cmd.getBizField());
-        Object value = cmd.getValue();
-
-        // Step 1: 写入本地缓存（如启用）
-        if (localCache != null) {
-            CacheValueHolder<V> localHolder = (CacheValueHolder<V>) CacheValueHolder.wrap(value,
-                    cmd.getLocalLogicTtlSecs());
-            localCache.put(key, field, localHolder);
-        }
-
-        // Step 2: 写入远程缓存（如启用）
-        if (remoteCache != null) {
-            CacheValueHolder<V> remoteHolder = (CacheValueHolder<V>) CacheValueHolder.wrap(value,
-                    cmd.getRemoteLogicTtlSecs());
-            long realTtlSecs = TtlRandomizer.randomizeSecs(cmd.getRemotePhysicalTtlSecs(),
-                    config.getRemote().getTtlRandomPct());
-            remoteCache.put(key, field, remoteHolder, realTtlSecs);
-        }
-
-        // Step 3: 返回结构化结果
-        return SingleCacheResult.success(componentName);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public CacheResult putAll(HashCacheSinglePutAllCommand cmd) {
+    public CacheResult putAll(HashCachePutAllCommand cmd) {
         Object bizKey = cmd.getBizKey();
         Map<Object, Object> valueMap = cmd.getValueMap();
         String key = keyConverter.convert(bizKey);
-        final long localTtlSecs = TtlRandomizer.randomizeSecs(config.getLocal().getLogicTtlSecs(),
-                config.getLocal().getTtlRandomPct());
-        final long remoteTtlSecs = TtlRandomizer.randomizeSecs(config.getRemote().getLogicTtlSecs(),
-                config.getRemote().getTtlRandomPct());
 
         // 写入远程缓存
-        if (remoteCache != null) {
-            Map<String, CacheValueHolder<V>> remoteHolderMap = typeMap2rawHolderMap((Map<Object, V>) valueMap, remoteTtlSecs);
-            remoteCache.putAll(key, remoteHolderMap, cmd.getLocalPhysicalTtlSecs());
+        if (isWriteRemote(cmd.getWriteTier()) && remoteCache != null) {
+            Map<String, CacheValueHolder<V>> remoteHolderMap = typeMap2rawHolderMap((Map<Object, V>) valueMap,
+                    cmd.getTtl().getRemoteLogicSecs());
+            remoteCache.putAll(key, remoteHolderMap, cmd.getTtl().getRemotePhysicalSecs());
         }
+
         // 写入本地缓存
-        if (localCache != null) {
-            Map<String, CacheValueHolder<V>> localHolderMap = typeMap2rawHolderMap((Map<Object, V>) valueMap, localTtlSecs);
+        if (isWriteLocal(cmd.getWriteTier()) && localCache != null) {
+            Map<String, CacheValueHolder<V>> localHolderMap = typeMap2rawHolderMap((Map<Object, V>) valueMap,
+                    cmd.getTtl().getLocalLogicSecs());
             localCache.putAll(key, localHolderMap);
         }
 
         return BaseCacheResult.success(componentName);
+    }
+
+    private boolean isWriteLocal(WriteTier writeTier) {
+        return writeTier == WriteTier.ALL || writeTier == WriteTier.LOCAL;
+    }
+
+    private boolean isWriteRemote(WriteTier writeTier) {
+        return writeTier == WriteTier.ALL || writeTier == WriteTier.REMOTE;
     }
 
 
