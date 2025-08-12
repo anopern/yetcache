@@ -22,7 +22,6 @@ import com.yetcache.core.result.SingleCacheResult;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.K;
 import org.redisson.api.RedissonClient;
 
 import java.util.*;
@@ -253,6 +252,8 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
 //
     @Override
     public CacheResult putAll(Object bizKey, Map<Object, Object> valueMap, PutAllOptions opts) {
+        log.debug("缓存代理类 {} 缓存更新 bizKey: {}, valueMap: {}, opts: {}", scope.getComponentName(), bizKey,
+                valueMap, opts);
         // 0) 入参校验
         if (bizKey == null) {
             throw new IllegalArgumentException("bizKey is null");

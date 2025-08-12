@@ -24,6 +24,7 @@ public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
     @Override
     public void onMessage(String messageJson) {
         try {
+            log.debug("receive message: {}", messageJson);
             CacheUpdateCommand cmd = objectMapper.readValue(messageJson, CacheUpdateCommand.class);
             Optional<CacheBroadcastHandler> handlerOpt = handlerRegistry.getHandler(cmd);
             if (handlerOpt.isEmpty()) {

@@ -75,6 +75,8 @@
         </dependencies>
     </dependencyManagement>
 
+
+
     <repositories>
         <repository>
             <id>aliyun</id>
