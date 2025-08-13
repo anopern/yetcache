@@ -8,14 +8,13 @@ import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.PutAllOptions;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.port.HashCacheFillPort;
+import com.yetcache.core.cache.*;
 import com.yetcache.agent.core.structure.dynamichash.batchget.DynamicHashCacheAgentBatchGetInvocationCommand;
 import com.yetcache.agent.core.structure.dynamichash.get.DynamicHashCacheAgentGetInvocationCommand;
 import com.yetcache.agent.interceptor.*;
-import com.yetcache.core.cache.CacheTtl;
-import com.yetcache.core.cache.WriteTier;
 import com.yetcache.core.cache.command.HashCachePutAllCommand;
-import com.yetcache.core.cache.dynamichash.DefaultMultiTierDynamicHashCache;
-import com.yetcache.core.cache.dynamichash.MultiTierDynamicHashCache;
+import com.yetcache.core.cache.dynamichash.DefaultMultiTierHashCache;
+import com.yetcache.core.cache.dynamichash.MultiTierHashCache;
 import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.SingleCacheResult;
@@ -42,10 +41,12 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
                                      FieldConverter fieldConverter,
                                      DynamicHashCacheLoader cacheLoader,
                                      CacheBroadcastPublisher broadcastPublisher,
-                                     CacheInvocationChainRegistry chainRegistry) {
+                                     CacheInvocationChainRegistry chainRegistry,
+                                     TypeDescriptor typeDescriptor,
+                                     ValueCodec codec) {
 
-        MultiTierDynamicHashCache multiTierCache = new DefaultMultiTierDynamicHashCache<>(componentNane,
-                config, redissonClient, keyConverter, fieldConverter);
+        MultiTierHashCache multiTierCache = new DefaultMultiTierHashCache(componentNane,
+                config, redissonClient, keyConverter, fieldConverter, typeDescriptor, codec);
 
         HashCacheFillPort fillPort = (bizKey, valueMap) -> this.putAll(bizKey, valueMap, PutAllOptions.defaultOptions());
         this.scope = new DynamicHashAgentScope(componentNane,
@@ -53,7 +54,8 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
                 config,
                 cacheLoader,
                 broadcastPublisher,
-                fillPort);
+                fillPort,
+                typeDescriptor);
 
 
 //        PenetrationProtectConfig localPpConfig = config.getEnhance().getLocalPenetrationProtect();
@@ -164,7 +166,7 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
 //            // ✅ 1. 非强制刷新时，优先使用结构新鲜期窗口逻辑
 //            if (!force && withinFullyLoadedExpireWindow(bizKey)) {
 //                log.debug("Fully-loaded freshness window active for key = {}", bizKey);
-//                StorageCacheAccessResultBak<Map<F, CacheValueHolder<V>>> result = cache.listAll(bizKey);
+//                StorageCacheAccessResultBak<Map<F, CacheValueHolder>> result = cache.listAll(bizKey);
 //                if (result.outcome() == CacheOutcome.HIT) {
 //                    return DynamicHashCacheAgentSingleAccessResult.success(
 //                            getCacheName(), result.value(), result.getTier());
@@ -305,7 +307,6 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
 
         return writeResult;
     }
-
 
 //    private DynamicHashCacheAgentSingleAccessResult<K, F, V> doInvalidateAll(K bizKey) {
 //        try {

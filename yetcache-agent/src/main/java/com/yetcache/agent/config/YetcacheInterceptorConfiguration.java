@@ -1,8 +1,8 @@
 package com.yetcache.agent.config;
 
 import com.yetcache.agent.core.StructureType;
-import com.yetcache.agent.core.structure.dynamichash.batchget.DynamicHashCacheBatchGetInterceptor;
-import com.yetcache.agent.core.structure.dynamichash.get.DynamicHashCacheGetInterceptor;
+import com.yetcache.agent.core.structure.dynamichash.batchget.HashCacheBatchGetInterceptor;
+import com.yetcache.agent.core.structure.dynamichash.get.HashCacheGetInterceptor;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.config.YetCacheProperties;
 import org.springframework.boot.ApplicationRunner;
@@ -33,17 +33,17 @@ public class YetcacheInterceptorConfiguration {
     }
 
     @Bean
-    public DynamicHashCacheGetInterceptor dynamicHashCacheGetInterceptor(
+    public HashCacheGetInterceptor dynamicHashCacheGetInterceptor(
             CacheInvocationInterceptorRegistry interceptorRegistry) {
-        DynamicHashCacheGetInterceptor interceptor = new DynamicHashCacheGetInterceptor();
+        HashCacheGetInterceptor interceptor = new HashCacheGetInterceptor();
         interceptorRegistry.register(interceptor);
         return interceptor;
     }
 
     @Bean
-    public DynamicHashCacheBatchGetInterceptor dynamicHashCacheBatchGetInterceptor(
+    public HashCacheBatchGetInterceptor dynamicHashCacheBatchGetInterceptor(
             CacheInvocationInterceptorRegistry interceptorRegistry) {
-        DynamicHashCacheBatchGetInterceptor interceptor = new DynamicHashCacheBatchGetInterceptor();
+        HashCacheBatchGetInterceptor interceptor = new HashCacheBatchGetInterceptor();
         interceptorRegistry.register(interceptor);
         return interceptor;
     }

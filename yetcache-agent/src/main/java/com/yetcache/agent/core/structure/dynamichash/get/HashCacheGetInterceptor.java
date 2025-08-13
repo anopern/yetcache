@@ -17,7 +17,7 @@ import java.util.Map;
  * @since 2025/7/30
  */
 @Slf4j
-public class DynamicHashCacheGetInterceptor implements CacheInterceptor {
+public class HashCacheGetInterceptor implements CacheInterceptor {
 
     @Override
     public String id() {
@@ -52,7 +52,7 @@ public class DynamicHashCacheGetInterceptor implements CacheInterceptor {
             HashCacheSingleGetCommand storeGetCmd = new HashCacheSingleGetCommand(bizKey, bizField);
             CacheResult storeResult = agentScope.getMultiTierCache().get(storeGetCmd);
             if (storeResult.code() == 0 && HitTier.NONE != storeResult.hitTierInfo().hitTier()) {
-                CacheValueHolder<?> holder = (CacheValueHolder<?>) storeResult.value();
+                CacheValueHolder holder = (CacheValueHolder) storeResult.value();
                 if (holder.isNotLogicExpired()) {
                     return SingleCacheResult.hit(componentName, holder, storeResult.hitTierInfo().hitTier());
                 }

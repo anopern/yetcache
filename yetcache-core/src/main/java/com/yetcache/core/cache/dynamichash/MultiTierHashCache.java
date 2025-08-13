@@ -9,7 +9,7 @@ import com.yetcache.core.result.CacheResult;
  * @author walter.yan
  * @since 2025/7/14
  */
-public interface MultiTierDynamicHashCache {
+public interface MultiTierHashCache {
     CacheResult get(HashCacheSingleGetCommand cmd);
 
     CacheResult batchGet(HashCacheBatchGetCommand cmd);

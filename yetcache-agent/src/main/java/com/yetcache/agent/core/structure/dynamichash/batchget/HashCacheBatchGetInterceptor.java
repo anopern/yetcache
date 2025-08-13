@@ -23,7 +23,7 @@ import java.util.Map;
  * @since 2025/7/30
  */
 @Slf4j
-public class DynamicHashCacheBatchGetInterceptor implements CacheInterceptor {
+public class HashCacheBatchGetInterceptor implements CacheInterceptor {
 
     @Override
     public String id() {
@@ -55,7 +55,7 @@ public class DynamicHashCacheBatchGetInterceptor implements CacheInterceptor {
         Object bizKey = cmd.getBizKey();
         List<Object> bizFields = cmd.getBizFields();
         DynamicHashAgentScope agentScope = (DynamicHashAgentScope) ctx.getAgentScope();
-        Map<Object, CacheValueHolder<Object>> resultValueHolderMap = new HashMap<>();
+        Map<Object, CacheValueHolder> resultValueHolderMap = new HashMap<>();
         Map<Object, HitTier> resultHitTierMap = new HashMap<>();
 
         try {
@@ -64,11 +64,11 @@ public class DynamicHashCacheBatchGetInterceptor implements CacheInterceptor {
             CacheResult storeResult = agentScope.getMultiTierCache().batchGet(batchGetCmd);
 
             List<Object> missedFields = new ArrayList<>();
-            Map<Object, CacheValueHolder<Object>> cacheValueHolderMap = (Map<Object, CacheValueHolder<Object>>) storeResult.value();
+            Map<Object, CacheValueHolder> cacheValueHolderMap = (Map<Object, CacheValueHolder>) storeResult.value();
             Map<Object, HitTier> cacheHitTierMap = storeResult.hitTierInfo().hitTierMap();
 
             for (Object field : bizFields) {
-                CacheValueHolder<Object> holder = cacheValueHolderMap.get(field);
+                CacheValueHolder holder = cacheValueHolderMap.get(field);
                 if (holder != null && holder.isNotLogicExpired()) {
                     resultValueHolderMap.put(field, holder);
                     resultHitTierMap.put(field, cacheHitTierMap.get(field));
@@ -90,7 +90,7 @@ public class DynamicHashCacheBatchGetInterceptor implements CacheInterceptor {
                     for (Object field : missedFields) {
                         Object loaded = loadedMap.get(field);
                         if (loaded != null) {
-                            CacheValueHolder<Object> holder = CacheValueHolder.wrap(loaded, 0);
+                            CacheValueHolder holder = CacheValueHolder.wrap(loaded, 0);
                             resultValueHolderMap.put(field, holder);
                             resultHitTierMap.put(field, HitTier.SOURCE);
                         }

@@ -27,23 +27,23 @@ public final class StockHoldInfoCacheService {
     }
 
     public Optional<StockHoldInfo> get(String fundAccount, Long id) {
-        SingleCacheResult<CacheValueHolder<StockHoldInfo>> result = CacheResultUtils.getTypedResult(
+        SingleCacheResult<CacheValueHolder> result = CacheResultUtils.getTypedResult(
                 stockHoldInfoCacheAgent.get(fundAccount, id));
         if (result.isSuccess() && HitTier.NONE != result.hitTierInfo().hitTier()) {
-            CacheValueHolder<StockHoldInfo> valueHolder = result.value();
-            return Optional.of(valueHolder.getValue());
+            CacheValueHolder valueHolder = result.value();
+            return Optional.of((StockHoldInfo) valueHolder.getValue());
         }
         return Optional.empty();
     }
 
     public List<StockHoldInfo> batchGet(String fundAccount, List<Long> ids) {
-        SingleCacheResult<Map<Object, CacheValueHolder<StockHoldInfo>>> result = CacheResultUtils.getTypedResult(
+        SingleCacheResult<Map<Object, CacheValueHolder >> result = CacheResultUtils.getTypedResult(
                 stockHoldInfoCacheAgent.batchGet(fundAccount, Arrays.asList(ids.toArray())));
         if (result.isSuccess()) {
-            Map<Object, CacheValueHolder<StockHoldInfo>> valueHolderMap = result.value();
+            Map<Object, CacheValueHolder > valueHolderMap = result.value();
             if (CollUtil.isNotEmpty(valueHolderMap)) {
                 return valueHolderMap.values().stream()
-                        .map(CacheValueHolder::getValue)
+                        .map(x -> (StockHoldInfo)x.getValue())
                         .collect(Collectors.toList());
             }
         }
