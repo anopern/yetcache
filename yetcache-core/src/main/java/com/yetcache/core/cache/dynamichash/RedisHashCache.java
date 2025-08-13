@@ -46,7 +46,7 @@ public class RedisHashCache {
             return null;
         }
         try {
-            return (CacheValueHolder) holderCodec.decode(raw, typeDesc.getValueTypeRef().getType());
+            return  holderCodec.decode(raw, typeDesc.getValueTypeRef().getType());
         } catch (Exception e) {
             throw new IllegalStateException("decode failed", e);
         }

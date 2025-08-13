@@ -1,6 +1,7 @@
 package com.yetcache.agent.broadcast.receiver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yetcache.agent.broadcast.InstanceIdProvider;
 import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandler;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
@@ -26,6 +27,10 @@ public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
         try {
             log.debug("receive message: {}", messageJson);
             CacheUpdateCommand cmd = objectMapper.readValue(messageJson, CacheUpdateCommand.class);
+            if (InstanceIdProvider.getInstanceId().equalsIgnoreCase(cmd.getDescriptor().getInstanceId())) {
+                log.debug("ignore local published message: {}", messageJson);
+                return;
+            }
             Optional<CacheBroadcastHandler> handlerOpt = handlerRegistry.getHandler(cmd);
             if (handlerOpt.isEmpty()) {
                 log.error("[YetCache] No broadcast handler for: {}", messageJson);

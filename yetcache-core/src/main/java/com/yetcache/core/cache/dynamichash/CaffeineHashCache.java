@@ -21,7 +21,7 @@ public class CaffeineHashCache {
 
     public CaffeineHashCache(CaffeineDynamicHashCacheConfig config) {
         this.cache = Caffeine.newBuilder()
-                .expireAfterWrite(TtlRandomizer.randomizeSecs(config.getLogicTtlSecs(), config.getTtlRandomPct()),
+                .expireAfterWrite(TtlRandomizer.randomizeSecs(config.getPhysicalTtlSecs(), config.getTtlRandomPct()),
                         TimeUnit.SECONDS)
                 .maximumSize(config.getMaxSize())
                 .build();

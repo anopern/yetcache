@@ -57,6 +57,7 @@ yetcache:
     dynamic-hash:
       stock-hold-info-cache:
         spec:
+          cache-tier: LOCAL
           cache-name: 'stock-hold-info-cache'
           key-prefix: 'nd:asset:stock:hold'
         local:
