@@ -13,8 +13,10 @@ import com.yetcache.agent.core.structure.dynamichash.batchget.DynamicHashCacheAg
 import com.yetcache.agent.core.structure.dynamichash.get.DynamicHashCacheAgentGetInvocationCommand;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.command.HashCachePutAllCommand;
-import com.yetcache.core.cache.dynamichash.DefaultMultiTierHashCache;
-import com.yetcache.core.cache.dynamichash.MultiTierHashCache;
+import com.yetcache.core.cache.hash.DefaultMultiTierHashCache;
+import com.yetcache.core.cache.hash.MultiTierHashCache;
+import com.yetcache.core.codec.TypeDescriptor;
+import com.yetcache.core.codec.ValueStringCodec;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.SingleCacheResult;
@@ -43,7 +45,7 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
                                      CacheBroadcastPublisher broadcastPublisher,
                                      CacheInvocationChainRegistry chainRegistry,
                                      TypeDescriptor typeDescriptor,
-                                     ValueCodec codec) {
+                                     ValueStringCodec codec) {
 
         MultiTierHashCache multiTierCache = new DefaultMultiTierHashCache(componentNane,
                 config, redissonClient, keyConverter, fieldConverter, typeDescriptor, codec);

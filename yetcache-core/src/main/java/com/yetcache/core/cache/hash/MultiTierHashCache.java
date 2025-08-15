@@ -1,4 +1,4 @@
-package com.yetcache.core.cache.dynamichash;
+package com.yetcache.core.cache.hash;
 
 import com.yetcache.core.cache.command.HashCacheBatchGetCommand;
 import com.yetcache.core.cache.command.HashCacheSingleGetCommand;

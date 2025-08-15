@@ -2,8 +2,7 @@ package com.yetcache.agent.broadcast.receiver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yetcache.agent.broadcast.InstanceIdProvider;
-import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
-import com.yetcache.agent.broadcast.command.CacheUpdateCommandCodec;
+import com.yetcache.agent.broadcast.command.CacheUpdateCommandStringCodec;
 import com.yetcache.agent.broadcast.command.CommandDescriptor;
 import com.yetcache.agent.broadcast.command.CommandEnvelope;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandler;
@@ -22,7 +21,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
     private final ObjectMapper objectMapper;
-    private final CacheUpdateCommandCodec cmdCodec;
+    private final CacheUpdateCommandStringCodec cmdCodec;
     private final CacheBroadcastHandlerRegistry handlerRegistry;
 
     @RabbitListener(queues = "#{broadcastQueueName}", concurrency = "1-3")

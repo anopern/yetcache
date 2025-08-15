@@ -2,23 +2,27 @@ package com.yetcache.core.cache;
 
 import cn.hutool.core.util.StrUtil;
 import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.codec.ValueStringCodec;
+
 import java.lang.reflect.Type;
 
 /**
  * @author walter.yan
  * @since 2025/8/12
  */
-public final class CacheValueHolderCodec implements ValueCodec {
+public final class CacheValueHolderStringCodec implements ValueStringCodec {
     // 用“同一种算法”的 valueCodec；这里用 Object 保持去泛型
-    private final ValueCodec delegate;
+    private final ValueStringCodec delegate;
 
-    public CacheValueHolderCodec(ValueCodec delegate) {
+    public CacheValueHolderStringCodec(ValueStringCodec delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public String encode(Object holderObj) throws Exception {
-        if (holderObj == null) return null;
+        if (holderObj == null) {
+            return null;
+        }
         return delegate.encode(holderObj);
     }
 
@@ -30,14 +34,14 @@ public final class CacheValueHolderCodec implements ValueCodec {
 
         CacheValueHolder holder = (CacheValueHolder) delegate.decode(json, CacheValueHolder.class);
         if (null != holder && null != holder.getValue()) {
-            Object value = ((JacksonValueCodec) delegate)
-                    .getObjectMapper()
-                    .convertValue(holder.getValue(),
-                            ((JacksonValueCodec) delegate).getObjectMapper()
-                                    .getTypeFactory()
-                                    .constructType(valueType));
+            Object value = delegate.convert(holder.getValue(), valueType);
             holder.setValue(value);
         }
         return holder;
+    }
+
+    @Override
+    public Object convert(Object obj, Type targetType) throws Exception {
+        return null;
     }
 }

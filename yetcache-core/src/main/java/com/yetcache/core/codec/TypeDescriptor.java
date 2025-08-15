@@ -1,4 +1,4 @@
-package com.yetcache.core.cache;
+package com.yetcache.core.codec;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

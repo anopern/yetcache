@@ -1,4 +1,4 @@
-package com.yetcache.core.cache.dynamichash;
+package com.yetcache.core.cache.hash;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;

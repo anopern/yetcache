@@ -3,8 +3,8 @@ package com.yetcache.agent.core.structure.dynamichash;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.AgentScope;
 import com.yetcache.agent.core.port.HashCacheFillPort;
-import com.yetcache.core.cache.TypeDescriptor;
-import com.yetcache.core.cache.dynamichash.MultiTierHashCache;
+import com.yetcache.core.codec.TypeDescriptor;
+import com.yetcache.core.cache.hash.MultiTierHashCache;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import lombok.Getter;
 

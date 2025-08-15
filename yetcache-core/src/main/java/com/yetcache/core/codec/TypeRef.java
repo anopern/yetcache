@@ -1,4 +1,4 @@
-package com.yetcache.core.cache;
+package com.yetcache.core.codec;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

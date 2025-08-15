@@ -1,8 +1,8 @@
-package com.yetcache.core.cache.dynamichash;
+package com.yetcache.core.cache.hash;
 
-import com.yetcache.core.cache.CacheValueHolderCodec;
-import com.yetcache.core.cache.TypeDescriptor;
-import com.yetcache.core.cache.ValueCodec;
+import com.yetcache.core.cache.CacheValueHolderStringCodec;
+import com.yetcache.core.codec.TypeDescriptor;
+import com.yetcache.core.codec.ValueStringCodec;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RMap;
@@ -24,15 +24,15 @@ import java.util.concurrent.TimeUnit;
 public class RedisHashCache {
     protected final RedissonClient rClient;
     private final TypeDescriptor typeDesc;
-    private final CacheValueHolderCodec holderCodec;
+    private final CacheValueHolderStringCodec holderCodec;
 
     public RedisHashCache(RedissonClient rClient,
                           TypeDescriptor typeDesc,
-                          ValueCodec codec) {
+                          ValueStringCodec codec) {
         this.rClient = rClient;
         this.typeDesc = typeDesc;
 
-        this.holderCodec = new CacheValueHolderCodec(codec);
+        this.holderCodec = new CacheValueHolderStringCodec(codec);
     }
 
     private RMap<String, String> map(String key) {

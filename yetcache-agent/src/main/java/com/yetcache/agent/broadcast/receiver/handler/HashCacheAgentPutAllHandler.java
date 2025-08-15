@@ -2,8 +2,6 @@ package com.yetcache.agent.broadcast.receiver.handler;
 
 import cn.hutool.core.collection.CollUtil;
 import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
-import com.yetcache.agent.broadcast.command.CacheUpdateCommandCodec;
-import com.yetcache.agent.broadcast.command.CommandDescriptor;
 import com.yetcache.agent.broadcast.command.Playload;
 import com.yetcache.agent.core.PutAllOptions;
 import com.yetcache.agent.core.StructureType;
@@ -12,10 +10,9 @@ import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheAgent;
 import com.yetcache.agent.interceptor.BehaviorType;
 import com.yetcache.agent.interceptor.StructureBehaviorKey;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
-import com.yetcache.core.cache.ValueCodec;
+import com.yetcache.core.codec.ValueStringCodec;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.validation.valueextraction.ValueExtractorDeclarationException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -27,10 +24,10 @@ import java.util.Optional;
 @Slf4j
 public class HashCacheAgentPutAllHandler implements CacheBroadcastHandler {
     protected final CacheAgentRegistryHub cacheAgentRegistryHub;
-    private final ValueCodec valueCodec;
+    private final ValueStringCodec valueCodec;
 
     public HashCacheAgentPutAllHandler(CacheAgentRegistryHub cacheAgentRegistryHub,
-                                       ValueCodec valueCodec) {
+                                       ValueStringCodec valueCodec) {
         this.cacheAgentRegistryHub = cacheAgentRegistryHub;
         this.valueCodec = valueCodec;
     }

@@ -1,8 +1,8 @@
-package com.yetcache.core.cache.dynamichash;
+package com.yetcache.core.cache.hash;
 
 import cn.hutool.core.collection.CollUtil;
-import com.yetcache.core.cache.TypeDescriptor;
-import com.yetcache.core.cache.ValueCodec;
+import com.yetcache.core.codec.TypeDescriptor;
+import com.yetcache.core.codec.ValueStringCodec;
 import com.yetcache.core.cache.WriteTier;
 import com.yetcache.core.cache.command.HashCacheBatchGetCommand;
 import com.yetcache.core.cache.command.HashCacheSingleGetCommand;
@@ -36,7 +36,7 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
                                      KeyConverter keyConverter,
                                      FieldConverter fieldConverter,
                                      TypeDescriptor typeDescriptor,
-                                     ValueCodec codec) {
+                                     ValueStringCodec codec) {
         this.componentName = Objects.requireNonNull(componentName, "cacheName");
         this.keyConverter = Objects.requireNonNull(keyConverter, "keyConverter");
         this.fieldConverter = Objects.requireNonNull(fieldConverter, "fieldConverter");
