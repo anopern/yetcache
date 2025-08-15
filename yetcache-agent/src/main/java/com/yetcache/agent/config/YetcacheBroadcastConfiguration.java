@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.yetcache.agent.broadcast.BroadcastQueueInitializer;
-import com.yetcache.agent.broadcast.command.CacheUpdateCommandStringCodec;
+import com.yetcache.agent.broadcast.command.CacheUpdateCommandCodecJson;
 import com.yetcache.agent.broadcast.receiver.CacheBroadcastReceiver;
 import com.yetcache.agent.broadcast.receiver.RabbitMqCacheBroadcastReceiver;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
@@ -12,7 +12,7 @@ import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.broadcast.publisher.DefaultRabbitmqCacheBroadcastPublisher;
 import com.yetcache.agent.broadcast.receiver.handler.HashCacheAgentPutAllHandler;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
-import com.yetcache.core.cache.JacksonValueStringCodec;
+import com.yetcache.core.codec.jackson.JacksonJsonValueCodec;
 import com.yetcache.core.config.YetCacheProperties;
 import com.yetcache.core.config.broadcast.RabbitMqConfig;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -45,7 +45,7 @@ public class YetcacheBroadcastConfiguration {
     @Bean
     public HashCacheAgentPutAllHandler dynamicHashPutAllHandler(CacheAgentRegistryHub cacheAgentRegistryHub,
                                                                 CacheBroadcastHandlerRegistry handlerRegistry,
-                                                                CacheUpdateCommandStringCodec cmdCodec) {
+                                                                CacheUpdateCommandCodecJson cmdCodec) {
         HashCacheAgentPutAllHandler handler = new HashCacheAgentPutAllHandler(cacheAgentRegistryHub, cmdCodec);
         handlerRegistry.register(handler);
         return handler;
@@ -71,7 +71,7 @@ public class YetcacheBroadcastConfiguration {
     }
 
     @Bean
-    public CacheUpdateCommandStringCodec cacheUpdateCommandCodec(ObjectMapper yetCacheObjectMapper) {
-        return new CacheUpdateCommandStringCodec(new JacksonValueStringCodec(yetCacheObjectMapper));
+    public CacheUpdateCommandCodecJson cacheUpdateCommandCodec(ObjectMapper yetCacheObjectMapper) {
+        return new CacheUpdateCommandCodecJson(new JacksonJsonValueCodec(yetCacheObjectMapper));
     }
 }

@@ -2,8 +2,8 @@ package com.yetcache.agent.broadcast.command;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
-import com.yetcache.core.cache.JacksonValueStringCodec;
-import com.yetcache.core.codec.ValueStringCodec;
+import com.yetcache.core.codec.jackson.JacksonJsonValueCodec;
+import com.yetcache.core.codec.JsonValueCodec;
 
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -12,11 +12,11 @@ import java.util.Map;
  * @author walter.yan
  * @since 2025/8/12
  */
-public final class CacheUpdateCommandStringCodec implements ValueStringCodec {
+public final class CacheUpdateCommandCodecJson implements JsonValueCodec {
     // 用“同一种算法”的 valueCodec；这里用 Object 保持去泛型
-    private final ValueStringCodec delegate;
+    private final JsonValueCodec delegate;
 
-    public CacheUpdateCommandStringCodec(ValueStringCodec delegate) {
+    public CacheUpdateCommandCodecJson(JsonValueCodec delegate) {
         this.delegate = delegate;
     }
 
@@ -51,9 +51,9 @@ public final class CacheUpdateCommandStringCodec implements ValueStringCodec {
     }
 
     private Object decode(Object raw, Type valueType) {
-        return ((JacksonValueStringCodec) delegate)
+        return ((JacksonJsonValueCodec) delegate)
                 .getObjectMapper()
-                .convertValue(raw, ((JacksonValueStringCodec) delegate).getObjectMapper()
+                .convertValue(raw, ((JacksonJsonValueCodec) delegate).getObjectMapper()
                         .getTypeFactory()
                         .constructType(valueType));
     }

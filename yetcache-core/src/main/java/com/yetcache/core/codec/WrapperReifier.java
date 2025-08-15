@@ -6,5 +6,5 @@ package com.yetcache.core.codec;
  */
 public interface WrapperReifier<T> {
     Class<T> targetType();
-    T reify(T wrapper, TypeRef<?> valueType, TypeConverter converter) throws Exception;
+    T reify(T wrapper, TypeRef<?> valueType, JsonTypeConverter converter) throws Exception;
 }

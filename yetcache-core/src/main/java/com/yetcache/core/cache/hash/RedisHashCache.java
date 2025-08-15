@@ -1,8 +1,6 @@
 package com.yetcache.core.cache.hash;
 
-import com.yetcache.core.cache.CacheValueHolderStringCodec;
-import com.yetcache.core.codec.TypeDescriptor;
-import com.yetcache.core.codec.ValueStringCodec;
+import com.yetcache.core.codec.*;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RMap;
@@ -10,6 +8,7 @@ import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.codec.CompositeCodec;
 
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -23,35 +22,38 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class RedisHashCache {
     protected final RedissonClient rClient;
-    private final TypeDescriptor typeDesc;
-    private final CacheValueHolderStringCodec holderCodec;
+    private final WrapperReifier<CacheValueHolder> wrapperReifier;
+    private final JsonTypeConverter jsonTypeConverter;
+    private final JsonValueCodec codec;
 
     public RedisHashCache(RedissonClient rClient,
-                          TypeDescriptor typeDesc,
-                          ValueStringCodec codec) {
+                          WrapperReifier<CacheValueHolder> wrapperReifier,
+                          JsonTypeConverter typeConverter,
+                          JsonValueCodec codec) {
         this.rClient = rClient;
-        this.typeDesc = typeDesc;
-
-        this.holderCodec = new CacheValueHolderStringCodec(codec);
+        this.wrapperReifier = wrapperReifier;
+        this.jsonTypeConverter = typeConverter;
+        this.codec = codec;
     }
 
     private RMap<String, String> map(String key) {
         return rClient.getMap(key, new CompositeCodec(StringCodec.INSTANCE, StringCodec.INSTANCE));
     }
 
-    public CacheValueHolder getIfPresent(String key, String field) {
-        String raw = map(key).get(field);
-        if (null == raw) {
+    public CacheValueHolder get(String key, String field, TypeRef<?> valueTypeRef) {
+        String json = map(key).get(field);
+        if (null == json) {
             return null;
         }
         try {
-            return holderCodec.decode(raw, typeDesc.getValueTypeRef().getType());
+            CacheValueHolder raw = (CacheValueHolder) codec.decode(json, valueTypeRef.getType());
+            return wrapperReifier.reify(raw, valueTypeRef, jsonTypeConverter);
         } catch (Exception e) {
             throw new IllegalStateException("decode failed", e);
         }
     }
 
-    public Map<String, CacheValueHolder> batchGet(String key, List<String> fields) {
+    public Map<String, CacheValueHolder> batchGet(String key, List<String> fields, TypeRef<?> valueTypeRef) {
         if (fields == null || fields.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -62,10 +64,11 @@ public class RedisHashCache {
 
         Map<String, CacheValueHolder> resultMap = new HashMap<>(rawMap.size());
         for (Map.Entry<String, String> e : rawMap.entrySet()) {
-            String raw = e.getValue();
-            if (raw != null) {
+            String json = e.getValue();
+            if (json != null) {
                 try {
-                    CacheValueHolder holder = holderCodec.decode(raw, typeDesc.getValueTypeRef().getType());
+                    CacheValueHolder raw = (CacheValueHolder) codec.decode(json, valueTypeRef.getType());
+                    CacheValueHolder holder = wrapperReifier.reify(raw, valueTypeRef, jsonTypeConverter);
                     resultMap.put(e.getKey(), holder);
                 } catch (Exception ex) {
                     log.warn("decode cache value failed, key: " + e.getKey());
@@ -89,7 +92,7 @@ public class RedisHashCache {
         Map<String, String> rawMap = new HashMap<>(holderMap.size());
         for (Map.Entry<String, CacheValueHolder> e : holderMap.entrySet()) {
             try {
-                rawMap.put(e.getKey(), holderCodec.encode(e.getValue()));
+                rawMap.put(e.getKey(), codec.encode(e.getValue()));
             } catch (Exception ex) {
                 log.warn("序列化字段失败：fieldKey={}, err={}", e.getKey(), ex.getMessage(), ex);
             }

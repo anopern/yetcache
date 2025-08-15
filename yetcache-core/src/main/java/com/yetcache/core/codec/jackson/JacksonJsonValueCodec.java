@@ -1,9 +1,9 @@
-package com.yetcache.core.cache;
+package com.yetcache.core.codec.jackson;
 
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yetcache.core.codec.ValueStringCodec;
+import com.yetcache.core.codec.JsonValueCodec;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -15,7 +15,7 @@ import java.lang.reflect.Type;
  */
 @AllArgsConstructor
 @Getter
-public class JacksonValueStringCodec implements ValueStringCodec {
+public class JacksonJsonValueCodec implements JsonValueCodec {
     private final ObjectMapper objectMapper;
 
     @Override
@@ -28,15 +28,6 @@ public class JacksonValueStringCodec implements ValueStringCodec {
         if (StrUtil.isNotBlank(json)) {
             JavaType javaType = objectMapper.getTypeFactory().constructType(valueType);
             return objectMapper.readValue(json, javaType);
-        }
-        return null;
-    }
-
-    @Override
-    public Object convert(Object obj, Type targetType) throws Exception {
-        if (null != obj) {
-            JavaType javaType = objectMapper.getTypeFactory().constructType(targetType);
-            return objectMapper.convertValue(obj, javaType);
         }
         return null;
     }

@@ -1,13 +1,15 @@
 package com.yetcache.core.cache.hash;
 
 import cn.hutool.core.collection.CollUtil;
+import com.yetcache.core.codec.JsonTypeConverter;
 import com.yetcache.core.codec.TypeDescriptor;
-import com.yetcache.core.codec.ValueStringCodec;
+import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.cache.WriteTier;
 import com.yetcache.core.cache.command.HashCacheBatchGetCommand;
 import com.yetcache.core.cache.command.HashCacheSingleGetCommand;
 import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.codec.WrapperReifier;
 import com.yetcache.core.result.*;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.support.field.FieldConverter;
@@ -35,8 +37,9 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
                                      RedissonClient redissonClient,
                                      KeyConverter keyConverter,
                                      FieldConverter fieldConverter,
-                                     TypeDescriptor typeDescriptor,
-                                     ValueStringCodec codec) {
+                                     WrapperReifier<CacheValueHolder> wrapperReifier,
+                                     JsonTypeConverter jsonTypeConverter,
+                                     JsonValueCodec jsonValueCodec) {
         this.componentName = Objects.requireNonNull(componentName, "cacheName");
         this.keyConverter = Objects.requireNonNull(keyConverter, "keyConverter");
         this.fieldConverter = Objects.requireNonNull(fieldConverter, "fieldConverter");
@@ -45,7 +48,7 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
             this.localCache = new CaffeineHashCache(config.getLocal());
         }
         if (config.getSpec().getCacheTier().useRemote()) {
-            this.remoteCache = new RedisHashCache(redissonClient, typeDescriptor, codec);
+            this.remoteCache = new RedisHashCache(redissonClient, wrapperReifier, jsonTypeConverter, jsonValueCodec);
         }
     }
 
@@ -64,7 +67,7 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
 
         // 2. 尝试从远程缓存读取
         if (remoteCache != null) {
-            CacheValueHolder holder = remoteCache.getIfPresent(key, field);
+            CacheValueHolder holder = remoteCache.get(key, field, cmd.getTypeDesc().getValueTypeRef());
             if (holder != null && holder.isNotLogicExpired()) {
                 // 回写到本地缓存
                 if (localCache != null) {
@@ -103,7 +106,8 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
             }
 
             if (CollUtil.isNotEmpty(missingLocalFields) && remoteCache != null) {
-                Map<String, CacheValueHolder> remoteResult = remoteCache.batchGet(key, missingLocalFields);
+                Map<String, CacheValueHolder> remoteResult = remoteCache.batchGet(key, missingLocalFields,
+                        cmd.getTypeDesc().getValueTypeRef());
                 // 写回本地缓存（仅非过期）
                 for (Map.Entry<String, CacheValueHolder> entry : remoteResult.entrySet()) {
                     String field = entry.getKey();

@@ -1,5 +1,6 @@
 package com.yetcache.core.cache.command;
 
+import com.yetcache.core.codec.TypeDescriptor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,4 +17,5 @@ import lombok.NoArgsConstructor;
 public class HashCacheSingleGetCommand {
     private Object bizKey;
     private Object bizField;
+    private TypeDescriptor typeDesc;
 }

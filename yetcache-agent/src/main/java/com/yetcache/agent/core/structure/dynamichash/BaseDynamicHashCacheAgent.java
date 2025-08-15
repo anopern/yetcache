@@ -15,8 +15,11 @@ import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.hash.DefaultMultiTierHashCache;
 import com.yetcache.core.cache.hash.MultiTierHashCache;
+import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.codec.JsonTypeConverter;
 import com.yetcache.core.codec.TypeDescriptor;
-import com.yetcache.core.codec.ValueStringCodec;
+import com.yetcache.core.codec.JsonValueCodec;
+import com.yetcache.core.codec.WrapperReifier;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.SingleCacheResult;
@@ -45,10 +48,12 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
                                      CacheBroadcastPublisher broadcastPublisher,
                                      CacheInvocationChainRegistry chainRegistry,
                                      TypeDescriptor typeDescriptor,
-                                     ValueStringCodec codec) {
+                                     WrapperReifier<CacheValueHolder> wrapperReifier,
+                                     JsonTypeConverter jsonTypeConverter,
+                                     JsonValueCodec jsonValueCodec) {
 
         MultiTierHashCache multiTierCache = new DefaultMultiTierHashCache(componentNane,
-                config, redissonClient, keyConverter, fieldConverter, typeDescriptor, codec);
+                config, redissonClient, keyConverter, fieldConverter, wrapperReifier, jsonTypeConverter, jsonValueCodec);
 
         HashCacheFillPort fillPort = (bizKey, valueMap) -> this.putAll(bizKey, valueMap, PutAllOptions.defaultOptions());
         this.scope = new DynamicHashAgentScope(componentNane,
@@ -296,9 +301,9 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
                                 .componentName(scope.getComponentName())
                                 .structureBehaviorKey(StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.PUT_ALL))
                                 .instanceId(InstanceIdProvider.getInstanceId())
+                                .createdTime(System.currentTimeMillis())
                                 .build())
                         .payload(Playload.builder().bizKey(bizKey).bizFieldValueMap(valueMap).build())
-                        .createdTime(System.currentTimeMillis())
                         .build();
                 this.scope.getBroadcastPublisher().publish(broadcastCmd);
             } catch (Exception e) {

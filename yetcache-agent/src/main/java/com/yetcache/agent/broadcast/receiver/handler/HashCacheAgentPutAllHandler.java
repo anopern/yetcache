@@ -10,7 +10,7 @@ import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheAgent;
 import com.yetcache.agent.interceptor.BehaviorType;
 import com.yetcache.agent.interceptor.StructureBehaviorKey;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
-import com.yetcache.core.codec.ValueStringCodec;
+import com.yetcache.core.codec.JsonValueCodec;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -24,10 +24,10 @@ import java.util.Optional;
 @Slf4j
 public class HashCacheAgentPutAllHandler implements CacheBroadcastHandler {
     protected final CacheAgentRegistryHub cacheAgentRegistryHub;
-    private final ValueStringCodec valueCodec;
+    private final JsonValueCodec valueCodec;
 
     public HashCacheAgentPutAllHandler(CacheAgentRegistryHub cacheAgentRegistryHub,
-                                       ValueStringCodec valueCodec) {
+                                       JsonValueCodec valueCodec) {
         this.cacheAgentRegistryHub = cacheAgentRegistryHub;
         this.valueCodec = valueCodec;
     }

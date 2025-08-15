@@ -10,7 +10,7 @@ import com.yetcache.agent.core.structure.dynamichash.BaseDynamicHashCacheAgent;
 import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheLoader;
 import com.yetcache.agent.interceptor.CacheInvocationChainRegistry;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
-import com.yetcache.core.cache.JacksonValueStringCodec;
+import com.yetcache.core.codec.jackson.JacksonJsonValueCodec;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.TypeRef;
 import com.yetcache.core.cache.YetCacheConfigResolver;
@@ -36,8 +36,8 @@ public class HashCacheAgentConfig {
             .setVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE)
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
     @Bean
-    public JacksonValueStringCodec objectMapperCodec() {
-        return new JacksonValueStringCodec(objectMapper);
+    public JacksonJsonValueCodec objectMapperCodec() {
+        return new JacksonJsonValueCodec(objectMapper);
     }
 
     @Qualifier("stockHoldInfoCacheAgent")
@@ -49,7 +49,7 @@ public class HashCacheAgentConfig {
             DynamicHashCacheLoader stockHoldInfoCacheLoader,
             CacheInvocationChainRegistry cacheInvocationChainRegistry,
             CacheBroadcastPublisher broadcastPublisher,
-            JacksonValueStringCodec jacksonValueCodec) {
+            JacksonJsonValueCodec jacksonValueCodec) {
         String componentName = EnumCaches.STOCK_HOLD_INFO_CACHE.getName();
         HashCacheConfig config = configResolver.resolveHash(componentName);
         BaseDynamicHashCacheAgent agent = new BaseDynamicHashCacheAgent(componentName,

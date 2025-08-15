@@ -23,4 +23,18 @@ public abstract class TypeRef<T> {
     public Type getType() {
         return type;
     }
+
+    public boolean isInstance(Object obj) {
+        if (type instanceof Class<?>) {
+            return ((Class<?>) type).isInstance(obj);
+        }
+        if (type instanceof ParameterizedType) {
+            Type rawType = ((ParameterizedType) type).getRawType();
+            if (rawType instanceof Class<?>) {
+                return ((Class<?>) rawType).isInstance(obj);
+            }
+        }
+        // 其他 Type 情况可以按需补充，比如 GenericArrayType、WildcardType
+        return false;
+    }
 }
