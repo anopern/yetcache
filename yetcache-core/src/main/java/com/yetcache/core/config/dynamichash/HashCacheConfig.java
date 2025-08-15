@@ -11,20 +11,20 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DynamicHashCacheConfig {
+public class HashCacheConfig {
     private DynamicHashCacheSpec spec;
     protected CaffeineDynamicHashCacheConfig local;
     protected RedisDynamicHashCacheConfig remote;
 
-    public DynamicHashCacheConfig(DynamicHashCacheConfig other) {
+    public HashCacheConfig(HashCacheConfig other) {
         if (other == null) return;
         this.spec = other.spec != null ? new DynamicHashCacheSpec(other.spec) : null;
         this.local = other.local != null ? new CaffeineDynamicHashCacheConfig(other.local) : null;
         this.remote = other.remote != null ? new RedisDynamicHashCacheConfig(other.remote) : null;
     }
 
-    public static DynamicHashCacheConfig defaultConfig() {
-        return new DynamicHashCacheConfig(DynamicHashCacheSpec.defaultSpec(),
+    public static HashCacheConfig defaultConfig() {
+        return new HashCacheConfig(DynamicHashCacheSpec.defaultSpec(),
                 CaffeineDynamicHashCacheConfig.defaultConfig(),
                 RedisDynamicHashCacheConfig.defaultConfig());
     }

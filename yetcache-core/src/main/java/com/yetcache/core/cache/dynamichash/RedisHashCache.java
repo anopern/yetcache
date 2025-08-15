@@ -7,7 +7,6 @@ import com.yetcache.core.cache.support.CacheValueHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
-import org.redisson.client.codec.ByteArrayCodec;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.codec.CompositeCodec;
 
@@ -36,17 +35,17 @@ public class RedisHashCache {
         this.holderCodec = new CacheValueHolderCodec(codec);
     }
 
-    private RMap<String, byte[]> map(String key) {
-        return rClient.getMap(key, new CompositeCodec(StringCodec.INSTANCE, ByteArrayCodec.INSTANCE));
+    private RMap<String, String> map(String key) {
+        return rClient.getMap(key, new CompositeCodec(StringCodec.INSTANCE, StringCodec.INSTANCE));
     }
 
     public CacheValueHolder getIfPresent(String key, String field) {
-        byte[] raw = map(key).get(field);
+        String raw = map(key).get(field);
         if (null == raw) {
             return null;
         }
         try {
-            return  holderCodec.decode(raw, typeDesc.getValueTypeRef().getType());
+            return holderCodec.decode(raw, typeDesc.getValueTypeRef().getType());
         } catch (Exception e) {
             throw new IllegalStateException("decode failed", e);
         }
@@ -56,18 +55,17 @@ public class RedisHashCache {
         if (fields == null || fields.isEmpty()) {
             return Collections.emptyMap();
         }
-        Map<String, byte[]> rawMap = map(key).getAll(new HashSet<>(fields));
+        Map<String, String> rawMap = map(key).getAll(new HashSet<>(fields));
         if (rawMap == null || rawMap.isEmpty()) {
             return Collections.emptyMap();
         }
 
         Map<String, CacheValueHolder> resultMap = new HashMap<>(rawMap.size());
-        for (Map.Entry<String, byte[]> e : rawMap.entrySet()) {
-            byte[] raw = e.getValue();
+        for (Map.Entry<String, String> e : rawMap.entrySet()) {
+            String raw = e.getValue();
             if (raw != null) {
                 try {
-                    CacheValueHolder holder = (CacheValueHolder) holderCodec.decode(raw,
-                            typeDesc.getValueTypeRef().getType());
+                    CacheValueHolder holder = holderCodec.decode(raw, typeDesc.getValueTypeRef().getType());
                     resultMap.put(e.getKey(), holder);
                 } catch (Exception ex) {
                     log.warn("decode cache value failed, key: " + e.getKey());
@@ -88,10 +86,10 @@ public class RedisHashCache {
             return;
         }
 
-        Map<String, byte[]> rawMap = new HashMap<>(holderMap.size());
+        Map<String, String> rawMap = new HashMap<>(holderMap.size());
         for (Map.Entry<String, CacheValueHolder> e : holderMap.entrySet()) {
             try {
-                rawMap.put(e.getKey(), holderCodec.encode(e.getValue(), typeDesc.getValueTypeRef().getType()));
+                rawMap.put(e.getKey(), holderCodec.encode(e.getValue()));
             } catch (Exception ex) {
                 log.warn("序列化字段失败：fieldKey={}, err={}", e.getKey(), ex.getMessage(), ex);
             }

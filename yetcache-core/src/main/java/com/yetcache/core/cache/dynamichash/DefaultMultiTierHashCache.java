@@ -9,7 +9,7 @@ import com.yetcache.core.cache.command.HashCacheSingleGetCommand;
 import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.*;
-import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
+import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
     private final FieldConverter fieldConverter;
 
     public DefaultMultiTierHashCache(String componentName,
-                                     DynamicHashCacheConfig config,
+                                     HashCacheConfig config,
                                      RedissonClient redissonClient,
                                      KeyConverter keyConverter,
                                      FieldConverter fieldConverter,

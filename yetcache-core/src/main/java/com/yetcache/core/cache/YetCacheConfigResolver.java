@@ -1,8 +1,7 @@
 package com.yetcache.core.cache;
 
 import com.yetcache.core.config.YetCacheProperties;
-import com.yetcache.core.config.broadcast.RabbitMqConfig;
-import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
+import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
 import com.yetcache.core.merger.CacheConfigMerger;
@@ -35,8 +34,8 @@ public class YetCacheConfigResolver {
         return CacheConfigMerger.merge(props.getGlobal(), raw);
     }
 
-    public DynamicHashCacheConfig resolveDynamicHash(String cacheName) {
-        DynamicHashCacheConfig raw = props.getCaches().getDynamicHash().get(cacheName);
+    public HashCacheConfig resolveHash(String cacheName) {
+        HashCacheConfig raw = props.getCaches().getDynamicHash().get(cacheName);
         if (raw == null) {
             throw new IllegalArgumentException("DynamicHash结构未配置: " + cacheName);
         }

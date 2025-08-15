@@ -16,5 +16,4 @@ import lombok.NoArgsConstructor;
 public class CacheUpdateCommand {
     private CommandDescriptor descriptor;
     private Playload payload;
-    private Long createdTime;
 }

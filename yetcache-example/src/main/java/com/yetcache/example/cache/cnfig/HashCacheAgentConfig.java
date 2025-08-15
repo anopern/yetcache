@@ -1,16 +1,20 @@
 package com.yetcache.example.cache.cnfig;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.structure.dynamichash.BaseDynamicHashCacheAgent;
 import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheLoader;
 import com.yetcache.agent.interceptor.CacheInvocationChainRegistry;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
-import com.yetcache.core.cache.ObjectMapperCodec;
+import com.yetcache.core.cache.JacksonValueCodec;
 import com.yetcache.core.cache.TypeDescriptor;
 import com.yetcache.core.cache.TypeRef;
 import com.yetcache.core.cache.YetCacheConfigResolver;
-import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
+import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.support.field.TypeFieldConverter;
 import com.yetcache.core.support.key.KeyConverterFactory;
 import com.yetcache.example.entity.StockHoldInfo;
@@ -25,11 +29,15 @@ import org.springframework.context.annotation.Configuration;
  * @since 2025/7/15
  */
 @Configuration
-public class DynamicHashCacheAgentConfig {
-    private final ObjectMapper objectMapper = new ObjectMapper();
+public class HashCacheAgentConfig {
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+            .setVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE)
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
     @Bean
-    public ObjectMapperCodec objectMapperCodec() {
-        return new ObjectMapperCodec(objectMapper);
+    public JacksonValueCodec objectMapperCodec() {
+        return new JacksonValueCodec(objectMapper);
     }
 
     @Qualifier("stockHoldInfoCacheAgent")
@@ -41,9 +49,9 @@ public class DynamicHashCacheAgentConfig {
             DynamicHashCacheLoader stockHoldInfoCacheLoader,
             CacheInvocationChainRegistry cacheInvocationChainRegistry,
             CacheBroadcastPublisher broadcastPublisher,
-            ObjectMapperCodec objectMapperCodec) {
+            JacksonValueCodec jacksonValueCodec) {
         String componentName = EnumCaches.STOCK_HOLD_INFO_CACHE.getName();
-        DynamicHashCacheConfig config = configResolver.resolveDynamicHash(componentName);
+        HashCacheConfig config = configResolver.resolveHash(componentName);
         BaseDynamicHashCacheAgent agent = new BaseDynamicHashCacheAgent(componentName,
                 config, redissonClient,
                 KeyConverterFactory.createDefault(config.getSpec().getKeyPrefix(), config.getSpec().getUseHashTag()),
@@ -51,8 +59,9 @@ public class DynamicHashCacheAgentConfig {
                 stockHoldInfoCacheLoader,
                 broadcastPublisher,
                 cacheInvocationChainRegistry,
-                new TypeDescriptor(new TypeRef<StockHoldInfo>() {}),
-                objectMapperCodec);
+                new TypeDescriptor(new TypeRef<StockHoldInfo>() {
+                }),
+                jacksonValueCodec);
         agentRegistryHub.register(agent);
         return agent;
     }

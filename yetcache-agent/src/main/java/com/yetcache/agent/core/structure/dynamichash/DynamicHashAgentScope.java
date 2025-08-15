@@ -5,7 +5,7 @@ import com.yetcache.agent.core.AgentScope;
 import com.yetcache.agent.core.port.HashCacheFillPort;
 import com.yetcache.core.cache.TypeDescriptor;
 import com.yetcache.core.cache.dynamichash.MultiTierHashCache;
-import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
+import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import lombok.Getter;
 
 /**
@@ -16,7 +16,7 @@ import lombok.Getter;
 public class DynamicHashAgentScope implements AgentScope {
     private final String componentName;
     private final MultiTierHashCache multiTierCache;
-    private final DynamicHashCacheConfig config;
+    private final HashCacheConfig config;
     private final DynamicHashCacheLoader cacheLoader;
     private final CacheBroadcastPublisher broadcastPublisher;
     private final HashCacheFillPort hashCacheFillPort;
@@ -24,7 +24,7 @@ public class DynamicHashAgentScope implements AgentScope {
 
     public DynamicHashAgentScope(String componentName,
                                  MultiTierHashCache multiTierCache,
-                                 DynamicHashCacheConfig config,
+                                 HashCacheConfig config,
                                  DynamicHashCacheLoader cacheLoader,
                                  CacheBroadcastPublisher broadcastPublisher,
                                  HashCacheFillPort hashCacheFillPort,

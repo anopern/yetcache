@@ -15,7 +15,7 @@ import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.dynamichash.DefaultMultiTierHashCache;
 import com.yetcache.core.cache.dynamichash.MultiTierHashCache;
-import com.yetcache.core.config.dynamichash.DynamicHashCacheConfig;
+import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.SingleCacheResult;
 import com.yetcache.core.support.field.FieldConverter;
@@ -35,7 +35,7 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
     private final CacheInvocationChainRegistry chainRegistry;
 
     public BaseDynamicHashCacheAgent(String componentNane,
-                                     DynamicHashCacheConfig config,
+                                     HashCacheConfig config,
                                      RedissonClient redissonClient,
                                      KeyConverter keyConverter,
                                      FieldConverter fieldConverter,

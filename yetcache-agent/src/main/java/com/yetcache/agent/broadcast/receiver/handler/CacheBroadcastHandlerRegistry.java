@@ -1,6 +1,7 @@
 package com.yetcache.agent.broadcast.receiver.handler;
 
-import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
+import com.yetcache.agent.interceptor.StructureBehaviorKey;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -16,9 +17,9 @@ public class CacheBroadcastHandlerRegistry {
         handlers.add(handler);
     }
 
-    public Optional<CacheBroadcastHandler> getHandler(CacheUpdateCommand cmd) {
+    public Optional<CacheBroadcastHandler> getHandler(StructureBehaviorKey sbKey) {
         return handlers.stream()
-                .filter(h -> h.supports(cmd))
+                .filter(h -> h.supports(sbKey))
                 .findFirst();
     }
 }

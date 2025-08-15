@@ -3,6 +3,9 @@ package com.yetcache.agent.broadcast.receiver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yetcache.agent.broadcast.InstanceIdProvider;
 import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
+import com.yetcache.agent.broadcast.command.CacheUpdateCommandCodec;
+import com.yetcache.agent.broadcast.command.CommandDescriptor;
+import com.yetcache.agent.broadcast.command.CommandEnvelope;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandler;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
     private final ObjectMapper objectMapper;
+    private final CacheUpdateCommandCodec cmdCodec;
     private final CacheBroadcastHandlerRegistry handlerRegistry;
 
     @RabbitListener(queues = "#{broadcastQueueName}", concurrency = "1-3")
@@ -26,16 +30,23 @@ public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
     public void onMessage(String messageJson) {
         try {
             log.debug("receive message: {}", messageJson);
-            CacheUpdateCommand cmd = objectMapper.readValue(messageJson, CacheUpdateCommand.class);
-            if (InstanceIdProvider.getInstanceId().equalsIgnoreCase(cmd.getDescriptor().getInstanceId())) {
+            CommandEnvelope envelope = objectMapper.readValue(messageJson, CommandEnvelope.class);
+            if (null == envelope || null == envelope.getDescriptor()) {
+                log.warn("[YetCache] Invalid message: {}", messageJson);
+                return;
+            }
+
+            CommandDescriptor descriptor = envelope.getDescriptor();
+            if (InstanceIdProvider.getInstanceId().equalsIgnoreCase(descriptor.getInstanceId())) {
                 log.debug("ignore local published message: {}", messageJson);
                 return;
             }
-            Optional<CacheBroadcastHandler> handlerOpt = handlerRegistry.getHandler(cmd);
+            Optional<CacheBroadcastHandler> handlerOpt = handlerRegistry.getHandler(descriptor.getStructureBehaviorKey());
             if (handlerOpt.isEmpty()) {
                 log.error("[YetCache] No broadcast handler for: {}", messageJson);
                 return;
             }
+
             handlerOpt.get().handle(cmd);
         } catch (Exception e) {
             log.warn("[YetCache] Failed to process broadcast message: {}", messageJson, e);

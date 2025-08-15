@@ -7,7 +7,7 @@ import java.lang.reflect.Type;
  * @since 2025/8/12
  */
 public interface ValueCodec {
-    byte[] encode(Object value, Type valueType) throws Exception;
+    String encode(Object value) throws Exception;
 
-    Object decode(byte[] bytes, Type valueType) throws Exception;
+    Object decode(String json, Type valueType) throws Exception;
 }

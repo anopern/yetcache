@@ -1,7 +1,8 @@
 package com.yetcache.core.cache.support;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.concurrent.TimeUnit;
 
@@ -9,12 +10,19 @@ import java.util.concurrent.TimeUnit;
  * @author walter.yan
  * @since 2025/6/18
  */
-@Data
 @NoArgsConstructor
 public final class CacheValueHolder {
+    @Getter
+    @Setter
     private Object value;
+    @Getter
+    @Setter
     private long createdTime;
+    @Getter
+    @Setter
     private long expireTime;
+    @Getter
+    @Setter
     private long lastAccessTime;
 
     public CacheValueHolder(Object value) {
