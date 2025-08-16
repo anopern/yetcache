@@ -1,7 +1,7 @@
 package com.yetcache.example.service.loader;
 
 import cn.hutool.core.collection.CollUtil;
-import com.yetcache.agent.core.structure.dynamichash.AbstractDynamicHashCacheLoader;
+import com.yetcache.agent.core.structure.dynamichash.AbstractHashCacheLoader;
 import com.yetcache.agent.core.structure.dynamichash.HashCacheBatchLoadCommand;
 import com.yetcache.agent.core.structure.dynamichash.HashCacheSingleLoadCommand;
 import com.yetcache.core.result.CacheResult;
@@ -11,7 +11,6 @@ import com.yetcache.example.service.IStockHoldInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
  * @since 2025/7/2
  */
 @Component
-public class StockHoldInfoCacheLoader extends AbstractDynamicHashCacheLoader {
+public class StockHoldInfoCacheLoader extends AbstractHashCacheLoader {
     @Autowired
     private IStockHoldInfoService stockHoldInfoService;
 

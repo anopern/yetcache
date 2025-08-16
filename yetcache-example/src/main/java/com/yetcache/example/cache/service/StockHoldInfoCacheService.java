@@ -1,7 +1,7 @@
 package com.yetcache.example.cache.service;
 
 import cn.hutool.core.collection.CollUtil;
-import com.yetcache.agent.core.structure.dynamichash.BaseDynamicHashCacheAgent;
+import com.yetcache.agent.core.structure.dynamichash.BaseHashCacheAgent;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.CacheResultUtils;
 import com.yetcache.core.result.HitTier;
@@ -19,10 +19,10 @@ import java.util.stream.Collectors;
  */
 @Component
 public final class StockHoldInfoCacheService {
-    private final BaseDynamicHashCacheAgent stockHoldInfoCacheAgent;
+    private final BaseHashCacheAgent stockHoldInfoCacheAgent;
 
     @Autowired
-    public StockHoldInfoCacheService(BaseDynamicHashCacheAgent stockHoldInfoCacheAgent) {
+    public StockHoldInfoCacheService(BaseHashCacheAgent stockHoldInfoCacheAgent) {
         this.stockHoldInfoCacheAgent = stockHoldInfoCacheAgent;
     }
 

@@ -6,7 +6,7 @@ import com.yetcache.agent.broadcast.command.playload.HashPlayload;
 import com.yetcache.agent.core.PutAllOptions;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.CacheAgent;
-import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheAgent;
+import com.yetcache.agent.core.structure.dynamichash.HashCacheAgent;
 import com.yetcache.agent.interceptor.BehaviorType;
 import com.yetcache.agent.interceptor.StructureBehaviorKey;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
@@ -58,8 +58,8 @@ public class HashCacheAgentPutAllHandler implements CacheBroadcastHandler {
             return;
         }
         CacheAgent agent = optional.get();
-        if (agent instanceof DynamicHashCacheAgent) {
-            DynamicHashCacheAgent dhAgent = (DynamicHashCacheAgent) agent;
+        if (agent instanceof HashCacheAgent) {
+            HashCacheAgent dhAgent = (HashCacheAgent) agent;
             Map<Object, Object> fieldValueMap = fieldValues.stream()
                     .collect(Collectors.toMap(HashPlayload.FieldValue::getField, HashPlayload.FieldValue::getValue));
             dhAgent.putAll(bizKey, fieldValueMap, PutAllOptions.builder().broadcast(false).build());

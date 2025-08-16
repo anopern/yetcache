@@ -6,12 +6,10 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
-import com.yetcache.agent.core.structure.dynamichash.BaseDynamicHashCacheAgent;
-import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheLoader;
+import com.yetcache.agent.core.structure.dynamichash.BaseHashCacheAgent;
+import com.yetcache.agent.core.structure.dynamichash.HashCacheLoader;
 import com.yetcache.agent.interceptor.CacheInvocationChainRegistry;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
-import com.yetcache.core.cache.support.CacheValueHolder;
-import com.yetcache.core.codec.WrapperReifier;
 import com.yetcache.core.codec.jackson.JacksonJsonValueCodec;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.TypeRef;
@@ -45,17 +43,17 @@ public class HashCacheAgentConfig {
 
     @Qualifier("stockHoldInfoCacheAgent")
     @Bean
-    public BaseDynamicHashCacheAgent stockHoldInfoCacheAgent(
+    public BaseHashCacheAgent stockHoldInfoCacheAgent(
             RedissonClient redissonClient,
             YetCacheConfigResolver configResolver,
             CacheAgentRegistryHub agentRegistryHub,
-            DynamicHashCacheLoader stockHoldInfoCacheLoader,
+            HashCacheLoader stockHoldInfoCacheLoader,
             CacheInvocationChainRegistry cacheInvocationChainRegistry,
             CacheBroadcastPublisher broadcastPublisher,
             JacksonJsonValueCodec jacksonValueCodec) {
         String componentName = EnumCaches.STOCK_HOLD_INFO_CACHE.getName();
         HashCacheConfig config = configResolver.resolveHash(componentName);
-        BaseDynamicHashCacheAgent agent = new BaseDynamicHashCacheAgent(componentName,
+        BaseHashCacheAgent agent = new BaseHashCacheAgent(componentName,
                 config, redissonClient,
                 KeyConverterFactory.createDefault(config.getSpec().getKeyPrefix(), config.getSpec().getUseHashTag()),
                 new TypeFieldConverter(Long.class),

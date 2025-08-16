@@ -17,7 +17,7 @@ public class HashAgentScope implements AgentScope {
     private final String componentName;
     private final MultiTierHashCache multiTierCache;
     private final HashCacheConfig config;
-    private final DynamicHashCacheLoader cacheLoader;
+    private final HashCacheLoader cacheLoader;
     private final CacheBroadcastPublisher broadcastPublisher;
     private final HashCacheFillPort hashCacheFillPort;
     private final TypeDescriptor typeDescriptor;
@@ -25,7 +25,7 @@ public class HashAgentScope implements AgentScope {
     public HashAgentScope(String componentName,
                           MultiTierHashCache multiTierCache,
                           HashCacheConfig config,
-                          DynamicHashCacheLoader cacheLoader,
+                          HashCacheLoader cacheLoader,
                           CacheBroadcastPublisher broadcastPublisher,
                           HashCacheFillPort hashCacheFillPort,
                           TypeDescriptor typeDescriptor) {

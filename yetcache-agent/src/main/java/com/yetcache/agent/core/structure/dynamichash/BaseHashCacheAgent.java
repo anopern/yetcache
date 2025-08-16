@@ -15,10 +15,8 @@ import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.hash.DefaultMultiTierHashCache;
 import com.yetcache.core.cache.hash.MultiTierHashCache;
-import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.JsonValueCodec;
-import com.yetcache.core.codec.WrapperReifier;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.SingleCacheResult;
@@ -35,20 +33,20 @@ import java.util.stream.Collectors;
  * @since 2025/7/14
  */
 @Slf4j
-public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
+public class BaseHashCacheAgent implements HashCacheAgent {
     private final HashAgentScope scope;
     private final CacheInvocationChainRegistry chainRegistry;
 
-    public BaseDynamicHashCacheAgent(String componentNane,
-                                     HashCacheConfig config,
-                                     RedissonClient redissonClient,
-                                     KeyConverter keyConverter,
-                                     FieldConverter fieldConverter,
-                                     DynamicHashCacheLoader cacheLoader,
-                                     CacheBroadcastPublisher broadcastPublisher,
-                                     CacheInvocationChainRegistry chainRegistry,
-                                     TypeDescriptor typeDescriptor,
-                                     JsonValueCodec jsonValueCodec) {
+    public BaseHashCacheAgent(String componentNane,
+                              HashCacheConfig config,
+                              RedissonClient redissonClient,
+                              KeyConverter keyConverter,
+                              FieldConverter fieldConverter,
+                              HashCacheLoader cacheLoader,
+                              CacheBroadcastPublisher broadcastPublisher,
+                              CacheInvocationChainRegistry chainRegistry,
+                              TypeDescriptor typeDescriptor,
+                              JsonValueCodec jsonValueCodec) {
 
         MultiTierHashCache multiTierCache = new DefaultMultiTierHashCache(componentNane,
                 config, redissonClient, keyConverter, fieldConverter, jsonValueCodec);

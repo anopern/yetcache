@@ -6,7 +6,7 @@ import com.yetcache.core.result.CacheResult;
  * @author walter.yan
  * @since 2025/7/15
  */
-public interface DynamicHashCacheLoader {
+public interface HashCacheLoader {
     CacheResult load(HashCacheSingleLoadCommand cmd);
     CacheResult batchLoad(HashCacheBatchLoadCommand cmd);
 }

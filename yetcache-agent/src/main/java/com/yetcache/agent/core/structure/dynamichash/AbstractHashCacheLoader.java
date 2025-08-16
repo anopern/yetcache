@@ -7,7 +7,7 @@ import com.yetcache.core.result.CacheResult;
  * @author walter.yan
  * @since 2025/7/15
  */
-public abstract class AbstractDynamicHashCacheLoader implements DynamicHashCacheLoader {
+public abstract class AbstractHashCacheLoader implements HashCacheLoader {
     @Override
     public CacheResult load(HashCacheSingleLoadCommand cmd) {
         throw new UnsupportedOperationException();

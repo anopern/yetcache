@@ -1,7 +1,7 @@
 package com.yetcache.agent.regitry;
 
 import com.yetcache.agent.core.structure.CacheAgent;
-import com.yetcache.agent.core.structure.dynamichash.DynamicHashCacheAgent;
+import com.yetcache.agent.core.structure.dynamichash.HashCacheAgent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +15,8 @@ public class CacheAgentRegistryHub {
     private final DynamicHashCacheAgentRegistry dhRegistry = new DynamicHashCacheAgentRegistry();
 
     public void register(CacheAgent agent) {
-        if (agent instanceof DynamicHashCacheAgent) {
-            dhRegistry.register((DynamicHashCacheAgent) agent);
+        if (agent instanceof HashCacheAgent) {
+            dhRegistry.register((HashCacheAgent) agent);
         }
     }
 
