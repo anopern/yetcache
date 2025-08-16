@@ -115,9 +115,10 @@ public class BaseHashCacheAgent implements HashCacheAgent {
     }
 
     @Override
-    public <K, F, T> CacheResult remove(K bizKey, F bizField) {
+    public <K, F> SingleCacheResult<Void> remove(K bizKey, F bizField) {
         HashCacheRemoveCommand cmd = HashCacheRemoveCommand.of(bizKey, bizField);
-        return scope.getMultiTierCache().remove(cmd);
+        scope.getMultiTierCache().remove(cmd);
+        return SingleCacheResult.success(scope.getComponentName());
     }
 
     private CacheResult singleInvoke(StructureBehaviorKey structureBehaviorKey, CacheInvocationCommand command) {

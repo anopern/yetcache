@@ -43,11 +43,18 @@ public final class StockHoldInfoCacheService {
             Map<Long, CacheValueHolder<StockHoldInfo>> valueHolderMap = result.value();
             if (CollUtil.isNotEmpty(valueHolderMap)) {
                 return valueHolderMap.values().stream()
-                        .map(x -> x.getValue())
+                        .map(CacheValueHolder::getValue)
                         .collect(Collectors.toList());
             }
         }
         return Collections.emptyList();
+    }
+
+    public void remove(String fundAccount, Long id) {
+        SingleCacheResult<Void> removeResult = stockHoldInfoCacheAgent.remove(fundAccount, id);
+        if (!removeResult.isSuccess()) {
+            throw new RuntimeException(removeResult.message());
+        }
     }
 
 //    public List<StockHoldInfo> listAll(String fundAccount) {

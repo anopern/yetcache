@@ -22,7 +22,7 @@ public interface HashCacheAgent extends CacheAgent {
 
 //    DynamicHashCacheAgentBatchAccessResult<Void, Void> refreshAll(K bizKey);
 
-    <K, F, T> CacheResult remove(K bizKey, F bizField);
+    <K, F> CacheResult remove(K bizKey, F bizField);
 
 //    BaseSingleResult<Void, Void> removeAll(K bizKey);
 

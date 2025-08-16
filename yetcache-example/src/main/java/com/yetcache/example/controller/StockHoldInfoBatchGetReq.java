@@ -15,5 +15,6 @@ import java.util.List;
 @Data
 public class StockHoldInfoBatchGetReq {
     private String fundAccount;
+    private Long id;
     private List<Long> ids;
 }
