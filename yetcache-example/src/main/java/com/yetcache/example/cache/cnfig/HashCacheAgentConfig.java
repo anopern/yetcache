@@ -10,13 +10,14 @@ import com.yetcache.agent.core.structure.hash.BaseHashCacheAgent;
 import com.yetcache.agent.core.structure.hash.HashCacheLoader;
 import com.yetcache.agent.interceptor.CacheInvocationChainRegistry;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
+import com.yetcache.core.codec.TypeRefRegistry;
 import com.yetcache.core.codec.jackson.JacksonJsonValueCodec;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.TypeRef;
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.support.field.TypeFieldConverter;
-import com.yetcache.core.support.key.KeyConverterFactory;
+import com.yetcache.core.support.key.LongKeyConverter;
 import com.yetcache.example.entity.StockHoldInfo;
 import com.yetcache.example.enums.EnumCaches;
 import org.redisson.api.RedissonClient;
@@ -50,17 +51,19 @@ public class HashCacheAgentConfig {
             HashCacheLoader stockHoldInfoCacheLoader,
             CacheInvocationChainRegistry cacheInvocationChainRegistry,
             CacheBroadcastPublisher broadcastPublisher,
-            JacksonJsonValueCodec jacksonValueCodec) {
+            JacksonJsonValueCodec jacksonValueCodec,
+            TypeRefRegistry typeRefRegistry) {
         String componentName = EnumCaches.STOCK_HOLD_INFO_CACHE.getName();
         HashCacheConfig config = configResolver.resolveHash(componentName);
         BaseHashCacheAgent agent = new BaseHashCacheAgent(componentName,
                 config, redissonClient,
-                KeyConverterFactory.createDefault(config.getSpec().getKeyPrefix(), config.getSpec().getUseHashTag()),
+                new LongKeyConverter(config.getSpec().getKeyPrefix(), config.getSpec().getUseHashTag()),
                 new TypeFieldConverter(Long.class),
                 stockHoldInfoCacheLoader,
                 broadcastPublisher,
                 cacheInvocationChainRegistry,
-                TypeDescriptor.of(TypeRef.of(String.class), TypeRef.of(Long.class), TypeRef.of(StockHoldInfo.class)),
+                typeRefRegistry,
+                TypeDescriptor.of(TypeRef.of(StockHoldInfo.class)),
                 jacksonValueCodec);
         agentRegistryHub.register(agent);
         return agent;

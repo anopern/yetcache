@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BroadcastDelayTolerance {
     private Long maxDelaySecs;
-    private DelayExceededPolicy delayExceededPolicy;
+    private ExceededAction exceededAction;
 
     public BroadcastDelayTolerance defaultPolicy() {
-        return new BroadcastDelayTolerance(10L, DelayExceededPolicy.INVALIDATE);
+        return new BroadcastDelayTolerance(10L, ExceededAction.REMOVE);
     }
 }

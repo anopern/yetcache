@@ -1,6 +1,7 @@
 package com.yetcache.agent.core.structure.hash;
 
 import com.yetcache.agent.broadcast.InstanceIdProvider;
+import com.yetcache.agent.broadcast.command.CacheShape;
 import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
 import com.yetcache.agent.broadcast.command.CommandDescriptor;
 import com.yetcache.agent.broadcast.command.playload.HashPlayload;
@@ -13,15 +14,20 @@ import com.yetcache.agent.core.structure.hash.batchget.HashCacheAgentBatchGetInv
 import com.yetcache.agent.core.structure.hash.get.HashCacheAgentGetInvocationCommand;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.command.HashCachePutAllCommand;
+import com.yetcache.core.cache.command.HashCacheRemoveCommand;
 import com.yetcache.core.cache.hash.DefaultMultiTierHashCache;
 import com.yetcache.core.cache.hash.MultiTierHashCache;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.JsonValueCodec;
+import com.yetcache.core.codec.TypeRefRegistry;
+import com.yetcache.core.config.CacheTier;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
+import com.yetcache.core.result.BatchCacheResult;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.SingleCacheResult;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
@@ -33,6 +39,7 @@ import java.util.stream.Collectors;
  * @since 2025/7/14
  */
 @Slf4j
+@Getter
 public class BaseHashCacheAgent implements HashCacheAgent {
     private final HashAgentScope scope;
     private final CacheInvocationChainRegistry chainRegistry;
@@ -45,6 +52,7 @@ public class BaseHashCacheAgent implements HashCacheAgent {
                               HashCacheLoader cacheLoader,
                               CacheBroadcastPublisher broadcastPublisher,
                               CacheInvocationChainRegistry chainRegistry,
+                              TypeRefRegistry typeRefRegistry,
                               TypeDescriptor typeDescriptor,
                               JsonValueCodec jsonValueCodec) {
 
@@ -55,11 +63,18 @@ public class BaseHashCacheAgent implements HashCacheAgent {
         this.scope = new HashAgentScope(componentNane,
                 multiTierCache,
                 config,
+                keyConverter,
+                fieldConverter,
                 cacheLoader,
                 broadcastPublisher,
                 fillPort,
                 typeDescriptor);
 
+        String typeId = TypeDescriptor.toTypeId(typeDescriptor.getValueTypeRef());
+        if (null == typeRefRegistry.get(typeId)) {
+            typeRefRegistry.register(TypeDescriptor.toTypeId(typeDescriptor.getValueTypeRef()),
+                    typeDescriptor.getValueTypeRef());
+        }
 
 //        PenetrationProtectConfig localPpConfig = config.getEnhance().getLocalPenetrationProtect();
 //        CaffeinePenetrationProtector localProtector = CaffeinePenetrationProtector.of(localPpConfig.getPrefix()
@@ -81,22 +96,31 @@ public class BaseHashCacheAgent implements HashCacheAgent {
     }
 
     @Override
-    public CacheResult get(Object bizKey, Object bizField) {
+    @SuppressWarnings("unchecked")
+    public <K, F, T> SingleCacheResult<T> get(K bizKey, F bizField) {
         StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH,
                 BehaviorType.SINGLE_GET);
         CacheInvocationCommand command = new HashCacheAgentGetInvocationCommand(bizKey, bizField);
-        return invoke(structureBehaviorKey, command);
+        return (SingleCacheResult<T>) singleInvoke(structureBehaviorKey, command);
     }
 
     @Override
-    public CacheResult batchGet(Object bizKey, List<Object> bizFields) {
+    @SuppressWarnings("unchecked")
+    public <K, F, T> BatchCacheResult<F, T> batchGet(K bizKey, List<F> bizFields) {
         StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH,
                 BehaviorType.BATCH_GET);
-        CacheInvocationCommand command = new HashCacheAgentBatchGetInvocationCommand(bizKey, bizFields);
-        return invoke(structureBehaviorKey, command);
+        List<Object> objBizFields = new ArrayList<>(bizFields);
+        CacheInvocationCommand command = new HashCacheAgentBatchGetInvocationCommand(bizKey, objBizFields);
+        return (BatchCacheResult<F, T>) batchInvoke(structureBehaviorKey, command);
     }
 
-    private CacheResult invoke(StructureBehaviorKey structureBehaviorKey, CacheInvocationCommand command) {
+    @Override
+    public <K, F, T> CacheResult remove(K bizKey, F bizField) {
+        HashCacheRemoveCommand cmd = HashCacheRemoveCommand.of(bizKey, bizField);
+        return scope.getMultiTierCache().remove(cmd);
+    }
+
+    private CacheResult singleInvoke(StructureBehaviorKey structureBehaviorKey, CacheInvocationCommand command) {
         CacheInvocationContext ctx = new CacheInvocationContext(command, scope);
         try {
             CacheInvocationChain chain = chainRegistry.getChain(structureBehaviorKey);
@@ -104,6 +128,17 @@ public class BaseHashCacheAgent implements HashCacheAgent {
             return SingleCacheResult.hit(scope.getComponentName(), rawResult.value(), rawResult.hitTierInfo().hitTier());
         } catch (Throwable e) {
             return SingleCacheResult.fail(scope.getComponentName(), e);
+        }
+    }
+
+    private CacheResult batchInvoke(StructureBehaviorKey structureBehaviorKey, CacheInvocationCommand command) {
+        CacheInvocationContext ctx = new CacheInvocationContext(command, scope);
+        try {
+            CacheInvocationChain chain = chainRegistry.getChain(structureBehaviorKey);
+            CacheResult rawResult = chain.proceed(ctx);
+            return BatchCacheResult.hit(scope.getComponentName(), rawResult.value(), rawResult.hitTierInfo().hitTier());
+        } catch (Throwable e) {
+            return BatchCacheResult.fail(scope.getComponentName(), e);
         }
     }
 
@@ -256,7 +291,7 @@ public class BaseHashCacheAgent implements HashCacheAgent {
 //    }
 //
     @Override
-    public CacheResult putAll(Object bizKey, Map<Object, Object> valueMap, PutAllOptions opts) {
+    public <K, F, T> CacheResult putAll(K bizKey, Map<F, T> valueMap, PutAllOptions opts) {
         log.debug("缓存代理类 {} 缓存更新 bizKey: {}, valueMap: {}, opts: {}", scope.getComponentName(), bizKey,
                 valueMap, opts);
         // 0) 入参校验
@@ -294,19 +329,18 @@ public class BaseHashCacheAgent implements HashCacheAgent {
             try {
                 CacheUpdateCommand broadcastCmd = CacheUpdateCommand.builder()
                         .descriptor(CommandDescriptor.builder()
+                                .shape(CacheShape.HASH.getName())
                                 .componentName(scope.getComponentName())
                                 .structureBehaviorKey(StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.PUT_ALL))
                                 .instanceId(InstanceIdProvider.getInstanceId())
                                 .createdTime(System.currentTimeMillis())
                                 .build())
                         .payload(HashPlayload.builder()
-                                .behaviorType(BehaviorType.PUT_ALL)
-                                .keyTypeId(scope.getTypeDescriptor().getKeyTypeId())
-                                .fieldTypeId(scope.getTypeDescriptor().getFieldTypeId())
                                 .valueTypeId(scope.getTypeDescriptor().getValueTypeId())
-                                .key(bizKey)
+                                .key(scope.getKeyConverter().convert(bizKey))
                                 .fieldValues(valueMap.entrySet().stream()
-                                        .map(entry -> HashPlayload.FieldValue.of(entry.getKey(), entry.getValue()))
+                                        .map(entry -> HashPlayload.FieldValue.of(scope.getFieldConverter()
+                                                .convert(entry.getKey()), entry.getValue()))
                                         .collect(Collectors.toList())).build())
                         .build();
                 this.scope.getBroadcastPublisher().publish(broadcastCmd);
@@ -319,7 +353,16 @@ public class BaseHashCacheAgent implements HashCacheAgent {
         return writeResult;
     }
 
-//    private DynamicHashCacheAgentSingleAccessResult<K, F, V> doInvalidateAll(K bizKey) {
+    @Override
+    public <K, F, T> CacheResult putAllToLocal(String key, Map<String, T> valueMap) {
+        K bizKey = scope.getKeyConverter().revert(key);
+        Map<F, T> typedValueMap = valueMap.entrySet().stream()
+                .collect(Collectors.toMap(entry -> scope.getFieldConverter().revert(entry.getKey()),
+                        Map.Entry::getValue));
+        return putAll(bizKey, typedValueMap, PutAllOptions.builder().broadcast(false).build());
+    }
+
+    //    private DynamicHashCacheAgentSingleAccessResult<K, F, V> doInvalidateAll(K bizKey) {
 //        try {
 //            multitierCache.invalidateAll(bizKey);
 //            return DynamicHashCacheAgentSingleAccessResult.success(getCacheName(),
@@ -337,6 +380,10 @@ public class BaseHashCacheAgent implements HashCacheAgent {
 //    protected BaseResult<Void> defaultFail(String method, Throwable t) {
 //        return ResultFactory.fail(componentName, t);
 //    }
+
+    public CacheTier cacheTier() {
+        return scope.getConfig().getSpec().getCacheTier();
+    }
 
     @Override
     public String componentName() {

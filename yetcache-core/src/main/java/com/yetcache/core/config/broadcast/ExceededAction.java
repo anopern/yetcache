@@ -4,8 +4,9 @@ package com.yetcache.core.config.broadcast;
  * @author walter.yan
  * @since 2025/7/28
  */
-public enum DelayExceededPolicy {
+public enum ExceededAction {
     DROP,
-    INVALIDATE,
-    FORCE_REFRESH
+    REMOVE,
+    REFRESH,
+    APPLY_WITH_WARN
 }

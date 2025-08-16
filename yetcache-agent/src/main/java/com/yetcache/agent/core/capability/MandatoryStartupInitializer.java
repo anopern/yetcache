@@ -1,6 +1,6 @@
 package com.yetcache.agent.core.capability;
 
-import com.yetcache.core.result.Result;
+import com.yetcache.core.result.CacheResult;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
@@ -70,15 +70,15 @@ public class MandatoryStartupInitializer implements ApplicationRunner {
                 return true;
             }
 
-            Result<?> res = c.initialize();
+            CacheResult res = c.initialize();
             if (res.isSuccess()) {
                 meter.counter("startup.init.count", "component", name, "outcome", "SUCCESS").increment();
                 sample.stop(meter.timer("startup.init.latency", "component", name, "status", "success"));
                 return true;
             } else {
-                meter.counter("startup.init.count", "component", name, "outcome", res.outcome().name()).increment();
+                meter.counter("startup.init.count", "component", name, "outcome", "").increment();
                 sample.stop(meter.timer("startup.init.latency", "component", name, "status", "fail"));
-                log.error("[StartupInit][{}] FAILED: {}", name, res.outcome());
+                log.error("[StartupInit][{}] FAILED: {}", name, res);
                 return false;
             }
         } catch (Exception ex) {

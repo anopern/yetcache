@@ -1,9 +1,7 @@
 package com.yetcache.core.config.broadcast;
 
-import com.yetcache.core.config.dynamichash.CaffeineDynamicHashCacheConfig;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.checkerframework.checker.units.qual.N;
 
 /**
  * @author walter.yan

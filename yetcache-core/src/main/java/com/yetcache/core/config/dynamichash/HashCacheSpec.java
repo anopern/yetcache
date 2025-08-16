@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class DynamicHashCacheSpec {
+public class HashCacheSpec {
     protected String cacheName;
     protected String keyPrefix;
 
@@ -20,11 +20,11 @@ public class DynamicHashCacheSpec {
     protected Long fullyLoadedExpireSecs;
     protected Long refreshIntervalSecs;
 
-    public DynamicHashCacheSpec(CacheTier cacheTier,
-                                Boolean useHashTag,
-                                Boolean allowNullValue,
-                                Long fullyLoadedExpireSecs,
-                                Long refreshIntervalSecs) {
+    public HashCacheSpec(CacheTier cacheTier,
+                         Boolean useHashTag,
+                         Boolean allowNullValue,
+                         Long fullyLoadedExpireSecs,
+                         Long refreshIntervalSecs) {
         this.cacheTier = cacheTier;
         this.useHashTag = useHashTag;
         this.allowNullValue = allowNullValue;
@@ -32,7 +32,7 @@ public class DynamicHashCacheSpec {
         this.refreshIntervalSecs = refreshIntervalSecs;
     }
 
-    public DynamicHashCacheSpec(DynamicHashCacheSpec other) {
+    public HashCacheSpec(HashCacheSpec other) {
         if (other == null) return;
         this.cacheName = other.cacheName;
         this.keyPrefix = other.keyPrefix;
@@ -43,7 +43,7 @@ public class DynamicHashCacheSpec {
         this.refreshIntervalSecs = other.refreshIntervalSecs;
     }
 
-    public static DynamicHashCacheSpec defaultSpec() {
-        return new DynamicHashCacheSpec(CacheTier.BOTH, true, false, 2 * 60L, 30 * 60L);
+    public static HashCacheSpec defaultSpec() {
+        return new HashCacheSpec(CacheTier.BOTH, true, false, 2 * 60L, 30 * 60L);
     }
 }

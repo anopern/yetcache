@@ -7,6 +7,7 @@ import lombok.Data;
  * @since 2025/7/1
  */
 @Data
-public abstract class AbstractKeyConverter {
+public abstract class AbstractKeyConverter implements KeyConverter {
     protected final String keyPrefix;
+    protected final boolean useHashTag;
 }

@@ -1,6 +1,7 @@
 package com.yetcache.core.cache.hash;
 
 import cn.hutool.core.collection.CollUtil;
+import com.yetcache.core.cache.command.HashCacheRemoveCommand;
 import com.yetcache.core.codec.*;
 import com.yetcache.core.cache.WriteTier;
 import com.yetcache.core.cache.command.HashCacheBatchGetCommand;
@@ -12,6 +13,7 @@ import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.K;
 import org.redisson.api.RedissonClient;
 
 import java.util.*;
@@ -209,23 +211,23 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
     }
 
 
-//    @Override
-//    public BaseSingleResult<Void> invalidate(K bizKey, F bizField) {
-//        String key = keyConverter.convert(bizKey);
-//        String field = fieldConverter.convert(bizField);
-//
-//        // 清除本地缓存
-//        if (localCache != null) {
-//            localCache.remove(key, field);
-//        }
-//
-//        // 清除远程缓存
-//        if (remoteCache != null) {
-//            remoteCache.invalidate(key, field);
-//        }
-//
-//        return BaseSingleResult.success(componentName);
-//    }
+    @Override
+    public CacheResult remove(HashCacheRemoveCommand cmd) {
+        String key = keyConverter.convert(cmd.getBizKey());
+        String field = fieldConverter.convert(cmd.getBizField());
+
+        // 清除本地缓存
+        if (localCache != null) {
+            localCache.remove(key, field);
+        }
+
+        // 清除远程缓存
+        if (remoteCache != null) {
+            remoteCache.remove(key, field);
+        }
+
+        return BaseCacheResult.success(componentName);
+    }
 //
 //    @Override
 //    public DynamicCacheStorageBatchAccessResult<Void, Void> invalidateAll(K bizKey) {

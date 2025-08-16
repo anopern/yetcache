@@ -14,14 +14,6 @@ public class SingleCacheResult<T> extends BaseCacheResult<T> {
         super(componentName, code, message, value, hitTierInfo, errorInfo, metadata);
     }
 
-
-    //    protected HitTier hitTier;
-//
-//    public SingleCacheResultV2(String componentName, CacheOutcome outcome, CacheValueHolder<V> value, HitTier hitTier, Throwable error) {
-//        super(componentName, outcome, value, error);
-//        this.hitTier = hitTier;
-//    }
-//
     public static <T> SingleCacheResult<T> hit(String componentName, T value, HitTier hitTier) {
         DefaultHitTierInfo hitTierInfo = new DefaultHitTierInfo(hitTier);
         return new SingleCacheResult<>(componentName, 0, "", value, hitTierInfo, null, null);

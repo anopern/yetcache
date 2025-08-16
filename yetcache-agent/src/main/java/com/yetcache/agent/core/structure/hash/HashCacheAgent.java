@@ -3,7 +3,7 @@ package com.yetcache.agent.core.structure.hash;
 import com.yetcache.agent.core.PutAllOptions;
 import com.yetcache.agent.core.structure.CacheAgent;
 import com.yetcache.core.result.CacheResult;
-
+import com.yetcache.core.result.SingleCacheResult;
 import java.util.List;
 import java.util.Map;
 
@@ -12,9 +12,9 @@ import java.util.Map;
  * @since 2025/7/14
  */
 public interface HashCacheAgent extends CacheAgent {
-    CacheResult get(Object bizKey, Object bizField);
+    <K, F, T> SingleCacheResult<T> get(K bizKey, F bizField);
 
-    CacheResult batchGet(Object bizKey, List<Object> bizFields);
+    <K, F, T>    CacheResult batchGet(K bizKey, List<F> bizFields);
 
 //    DynamicHashCacheAgentBatchAccessResult<F, V> listAll(K bizKey);
 
@@ -22,7 +22,7 @@ public interface HashCacheAgent extends CacheAgent {
 
 //    DynamicHashCacheAgentBatchAccessResult<Void, Void> refreshAll(K bizKey);
 
-//    BaseSingleResult<Void> remove(K bizKey, F bizField);
+    <K, F, T> CacheResult remove(K bizKey, F bizField);
 
 //    BaseSingleResult<Void, Void> removeAll(K bizKey);
 
@@ -31,5 +31,7 @@ public interface HashCacheAgent extends CacheAgent {
 
 //    DynamicHashCacheAgentSingleAccessResult<Void> put(K bizKey, F bizField, V value);
 
-    CacheResult putAll(Object bizKey, Map<Object, Object> valueMap, PutAllOptions opts);
+    <K, F, T> CacheResult putAll(K bizKey, Map<F, T> valueMap, PutAllOptions opts);
+
+    <K, F, T> CacheResult putAllToLocal(String key, Map<String, T> valueMap);
 }

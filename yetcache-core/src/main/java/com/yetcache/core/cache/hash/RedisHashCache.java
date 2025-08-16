@@ -94,10 +94,9 @@ public class RedisHashCache {
         map(key).expire(physicalTtlSecs, TimeUnit.SECONDS);
     }
 
-//    public void invalidate(String key, String field) {
-//        Map<String, CacheValueHolder<V>> rmap = rClient.getMap(key);
-//        rmap.remove(field);
-//    }
+    public void remove(String key, String field) {
+        map(key).remove(field);
+    }
 //
 //    public void invalidateAll(String key) {
 //        RMap<String, CacheValueHolder<V>> map = rClient.getMap(key);

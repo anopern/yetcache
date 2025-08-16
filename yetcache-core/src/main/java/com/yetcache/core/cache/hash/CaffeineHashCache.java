@@ -4,7 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.codec.TypeRef;
-import com.yetcache.core.config.dynamichash.CaffeineDynamicHashCacheConfig;
+import com.yetcache.core.config.dynamichash.CaffeineHashCacheConfig;
 import com.yetcache.core.support.util.TtlRandomizer;
 
 import java.util.Collections;
@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class CaffeineHashCache {
     private final Cache<String, ConcurrentHashMap<String, CacheValueHolder<?>>> cache;
 
-    public CaffeineHashCache(CaffeineDynamicHashCacheConfig config) {
+    public CaffeineHashCache(CaffeineHashCacheConfig config) {
         this.cache = Caffeine.newBuilder()
                 .expireAfterWrite(TtlRandomizer.randomizeSecs(config.getPhysicalTtlSecs(), config.getTtlRandomPct()),
                         TimeUnit.SECONDS)

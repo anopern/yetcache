@@ -4,6 +4,7 @@ import com.yetcache.agent.interceptor.BehaviorType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -14,24 +15,22 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 @Builder
+@NoArgsConstructor
 public class HashPlayload {
     @AllArgsConstructor
     @Data
+    @NoArgsConstructor
     public static final class FieldValue {
-        private Object field; // 包含 fieldTypeId
-        private Object value; // PUT 时携带 valueTypeId
+        private String field;
+        private Object value;
 
-        public static FieldValue of(Object field, Object value) {
+        public static FieldValue of(String field, Object value) {
             return new FieldValue(field, value);
         }
     }
 
-    private BehaviorType behaviorType;
-
-    private String keyTypeId;
-    private String fieldTypeId;
     private String valueTypeId;
 
-    private Object key;
+    private String key;
     private List<FieldValue> fieldValues;
 }

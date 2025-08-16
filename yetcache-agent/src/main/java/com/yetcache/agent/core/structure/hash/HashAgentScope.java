@@ -6,6 +6,8 @@ import com.yetcache.agent.core.port.HashCacheFillPort;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.cache.hash.MultiTierHashCache;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
+import com.yetcache.core.support.field.FieldConverter;
+import com.yetcache.core.support.key.KeyConverter;
 import lombok.Getter;
 
 /**
@@ -21,10 +23,14 @@ public class HashAgentScope implements AgentScope {
     private final CacheBroadcastPublisher broadcastPublisher;
     private final HashCacheFillPort hashCacheFillPort;
     private final TypeDescriptor typeDescriptor;
+    private final KeyConverter keyConverter;
+    private final FieldConverter fieldConverter;
 
     public HashAgentScope(String componentName,
                           MultiTierHashCache multiTierCache,
                           HashCacheConfig config,
+                          KeyConverter keyConverter,
+                          FieldConverter fieldConverter,
                           HashCacheLoader cacheLoader,
                           CacheBroadcastPublisher broadcastPublisher,
                           HashCacheFillPort hashCacheFillPort,
@@ -32,6 +38,8 @@ public class HashAgentScope implements AgentScope {
         this.componentName = componentName;
         this.multiTierCache = multiTierCache;
         this.config = config;
+        this.keyConverter = keyConverter;
+        this.fieldConverter = fieldConverter;
         this.cacheLoader = cacheLoader;
         this.broadcastPublisher = broadcastPublisher;
         this.hashCacheFillPort = hashCacheFillPort;

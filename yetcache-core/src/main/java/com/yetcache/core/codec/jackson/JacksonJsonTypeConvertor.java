@@ -16,7 +16,7 @@ public class JacksonJsonTypeConvertor implements JsonTypeConverter {
     private final ObjectMapper objectMapper;
 
     @Override
-    public Object convert(Object raw, Type target) throws Exception {
+    public <T> T convert(Object raw, Type target) throws Exception {
         if (null != raw) {
             JavaType javaType = objectMapper.getTypeFactory().constructType(target);
             return objectMapper.convertValue(raw, javaType);

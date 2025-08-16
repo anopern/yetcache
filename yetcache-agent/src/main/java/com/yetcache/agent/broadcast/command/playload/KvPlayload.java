@@ -1,8 +1,8 @@
 package com.yetcache.agent.broadcast.command.playload;
 
-import com.yetcache.agent.interceptor.BehaviorType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -12,18 +12,17 @@ import java.util.List;
  */
 @AllArgsConstructor
 @Data
+@NoArgsConstructor
 public class KvPlayload {
     @AllArgsConstructor
     @Data
+    @NoArgsConstructor
     public static final class KeyValue {
-        private Object key;
+        private String key;
         private Object value;
     }
 
-    private final BehaviorType behaviorType;
+    private String valueTypeId;
 
-    private final String keyTypeId;
-    private final String valueTypeId;
-
-    private final List<KeyValue> keyValues;
+    private List<KeyValue> keyValues;
 }

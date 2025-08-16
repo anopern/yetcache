@@ -3,6 +3,7 @@ package com.yetcache.agent.core;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 /**
  * @author walter.yan
@@ -11,6 +12,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Builder
 @Getter
+@ToString
 public class PutAllOptions {
     @Builder.Default
     private final boolean broadcast = true;

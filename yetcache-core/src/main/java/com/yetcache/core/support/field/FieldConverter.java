@@ -5,7 +5,7 @@ package com.yetcache.core.support.field;
  * @since 2025/6/29
  */
 public interface FieldConverter {
-    String convert(Object bizField);
+    <T> String convert(T bizField);
 
-    Object revert(String field);
+    <T> T revert(String field);
 }

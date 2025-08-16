@@ -1,6 +1,7 @@
 package com.yetcache.core.cache.hash;
 
 import com.yetcache.core.cache.command.HashCacheBatchGetCommand;
+import com.yetcache.core.cache.command.HashCacheRemoveCommand;
 import com.yetcache.core.cache.command.HashCacheSingleGetCommand;
 import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.result.CacheResult;
@@ -16,7 +17,7 @@ public interface MultiTierHashCache {
 
     <T> CacheResult putAll(HashCachePutAllCommand cmd);
 
-//    BaseSingleResult<Void> invalidate(K bizKey, F bizField);
+    <T> CacheResult remove(HashCacheRemoveCommand cmd);
 
 //    BaseBatchResult<Void, Void> invalidateAll(K bizKey);
 }

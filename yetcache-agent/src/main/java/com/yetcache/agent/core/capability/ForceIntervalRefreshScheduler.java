@@ -1,6 +1,6 @@
 package com.yetcache.agent.core.capability;
 
-import com.yetcache.core.result.Result;
+import com.yetcache.core.result.CacheResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -38,11 +38,11 @@ public class ForceIntervalRefreshScheduler {
             long last = lastRefreshTimeMap.getOrDefault(name, 0L);
             if (now - last >= intervalMs) {
                 try {
-                    Result<?> result = agent.intervalRefresh();
+                    CacheResult result = agent.intervalRefresh();
                     if (result.isSuccess()) {
                         lastRefreshTimeMap.put(name, now);
                     } else {
-                        log.error("{} refresh failed: {}", name, result.outcome());
+                        log.error("{} refresh failed: {}", name, result);
                     }
                 } catch (Exception e) {
                     log.error("{} refresh failed", name, e);

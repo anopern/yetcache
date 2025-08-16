@@ -20,23 +20,24 @@ public class TypeFieldConverter implements FieldConverter {
     }
 
     @Override
-    public Object revert(String field) {
+    @SuppressWarnings("unchecked")
+    public <T> T revert(String field) {
         if (field == null) {
             return null;
         }
 
         if (fieldType == String.class) {
-            return field;
+            return (T) field;
         } else if (fieldType == Integer.class || fieldType == int.class) {
-            return Integer.valueOf(field);
+            return (T) Integer.valueOf(field);
         } else if (fieldType == Long.class || fieldType == long.class) {
-            return  Long.valueOf(field);
+            return (T) Long.valueOf(field);
         } else if (fieldType == Boolean.class || fieldType == boolean.class) {
-            return  Boolean.valueOf(field);
+            return (T) Boolean.valueOf(field);
         } else if (fieldType == Double.class || fieldType == double.class) {
-            return  Double.valueOf(field);
+            return (T) Double.valueOf(field);
         } else if (fieldType == Float.class || fieldType == float.class) {
-            return  Float.valueOf(field);
+            return (T) Float.valueOf(field);
         } else {
             throw new UnsupportedOperationException("Unsupported field type: " + fieldType.getName());
         }

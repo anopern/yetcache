@@ -14,21 +14,13 @@ import java.lang.reflect.Type;
 @Data
 @Builder
 public class TypeDescriptor {
-    private String keyTypeId;
-    private String fieldTypeId;
     private String valueTypeId;
 
-    private TypeRef<?> keyTypeRef;
-    private TypeRef<?> fieldTypeRef;
     private TypeRef<?> valueTypeRef;
 
-    public static TypeDescriptor of(TypeRef<?> keyTypeRef, TypeRef<?> fieldTypeRef, TypeRef<?> valueTypeRef) {
+    public static TypeDescriptor of(TypeRef<?> valueTypeRef) {
         return TypeDescriptor.builder()
-                .keyTypeId(toTypeId(keyTypeRef))
-                .fieldTypeId(toTypeId(fieldTypeRef))
                 .valueTypeId(toTypeId(valueTypeRef))
-                .keyTypeRef(keyTypeRef)
-                .fieldTypeRef(fieldTypeRef)
                 .valueTypeRef(valueTypeRef)
                 .build();
     }
