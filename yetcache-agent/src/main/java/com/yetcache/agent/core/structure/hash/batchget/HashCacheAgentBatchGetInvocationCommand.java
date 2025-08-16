@@ -1,4 +1,4 @@
-package com.yetcache.agent.core.structure.dynamichash.batchget;
+package com.yetcache.agent.core.structure.hash.batchget;
 
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.interceptor.BehaviorType;
@@ -17,7 +17,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DynamicHashCacheAgentBatchGetInvocationCommand implements CacheInvocationCommand {
+public class HashCacheAgentBatchGetInvocationCommand implements CacheInvocationCommand {
     private Object bizKey;
     private List<Object> bizFields;
 

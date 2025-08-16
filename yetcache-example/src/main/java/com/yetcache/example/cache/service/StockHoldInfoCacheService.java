@@ -1,7 +1,7 @@
 package com.yetcache.example.cache.service;
 
 import cn.hutool.core.collection.CollUtil;
-import com.yetcache.agent.core.structure.dynamichash.BaseHashCacheAgent;
+import com.yetcache.agent.core.structure.hash.BaseHashCacheAgent;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.CacheResultUtils;
 import com.yetcache.core.result.HitTier;

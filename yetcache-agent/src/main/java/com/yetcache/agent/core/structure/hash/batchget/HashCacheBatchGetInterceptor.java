@@ -1,9 +1,9 @@
-package com.yetcache.agent.core.structure.dynamichash.batchget;
+package com.yetcache.agent.core.structure.hash.batchget;
 
 import cn.hutool.core.collection.CollUtil;
 import com.yetcache.agent.core.StructureType;
-import com.yetcache.agent.core.structure.dynamichash.HashAgentScope;
-import com.yetcache.agent.core.structure.dynamichash.HashCacheBatchLoadCommand;
+import com.yetcache.agent.core.structure.hash.HashAgentScope;
+import com.yetcache.agent.core.structure.hash.HashCacheBatchLoadCommand;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.CacheTtl;
 import com.yetcache.core.cache.WriteTier;
@@ -51,8 +51,8 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
     @Override
     @SuppressWarnings("unchecked")
     public CacheResult invoke(CacheInvocationContext ctx, ChainRunner runner) throws Throwable {
-        DynamicHashCacheAgentBatchGetInvocationCommand cmd =
-                (DynamicHashCacheAgentBatchGetInvocationCommand) ctx.getCommand();
+        HashCacheAgentBatchGetInvocationCommand cmd =
+                (HashCacheAgentBatchGetInvocationCommand) ctx.getCommand();
         Object bizKey = cmd.getBizKey();
         List<Object> bizFields = cmd.getBizFields();
         HashAgentScope agentScope = (HashAgentScope) ctx.getAgentScope();

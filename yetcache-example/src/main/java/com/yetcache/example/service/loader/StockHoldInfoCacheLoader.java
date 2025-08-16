@@ -1,9 +1,9 @@
 package com.yetcache.example.service.loader;
 
 import cn.hutool.core.collection.CollUtil;
-import com.yetcache.agent.core.structure.dynamichash.AbstractHashCacheLoader;
-import com.yetcache.agent.core.structure.dynamichash.HashCacheBatchLoadCommand;
-import com.yetcache.agent.core.structure.dynamichash.HashCacheSingleLoadCommand;
+import com.yetcache.agent.core.structure.hash.AbstractHashCacheLoader;
+import com.yetcache.agent.core.structure.hash.HashCacheBatchLoadCommand;
+import com.yetcache.agent.core.structure.hash.HashCacheSingleLoadCommand;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.SingleCacheResult;
 import com.yetcache.example.entity.StockHoldInfo;

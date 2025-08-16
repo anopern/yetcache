@@ -1,4 +1,4 @@
-package com.yetcache.agent.core.structure.dynamichash.get;
+package com.yetcache.agent.core.structure.hash.get;
 
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.interceptor.BehaviorType;
@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DynamicHashCacheAgentGetInvocationCommand implements CacheInvocationCommand {
+public class HashCacheAgentGetInvocationCommand implements CacheInvocationCommand {
     private Object bizKey;
     private Object bizField;
 

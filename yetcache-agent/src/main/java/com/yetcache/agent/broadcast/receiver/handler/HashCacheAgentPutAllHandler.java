@@ -6,7 +6,7 @@ import com.yetcache.agent.broadcast.command.playload.HashPlayload;
 import com.yetcache.agent.core.PutAllOptions;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.CacheAgent;
-import com.yetcache.agent.core.structure.dynamichash.HashCacheAgent;
+import com.yetcache.agent.core.structure.hash.HashCacheAgent;
 import com.yetcache.agent.interceptor.BehaviorType;
 import com.yetcache.agent.interceptor.StructureBehaviorKey;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;

@@ -1,10 +1,8 @@
-package com.yetcache.agent.core.structure.dynamichash;
+package com.yetcache.agent.core.structure.hash;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 /**
  * @author walter.yan
@@ -13,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class HashCacheBatchLoadCommand {
+public class HashCacheSingleLoadCommand {
     private Object bizKey;
-    private List<Object> bizFields;
+    private Object bizField;
 }

@@ -1,7 +1,7 @@
 package com.yetcache.agent.regitry;
 
 import com.yetcache.agent.core.structure.CacheAgent;
-import com.yetcache.agent.core.structure.dynamichash.HashCacheAgent;
+import com.yetcache.agent.core.structure.hash.HashCacheAgent;
 
 import java.util.ArrayList;
 import java.util.List;

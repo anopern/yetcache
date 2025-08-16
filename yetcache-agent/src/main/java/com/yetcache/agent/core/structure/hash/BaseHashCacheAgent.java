@@ -1,4 +1,4 @@
-package com.yetcache.agent.core.structure.dynamichash;
+package com.yetcache.agent.core.structure.hash;
 
 import com.yetcache.agent.broadcast.InstanceIdProvider;
 import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
@@ -9,8 +9,8 @@ import com.yetcache.agent.core.PutAllOptions;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.port.HashCacheFillPort;
 import com.yetcache.core.cache.*;
-import com.yetcache.agent.core.structure.dynamichash.batchget.DynamicHashCacheAgentBatchGetInvocationCommand;
-import com.yetcache.agent.core.structure.dynamichash.get.DynamicHashCacheAgentGetInvocationCommand;
+import com.yetcache.agent.core.structure.hash.batchget.HashCacheAgentBatchGetInvocationCommand;
+import com.yetcache.agent.core.structure.hash.get.HashCacheAgentGetInvocationCommand;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.hash.DefaultMultiTierHashCache;
@@ -84,7 +84,7 @@ public class BaseHashCacheAgent implements HashCacheAgent {
     public CacheResult get(Object bizKey, Object bizField) {
         StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH,
                 BehaviorType.SINGLE_GET);
-        CacheInvocationCommand command = new DynamicHashCacheAgentGetInvocationCommand(bizKey, bizField);
+        CacheInvocationCommand command = new HashCacheAgentGetInvocationCommand(bizKey, bizField);
         return invoke(structureBehaviorKey, command);
     }
 
@@ -92,7 +92,7 @@ public class BaseHashCacheAgent implements HashCacheAgent {
     public CacheResult batchGet(Object bizKey, List<Object> bizFields) {
         StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH,
                 BehaviorType.BATCH_GET);
-        CacheInvocationCommand command = new DynamicHashCacheAgentBatchGetInvocationCommand(bizKey, bizFields);
+        CacheInvocationCommand command = new HashCacheAgentBatchGetInvocationCommand(bizKey, bizFields);
         return invoke(structureBehaviorKey, command);
     }
 

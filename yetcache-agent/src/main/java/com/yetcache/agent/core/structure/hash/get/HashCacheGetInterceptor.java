@@ -1,8 +1,8 @@
-package com.yetcache.agent.core.structure.dynamichash.get;
+package com.yetcache.agent.core.structure.hash.get;
 
 import com.yetcache.agent.core.StructureType;
-import com.yetcache.agent.core.structure.dynamichash.HashAgentScope;
-import com.yetcache.agent.core.structure.dynamichash.HashCacheSingleLoadCommand;
+import com.yetcache.agent.core.structure.hash.HashAgentScope;
+import com.yetcache.agent.core.structure.hash.HashCacheSingleLoadCommand;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.command.HashCacheSingleGetCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
@@ -44,7 +44,7 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
 
     @Override
     public CacheResult invoke(CacheInvocationContext ctx, ChainRunner runner) throws Throwable {
-        DynamicHashCacheAgentGetInvocationCommand cmd = (DynamicHashCacheAgentGetInvocationCommand) ctx.getCommand();
+        HashCacheAgentGetInvocationCommand cmd = (HashCacheAgentGetInvocationCommand) ctx.getCommand();
         Object bizKey = cmd.getBizKey();
         Object bizField = cmd.getBizField();
         HashAgentScope agentScope = (HashAgentScope) ctx.getAgentScope();

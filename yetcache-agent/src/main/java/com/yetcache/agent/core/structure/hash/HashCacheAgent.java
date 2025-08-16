@@ -1,4 +1,4 @@
-package com.yetcache.agent.core.structure.dynamichash;
+package com.yetcache.agent.core.structure.hash;
 
 import com.yetcache.agent.core.PutAllOptions;
 import com.yetcache.agent.core.structure.CacheAgent;

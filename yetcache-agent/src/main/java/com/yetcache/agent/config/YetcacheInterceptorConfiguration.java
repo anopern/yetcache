@@ -1,8 +1,8 @@
 package com.yetcache.agent.config;
 
 import com.yetcache.agent.core.StructureType;
-import com.yetcache.agent.core.structure.dynamichash.batchget.HashCacheBatchGetInterceptor;
-import com.yetcache.agent.core.structure.dynamichash.get.HashCacheGetInterceptor;
+import com.yetcache.agent.core.structure.hash.batchget.HashCacheBatchGetInterceptor;
+import com.yetcache.agent.core.structure.hash.get.HashCacheGetInterceptor;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.config.YetCacheProperties;
 import org.springframework.boot.ApplicationRunner;
