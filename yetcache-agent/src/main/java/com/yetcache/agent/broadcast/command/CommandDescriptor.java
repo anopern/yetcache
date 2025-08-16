@@ -17,17 +17,10 @@ import java.util.Map;
 @Data
 @Builder
 public class CommandDescriptor {
+    private String shape;
     protected String componentName;
     protected StructureBehaviorKey structureBehaviorKey;
     protected String instanceId;
     private Long createdTime;
-
     protected Map<String, String> extra;
-
-    public CommandDescriptor(String componentName,
-                             StructureBehaviorKey structureBehaviorKey,
-                             String instanceId,
-                             Long createdTime) {
-        this(componentName, structureBehaviorKey, instanceId, createdTime, null);
-    }
 }

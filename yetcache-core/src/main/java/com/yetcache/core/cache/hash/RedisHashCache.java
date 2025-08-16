@@ -8,7 +8,6 @@ import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.codec.CompositeCodec;
 
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -22,17 +21,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class RedisHashCache {
     protected final RedissonClient rClient;
-    private final WrapperReifier<CacheValueHolder> wrapperReifier;
-    private final JsonTypeConverter jsonTypeConverter;
     private final JsonValueCodec codec;
 
     public RedisHashCache(RedissonClient rClient,
-                          WrapperReifier<CacheValueHolder> wrapperReifier,
-                          JsonTypeConverter typeConverter,
                           JsonValueCodec codec) {
         this.rClient = rClient;
-        this.wrapperReifier = wrapperReifier;
-        this.jsonTypeConverter = typeConverter;
         this.codec = codec;
     }
 
@@ -40,20 +33,20 @@ public class RedisHashCache {
         return rClient.getMap(key, new CompositeCodec(StringCodec.INSTANCE, StringCodec.INSTANCE));
     }
 
-    public CacheValueHolder get(String key, String field, TypeRef<?> valueTypeRef) {
+    public <T> CacheValueHolder<T> get(String key, String field, TypeRef<T> valueTypeRef) {
         String json = map(key).get(field);
         if (null == json) {
             return null;
         }
         try {
-            CacheValueHolder raw = (CacheValueHolder) codec.decode(json, valueTypeRef.getType());
-            return wrapperReifier.reify(raw, valueTypeRef, jsonTypeConverter);
+            TypeRef<CacheValueHolder<T>> holderRef = TypeRefs.holderOf(valueTypeRef);
+            return codec.decode(json, holderRef.getType());
         } catch (Exception e) {
             throw new IllegalStateException("decode failed", e);
         }
     }
 
-    public Map<String, CacheValueHolder> batchGet(String key, List<String> fields, TypeRef<?> valueTypeRef) {
+    public <T> Map<String, CacheValueHolder<T>> batchGet(String key, List<String> fields, TypeRef<?> valueTypeRef) {
         if (fields == null || fields.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -62,13 +55,12 @@ public class RedisHashCache {
             return Collections.emptyMap();
         }
 
-        Map<String, CacheValueHolder> resultMap = new HashMap<>(rawMap.size());
+        Map<String, CacheValueHolder<T>> resultMap = new HashMap<>(rawMap.size());
         for (Map.Entry<String, String> e : rawMap.entrySet()) {
             String json = e.getValue();
             if (json != null) {
                 try {
-                    CacheValueHolder raw = (CacheValueHolder) codec.decode(json, valueTypeRef.getType());
-                    CacheValueHolder holder = wrapperReifier.reify(raw, valueTypeRef, jsonTypeConverter);
+                    CacheValueHolder<T> holder = codec.decode(json, valueTypeRef.getType());
                     resultMap.put(e.getKey(), holder);
                 } catch (Exception ex) {
                     log.warn("decode cache value failed, key: " + e.getKey());
@@ -84,13 +76,13 @@ public class RedisHashCache {
 //        return map.readAllMap();
 //    }
 
-    public void putAll(String key, Map<String, CacheValueHolder> holderMap, long physicalTtlSecs) {
+    public <T> void putAll(String key, Map<String, CacheValueHolder<T>> holderMap, long physicalTtlSecs) {
         if (holderMap == null || holderMap.isEmpty()) {
             return;
         }
 
         Map<String, String> rawMap = new HashMap<>(holderMap.size());
-        for (Map.Entry<String, CacheValueHolder> e : holderMap.entrySet()) {
+        for (Map.Entry<String, CacheValueHolder<T>> e : holderMap.entrySet()) {
             try {
                 rawMap.put(e.getKey(), codec.encode(e.getValue()));
             } catch (Exception ex) {

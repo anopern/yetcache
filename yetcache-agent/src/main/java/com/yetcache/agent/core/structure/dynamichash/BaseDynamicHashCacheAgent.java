@@ -3,7 +3,7 @@ package com.yetcache.agent.core.structure.dynamichash;
 import com.yetcache.agent.broadcast.InstanceIdProvider;
 import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
 import com.yetcache.agent.broadcast.command.CommandDescriptor;
-import com.yetcache.agent.broadcast.command.Playload;
+import com.yetcache.agent.broadcast.command.playload.HashPlayload;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.PutAllOptions;
 import com.yetcache.agent.core.StructureType;
@@ -16,7 +16,6 @@ import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.hash.DefaultMultiTierHashCache;
 import com.yetcache.core.cache.hash.MultiTierHashCache;
 import com.yetcache.core.cache.support.CacheValueHolder;
-import com.yetcache.core.codec.JsonTypeConverter;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.codec.WrapperReifier;
@@ -29,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author walter.yan
@@ -36,7 +36,7 @@ import java.util.*;
  */
 @Slf4j
 public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
-    private final DynamicHashAgentScope scope;
+    private final HashAgentScope scope;
     private final CacheInvocationChainRegistry chainRegistry;
 
     public BaseDynamicHashCacheAgent(String componentNane,
@@ -48,15 +48,13 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
                                      CacheBroadcastPublisher broadcastPublisher,
                                      CacheInvocationChainRegistry chainRegistry,
                                      TypeDescriptor typeDescriptor,
-                                     WrapperReifier<CacheValueHolder> wrapperReifier,
-                                     JsonTypeConverter jsonTypeConverter,
                                      JsonValueCodec jsonValueCodec) {
 
         MultiTierHashCache multiTierCache = new DefaultMultiTierHashCache(componentNane,
-                config, redissonClient, keyConverter, fieldConverter, wrapperReifier, jsonTypeConverter, jsonValueCodec);
+                config, redissonClient, keyConverter, fieldConverter, jsonValueCodec);
 
         HashCacheFillPort fillPort = (bizKey, valueMap) -> this.putAll(bizKey, valueMap, PutAllOptions.defaultOptions());
-        this.scope = new DynamicHashAgentScope(componentNane,
+        this.scope = new HashAgentScope(componentNane,
                 multiTierCache,
                 config,
                 cacheLoader,
@@ -303,7 +301,15 @@ public class BaseDynamicHashCacheAgent implements DynamicHashCacheAgent {
                                 .instanceId(InstanceIdProvider.getInstanceId())
                                 .createdTime(System.currentTimeMillis())
                                 .build())
-                        .payload(Playload.builder().bizKey(bizKey).bizFieldValueMap(valueMap).build())
+                        .payload(HashPlayload.builder()
+                                .behaviorType(BehaviorType.PUT_ALL)
+                                .keyTypeId(scope.getTypeDescriptor().getKeyTypeId())
+                                .fieldTypeId(scope.getTypeDescriptor().getFieldTypeId())
+                                .valueTypeId(scope.getTypeDescriptor().getValueTypeId())
+                                .key(bizKey)
+                                .fieldValues(valueMap.entrySet().stream()
+                                        .map(entry -> HashPlayload.FieldValue.of(entry.getKey(), entry.getValue()))
+                                        .collect(Collectors.toList())).build())
                         .build();
                 this.scope.getBroadcastPublisher().publish(broadcastCmd);
             } catch (Exception e) {

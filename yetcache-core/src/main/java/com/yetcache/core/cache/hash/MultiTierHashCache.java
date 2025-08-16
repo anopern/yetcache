@@ -10,11 +10,11 @@ import com.yetcache.core.result.CacheResult;
  * @since 2025/7/14
  */
 public interface MultiTierHashCache {
-    CacheResult get(HashCacheSingleGetCommand cmd);
+    <T> CacheResult get(HashCacheSingleGetCommand cmd);
 
-    CacheResult batchGet(HashCacheBatchGetCommand cmd);
+    <T> CacheResult batchGet(HashCacheBatchGetCommand cmd);
 
-    CacheResult putAll(HashCachePutAllCommand cmd);
+    <T> CacheResult putAll(HashCachePutAllCommand cmd);
 
 //    BaseSingleResult<Void> invalidate(K bizKey, F bizField);
 

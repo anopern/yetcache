@@ -1,6 +1,6 @@
 package com.yetcache.core.cache.command;
 
-import com.yetcache.core.codec.TypeDescriptor;
+import com.yetcache.core.codec.TypeRef;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,5 +17,9 @@ import java.util.List;
 public class HashCacheBatchGetCommand {
     private Object bizKey;
     private List<Object> bizFields;
-    private TypeDescriptor typeDesc;
+
+    private TypeRef<?> valueTypeRef;
+
+    @SuppressWarnings("unchecked")
+    public <T> TypeRef<T> valueTypeRef() { return (TypeRef<T>) valueTypeRef; }
 }

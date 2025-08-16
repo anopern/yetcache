@@ -27,11 +27,11 @@ public final class StockHoldInfoCacheService {
     }
 
     public Optional<StockHoldInfo> get(String fundAccount, Long id) {
-        SingleCacheResult<CacheValueHolder> result = CacheResultUtils.getTypedResult(
+        SingleCacheResult<CacheValueHolder<StockHoldInfo>> result = CacheResultUtils.getTypedResult(
                 stockHoldInfoCacheAgent.get(fundAccount, id));
         if (result.isSuccess() && HitTier.NONE != result.hitTierInfo().hitTier()) {
-            CacheValueHolder valueHolder = result.value();
-            return Optional.of((StockHoldInfo) valueHolder.getValue());
+            CacheValueHolder<StockHoldInfo> valueHolder = result.value();
+            return Optional.of(valueHolder.getValue());
         }
         return Optional.empty();
     }

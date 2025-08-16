@@ -9,5 +9,5 @@ import java.lang.reflect.Type;
 public interface JsonValueCodec {
     String encode(Object value) throws Exception;
 
-    Object decode(String json, Type valueType) throws Exception;
+    <T> T  decode(String json, Type valueType) throws Exception;
 }

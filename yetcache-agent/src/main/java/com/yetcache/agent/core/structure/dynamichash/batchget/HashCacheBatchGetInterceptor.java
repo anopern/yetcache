@@ -2,7 +2,7 @@ package com.yetcache.agent.core.structure.dynamichash.batchget;
 
 import cn.hutool.core.collection.CollUtil;
 import com.yetcache.agent.core.StructureType;
-import com.yetcache.agent.core.structure.dynamichash.DynamicHashAgentScope;
+import com.yetcache.agent.core.structure.dynamichash.HashAgentScope;
 import com.yetcache.agent.core.structure.dynamichash.HashCacheBatchLoadCommand;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.CacheTtl;
@@ -10,6 +10,7 @@ import com.yetcache.core.cache.WriteTier;
 import com.yetcache.core.cache.command.HashCacheBatchGetCommand;
 import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.codec.TypeRef;
 import com.yetcache.core.result.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,13 +55,14 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
                 (DynamicHashCacheAgentBatchGetInvocationCommand) ctx.getCommand();
         Object bizKey = cmd.getBizKey();
         List<Object> bizFields = cmd.getBizFields();
-        DynamicHashAgentScope agentScope = (DynamicHashAgentScope) ctx.getAgentScope();
+        HashAgentScope agentScope = (HashAgentScope) ctx.getAgentScope();
         Map<Object, CacheValueHolder> resultValueHolderMap = new HashMap<>();
         Map<Object, HitTier> resultHitTierMap = new HashMap<>();
 
         try {
             // Step 1: 读缓存
-            HashCacheBatchGetCommand batchGetCmd = new HashCacheBatchGetCommand(bizKey, bizFields);
+            TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
+            HashCacheBatchGetCommand batchGetCmd = new HashCacheBatchGetCommand(bizKey, bizFields, valueTypeRef);
             CacheResult storeResult = agentScope.getMultiTierCache().batchGet(batchGetCmd);
 
             List<Object> missedFields = new ArrayList<>();

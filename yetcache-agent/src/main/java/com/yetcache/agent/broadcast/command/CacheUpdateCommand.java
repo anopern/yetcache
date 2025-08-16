@@ -15,5 +15,5 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CacheUpdateCommand {
     private CommandDescriptor descriptor;
-    private Playload payload;
+    private Object payload;
 }

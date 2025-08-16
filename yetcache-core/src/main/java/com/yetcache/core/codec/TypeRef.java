@@ -24,6 +24,15 @@ public abstract class TypeRef<T> {
         return type;
     }
 
+    public static TypeRef<?> of(Class<?> clazz) {
+        return new TypeRef<>() {
+            @Override
+            public Type getType() {
+                return clazz;
+            }
+        };
+    }
+
     public boolean isInstance(Object obj) {
         if (type instanceof Class<?>) {
             return ((Class<?>) type).isInstance(obj);

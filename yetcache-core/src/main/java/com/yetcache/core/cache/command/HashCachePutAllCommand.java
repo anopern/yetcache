@@ -2,6 +2,7 @@ package com.yetcache.core.cache.command;
 
 import com.yetcache.core.cache.CacheTtl;
 import com.yetcache.core.cache.WriteTier;
+import com.yetcache.core.codec.TypeRef;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,4 +23,7 @@ public class HashCachePutAllCommand {
     private final Map<Object, Object> valueMap;
     private final CacheTtl ttl;
     private final WriteTier writeTier;
+    private final TypeRef<?> valueTypeRef;
+
+
 }

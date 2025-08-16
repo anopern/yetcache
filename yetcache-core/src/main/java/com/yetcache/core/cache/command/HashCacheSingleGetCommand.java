@@ -1,6 +1,6 @@
 package com.yetcache.core.cache.command;
 
-import com.yetcache.core.codec.TypeDescriptor;
+import com.yetcache.core.codec.TypeRef;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,5 +17,14 @@ import lombok.NoArgsConstructor;
 public class HashCacheSingleGetCommand {
     private Object bizKey;
     private Object bizField;
-    private TypeDescriptor typeDesc;
+
+    private TypeRef<?> valueTypeRef;
+
+    public static <T> HashCacheSingleGetCommand of(Object bizKey, Object bizField, TypeRef<T> ref) {
+        return new HashCacheSingleGetCommand(bizKey, bizField, ref);
+    }
+
+    // ✅ 泛型访问器：在使用点把 <?> 进化回 <T>
+    @SuppressWarnings("unchecked")
+    public <T> TypeRef<T> valueTypeRef() { return (TypeRef<T>) valueTypeRef; }
 }

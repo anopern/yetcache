@@ -1,11 +1,12 @@
 package com.yetcache.agent.core.structure.dynamichash.get;
 
 import com.yetcache.agent.core.StructureType;
-import com.yetcache.agent.core.structure.dynamichash.DynamicHashAgentScope;
+import com.yetcache.agent.core.structure.dynamichash.HashAgentScope;
 import com.yetcache.agent.core.structure.dynamichash.HashCacheSingleLoadCommand;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.command.HashCacheSingleGetCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.codec.TypeRef;
 import com.yetcache.core.result.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,10 +47,11 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
         DynamicHashCacheAgentGetInvocationCommand cmd = (DynamicHashCacheAgentGetInvocationCommand) ctx.getCommand();
         Object bizKey = cmd.getBizKey();
         Object bizField = cmd.getBizField();
-        DynamicHashAgentScope agentScope = (DynamicHashAgentScope) ctx.getAgentScope();
+        HashAgentScope agentScope = (HashAgentScope) ctx.getAgentScope();
         String componentName = agentScope.getComponentName();
         try {
-            HashCacheSingleGetCommand storeGetCmd = new HashCacheSingleGetCommand(bizKey, bizField);
+            TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
+            HashCacheSingleGetCommand storeGetCmd = new HashCacheSingleGetCommand(bizKey, bizField, valueTypeRef);
             CacheResult storeResult = agentScope.getMultiTierCache().get(storeGetCmd);
             if (storeResult.code() == 0 && HitTier.NONE != storeResult.hitTierInfo().hitTier()) {
                 CacheValueHolder holder = (CacheValueHolder) storeResult.value();

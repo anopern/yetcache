@@ -13,7 +13,7 @@ import lombok.Getter;
  * @since 2025/7/30
  */
 @Getter
-public class DynamicHashAgentScope implements AgentScope {
+public class HashAgentScope implements AgentScope {
     private final String componentName;
     private final MultiTierHashCache multiTierCache;
     private final HashCacheConfig config;
@@ -22,13 +22,13 @@ public class DynamicHashAgentScope implements AgentScope {
     private final HashCacheFillPort hashCacheFillPort;
     private final TypeDescriptor typeDescriptor;
 
-    public DynamicHashAgentScope(String componentName,
-                                 MultiTierHashCache multiTierCache,
-                                 HashCacheConfig config,
-                                 DynamicHashCacheLoader cacheLoader,
-                                 CacheBroadcastPublisher broadcastPublisher,
-                                 HashCacheFillPort hashCacheFillPort,
-                                 TypeDescriptor typeDescriptor) {
+    public HashAgentScope(String componentName,
+                          MultiTierHashCache multiTierCache,
+                          HashCacheConfig config,
+                          DynamicHashCacheLoader cacheLoader,
+                          CacheBroadcastPublisher broadcastPublisher,
+                          HashCacheFillPort hashCacheFillPort,
+                          TypeDescriptor typeDescriptor) {
         this.componentName = componentName;
         this.multiTierCache = multiTierCache;
         this.config = config;
