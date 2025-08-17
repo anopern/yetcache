@@ -3,6 +3,8 @@ package com.yetcache.agent.broadcast;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import com.yetcache.core.config.broadcast.RabbitMqConfig;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,6 +13,7 @@ import java.util.Map;
  * @author walter.yan
  * @since 2025/7/16
  */
+@Slf4j
 public class BroadcastQueueInitializer {
 
     public static String init(Channel channel, RabbitMqConfig config) throws IOException {
@@ -45,7 +48,7 @@ public class BroadcastQueueInitializer {
         // 5. 绑定到 exchange
         channel.queueBind(actualQueueName, exchange, "");
 
-        System.out.println("[YetCache] Broadcast queue declared and bound: " + actualQueueName);
+        log.info("[YetCache] Broadcast queue declared and bound: {}", actualQueueName);
 
         return actualQueueName;
     }

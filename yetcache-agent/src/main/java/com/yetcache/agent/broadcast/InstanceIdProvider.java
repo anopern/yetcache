@@ -1,5 +1,7 @@
 package com.yetcache.agent.broadcast;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.util.Optional;
@@ -8,6 +10,7 @@ import java.util.Optional;
  * @author walter.yan
  * @since 2025/7/16
  */
+@Slf4j
 public class InstanceIdProvider {
     private static volatile String instanceId;
 
@@ -25,9 +28,8 @@ public class InstanceIdProvider {
             String ip = resolveLocalIp().replace(".", "_");
             int pidHash = ManagementFactory.getRuntimeMXBean().getName().hashCode();
 
-            instanceId = String.format("yetcache-%s-%s-%d", appName, ip, pidHash);
-            System.out.println("[YetCache] Auto-generated instanceId: " + instanceId);
-
+            instanceId = String.format("%s-%s-%d", appName, ip, pidHash);
+            log.info("[YetCache] Auto-generated instanceId: {}", instanceId);
             return instanceId;
         }
     }

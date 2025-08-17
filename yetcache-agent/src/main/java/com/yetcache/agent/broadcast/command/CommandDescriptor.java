@@ -21,6 +21,6 @@ public class CommandDescriptor {
     protected String componentName;
     protected StructureBehaviorKey structureBehaviorKey;
     protected String instanceId;
-    private Long createdTime;
+    private Long publishAt;
     protected Map<String, String> extra;
 }

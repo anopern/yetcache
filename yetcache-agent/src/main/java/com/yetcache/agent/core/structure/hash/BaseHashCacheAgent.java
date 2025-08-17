@@ -334,7 +334,7 @@ public class BaseHashCacheAgent implements HashCacheAgent {
                                 .componentName(scope.getComponentName())
                                 .structureBehaviorKey(StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.PUT_ALL))
                                 .instanceId(InstanceIdProvider.getInstanceId())
-                                .createdTime(System.currentTimeMillis())
+                                .publishAt(System.currentTimeMillis())
                                 .build())
                         .payload(HashPlayload.builder()
                                 .valueTypeId(scope.getTypeDescriptor().getValueTypeId())

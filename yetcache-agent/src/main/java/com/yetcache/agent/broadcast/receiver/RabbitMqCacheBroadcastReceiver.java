@@ -59,7 +59,7 @@ public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
             }
 
             MessageDelayPolicy delayPolicy = delayPolicyRegistry.get(descriptor.getComponentName());
-            Decision decision = delayPolicy.decide(descriptor.getCreatedTime());
+            Decision decision = delayPolicy.decide(descriptor.getPublishAt());
             if (decision == Decision.DROP) {
                 log.debug("ignore late published message: {}", messageJson);
                 return;

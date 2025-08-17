@@ -14,7 +14,6 @@ import com.yetcache.core.codec.JsonTypeConverter;
 import com.yetcache.core.codec.TypeRef;
 import com.yetcache.core.codec.TypeRefRegistry;
 import com.yetcache.core.config.CacheTier;
-import com.yetcache.core.config.broadcast.MessageDelayPolicyRegistry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
