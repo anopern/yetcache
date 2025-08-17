@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollUtil;
 import com.yetcache.agent.core.structure.hash.BaseHashCacheAgent;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.BaseCacheResult;
-import com.yetcache.core.result.CacheResultUtils;
 import com.yetcache.core.result.HitTier;
 import com.yetcache.core.result.SingleCacheResult;
 import com.yetcache.example.entity.StockHoldInfo;
