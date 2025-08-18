@@ -3,7 +3,7 @@ package com.yetcache.example.service.loader;
 import cn.hutool.core.collection.CollUtil;
 import com.yetcache.agent.core.structure.hash.AbstractHashCacheLoader;
 import com.yetcache.agent.core.structure.hash.HashCacheBatchLoadCommand;
-import com.yetcache.agent.core.structure.hash.HashCacheSingleLoadCommand;
+import com.yetcache.agent.core.structure.hash.HashCacheLoadCommand;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.SingleCacheResult;
 import com.yetcache.example.entity.StockHoldInfo;
@@ -26,7 +26,7 @@ public class StockHoldInfoCacheLoader extends AbstractHashCacheLoader {
     private IStockHoldInfoService stockHoldInfoService;
 
     @Override
-    public CacheResult load(HashCacheSingleLoadCommand cmd) {
+    public CacheResult load(HashCacheLoadCommand cmd) {
         Long id = (Long) cmd.getBizField();
         return SingleCacheResult.success(stockHoldInfoService.getById(id));
     }

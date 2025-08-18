@@ -7,6 +7,6 @@ import com.yetcache.core.result.CacheResult;
  * @since 2025/7/15
  */
 public interface HashCacheLoader {
-    CacheResult load(HashCacheSingleLoadCommand cmd);
+    CacheResult load(HashCacheLoadCommand cmd);
     CacheResult batchLoad(HashCacheBatchLoadCommand cmd);
 }

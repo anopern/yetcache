@@ -73,7 +73,7 @@ public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
                     cmd.setPayload(hashPlayload);
                 }
                 Optional<CacheBroadcastHandler> handlerOpt = handlerRegistry.getHandler(descriptor.getStructureBehaviorKey());
-                if (handlerOpt.isEmpty()) {
+                if (!handlerOpt.isPresent()) {
                     log.error("[YetCache] No broadcast handler for: {}", messageJson);
                     return;
                 }

@@ -42,9 +42,9 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
     }
 
     @Override
-    public boolean supportStructureBehaviorKey(StructureBehaviorKey structureBehaviorKey) {
-        return StructureType.DYNAMIC_HASH.equals(structureBehaviorKey.getStructureType())
-                && BehaviorType.BATCH_GET.equals(structureBehaviorKey.getBehaviorType());
+    public boolean supportStructureBehaviorKey(StructureBehaviorKey sbKey) {
+        return StructureType.DYNAMIC_HASH.equals(sbKey.getStructureType())
+                && BehaviorType.BATCH_GET.equals(sbKey.getBehaviorType());
     }
 
 
@@ -56,7 +56,7 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
         Object bizKey = cmd.getBizKey();
         List<Object> bizFields = cmd.getBizFields();
         HashAgentScope agentScope = (HashAgentScope) ctx.getAgentScope();
-        Map<Object, CacheValueHolder> resultValueHolderMap = new HashMap<>();
+        Map<Object, CacheValueHolder<?>> resultValueHolderMap = new HashMap<>();
         Map<Object, HitTier> resultHitTierMap = new HashMap<>();
 
         try {
@@ -66,11 +66,11 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
             CacheResult storeResult = agentScope.getMultiTierCache().batchGet(batchGetCmd);
 
             List<Object> missedFields = new ArrayList<>();
-            Map<Object, CacheValueHolder> cacheValueHolderMap = (Map<Object, CacheValueHolder>) storeResult.value();
+            Map<Object, CacheValueHolder<?>> cacheValueHolderMap = (Map<Object, CacheValueHolder<?>>) storeResult.value();
             Map<Object, HitTier> cacheHitTierMap = storeResult.hitTierInfo().hitTierMap();
 
             for (Object field : bizFields) {
-                CacheValueHolder holder = cacheValueHolderMap.get(field);
+                CacheValueHolder<?> holder = cacheValueHolderMap.get(field);
                 if (holder != null && holder.isNotLogicExpired()) {
                     resultValueHolderMap.put(field, holder);
                     resultHitTierMap.put(field, cacheHitTierMap.get(field));
@@ -92,7 +92,7 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
                     for (Object field : missedFields) {
                         Object loaded = loadedMap.get(field);
                         if (loaded != null) {
-                            CacheValueHolder holder = CacheValueHolder.wrap(loaded, 0);
+                            CacheValueHolder<?> holder = CacheValueHolder.wrap(loaded, 0);
                             resultValueHolderMap.put(field, holder);
                             resultHitTierMap.put(field, HitTier.SOURCE);
                         }

@@ -2,7 +2,7 @@ package com.yetcache.agent.core.structure.hash.get;
 
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.hash.HashAgentScope;
-import com.yetcache.agent.core.structure.hash.HashCacheSingleLoadCommand;
+import com.yetcache.agent.core.structure.hash.HashCacheLoadCommand;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.command.HashCacheSingleGetCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
@@ -36,9 +36,9 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
     }
 
     @Override
-    public boolean supportStructureBehaviorKey(StructureBehaviorKey structureBehaviorKey) {
-        return StructureType.DYNAMIC_HASH.equals(structureBehaviorKey.getStructureType())
-                && BehaviorType.SINGLE_GET.equals(structureBehaviorKey.getBehaviorType());
+    public boolean supportStructureBehaviorKey(StructureBehaviorKey sbKey) {
+        return StructureType.DYNAMIC_HASH.equals(sbKey.getStructureType())
+                && BehaviorType.SINGLE_GET.equals(sbKey.getBehaviorType());
     }
 
 
@@ -54,12 +54,12 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
             HashCacheSingleGetCommand storeGetCmd = new HashCacheSingleGetCommand(bizKey, bizField, valueTypeRef);
             CacheResult storeResult = agentScope.getMultiTierCache().get(storeGetCmd);
             if (storeResult.code() == 0 && HitTier.NONE != storeResult.hitTierInfo().hitTier()) {
-                CacheValueHolder holder = (CacheValueHolder) storeResult.value();
+                CacheValueHolder<?> holder = (CacheValueHolder<?>) storeResult.value();
                 if (holder.isNotLogicExpired()) {
                     return SingleCacheResult.hit(componentName, holder, storeResult.hitTierInfo().hitTier());
                 }
             }
-            HashCacheSingleLoadCommand loadCmd = new HashCacheSingleLoadCommand(bizKey, bizField);
+            HashCacheLoadCommand loadCmd = new HashCacheLoadCommand(bizKey, bizField);
             // 回源加载数据
             CacheResult loadResult = agentScope.getCacheLoader().load(loadCmd);
             if (loadResult.isSuccess() && null == loadResult.value()) {

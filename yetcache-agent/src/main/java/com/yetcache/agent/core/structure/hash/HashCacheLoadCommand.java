@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class HashCacheSingleLoadCommand {
+public class HashCacheLoadCommand {
     private Object bizKey;
     private Object bizField;
 }
