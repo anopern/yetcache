@@ -5,7 +5,7 @@ package com.yetcache.agent.interceptor;
  * @since 2025/7/29
  */
 public enum BehaviorType {
-    SINGLE_GET,
+    GET,
     BATCH_GET,
     PUT_ALL,
 }

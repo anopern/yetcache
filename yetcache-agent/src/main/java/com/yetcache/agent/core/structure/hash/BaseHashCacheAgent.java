@@ -100,7 +100,7 @@ public class BaseHashCacheAgent implements HashCacheAgent {
     @SuppressWarnings("unchecked")
     public <K, F, T> BaseCacheResult<T> get(K bizKey, F bizField) {
         StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH,
-                BehaviorType.SINGLE_GET);
+                BehaviorType.GET);
         CacheInvocationCommand command = new HashCacheAgentGetInvocationCommand(bizKey, bizField);
         return (BaseCacheResult<T>) singleInvoke(structureBehaviorKey, command);
     }

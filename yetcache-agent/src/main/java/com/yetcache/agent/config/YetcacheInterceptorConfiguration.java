@@ -52,7 +52,7 @@ public class YetcacheInterceptorConfiguration {
     public ApplicationRunner registerDefaultChains(CacheInvocationChainRegistry registry,
                                                    CacheInvocationChainBuilder chainBuilder) {
         return args -> {
-            StructureBehaviorKey dhGetSb = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.SINGLE_GET);
+            StructureBehaviorKey dhGetSb = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.GET);
             StructureBehaviorKey dhBatchGetSb = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.BATCH_GET);
             CacheInvocationChain dhGetChain = chainBuilder.build(dhGetSb);
             CacheInvocationChain dhBatchGetChain = chainBuilder.build(dhBatchGetSb);

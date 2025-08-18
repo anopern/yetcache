@@ -5,6 +5,7 @@ import com.yetcache.agent.interceptor.BehaviorType;
 import com.yetcache.agent.interceptor.CacheInvocationCommand;
 import com.yetcache.agent.interceptor.StructureBehaviorKey;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,12 +16,19 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class HashCacheAgentGetInvocationCommand implements CacheInvocationCommand {
+    private String componentName;
     private Object bizKey;
     private Object bizField;
 
     @Override
+    public String componentName() {
+        return null;
+    }
+
+    @Override
     public StructureBehaviorKey structureBehaviorKey() {
-        return StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.SINGLE_GET);
+        return StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.GET);
     }
 }

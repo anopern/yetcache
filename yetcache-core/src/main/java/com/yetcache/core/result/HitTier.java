@@ -6,8 +6,12 @@ package com.yetcache.core.result;
  */
 public enum HitTier {
     LOCAL,
+
     REMOTE,
+
     SOURCE,
+
     NONE,
+
     BLOCKED
 }

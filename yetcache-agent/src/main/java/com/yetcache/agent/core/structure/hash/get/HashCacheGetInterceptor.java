@@ -38,7 +38,7 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
     @Override
     public boolean supportStructureBehaviorKey(StructureBehaviorKey sbKey) {
         return StructureType.DYNAMIC_HASH.equals(sbKey.getStructureType())
-                && BehaviorType.SINGLE_GET.equals(sbKey.getBehaviorType());
+                && BehaviorType.GET.equals(sbKey.getBehaviorType());
     }
 
 
@@ -53,13 +53,14 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
             TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
             HashCacheGetCommand storeGetCmd = new HashCacheGetCommand(bizKey, bizField, valueTypeRef);
             CacheResult storeResult = agentScope.getMultiLevelCache().get(storeGetCmd);
-            if (storeResult.code() == 0 && HitTier.NONE != storeResult.hitTierInfo().hitTier()) {
+            if (storeResult.code() == BaseResultCode.SUCCESS.code()
+                    && HitTier.NONE != storeResult.hitTierInfo().hitTier()) {
                 CacheValueHolder<?> holder = (CacheValueHolder<?>) storeResult.value();
                 if (holder.isNotLogicExpired()) {
                     return BaseCacheResult.singleHit(componentName, holder, storeResult.hitTierInfo());
                 }
             }
-            HashCacheLoadCommand loadCmd = new HashCacheLoadCommand(bizKey, bizField);
+            HashCacheLoadCommand<?, ?> loadCmd = new HashCacheLoadCommand<>(bizKey, bizField);
             // 回源加载数据
             CacheResult loadResult = agentScope.getCacheLoader().load(loadCmd);
             if (loadResult.isSuccess() && null == loadResult.value()) {
