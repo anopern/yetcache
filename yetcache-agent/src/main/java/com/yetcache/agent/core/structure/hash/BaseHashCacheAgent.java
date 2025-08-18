@@ -1,5 +1,6 @@
 package com.yetcache.agent.core.structure.hash;
 
+import cn.hutool.core.collection.CollUtil;
 import com.yetcache.agent.broadcast.InstanceIdProvider;
 import com.yetcache.agent.broadcast.command.CacheShape;
 import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
@@ -13,10 +14,11 @@ import com.yetcache.core.cache.*;
 import com.yetcache.agent.core.structure.hash.batchget.HashCacheAgentBatchGetInvocationCommand;
 import com.yetcache.agent.core.structure.hash.get.HashCacheAgentGetInvocationCommand;
 import com.yetcache.agent.interceptor.*;
+import com.yetcache.core.cache.command.HashCacheBatchRemoveCommand;
 import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.command.HashCacheRemoveCommand;
-import com.yetcache.core.cache.hash.DefaultMultiTierHashCache;
-import com.yetcache.core.cache.hash.MultiTierHashCache;
+import com.yetcache.core.cache.hash.DefaultMultiLevelHashCache;
+import com.yetcache.core.cache.hash.MultiLevelHashCache;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.codec.TypeRefRegistry;
@@ -55,12 +57,12 @@ public class BaseHashCacheAgent implements HashCacheAgent {
                               TypeDescriptor typeDescriptor,
                               JsonValueCodec jsonValueCodec) {
 
-        MultiTierHashCache multiTierCache = new DefaultMultiTierHashCache(componentNane,
+        MultiLevelHashCache multiLevelCache = new DefaultMultiLevelHashCache(componentNane,
                 config, redissonClient, keyConverter, fieldConverter, jsonValueCodec);
 
         HashCacheFillPort fillPort = (bizKey, valueMap) -> this.putAll(bizKey, valueMap, PutAllOptions.defaultOptions());
         this.scope = new HashAgentScope(componentNane,
-                multiTierCache,
+                multiLevelCache,
                 config,
                 keyConverter,
                 fieldConverter,
@@ -114,10 +116,75 @@ public class BaseHashCacheAgent implements HashCacheAgent {
     }
 
     @Override
+    public <K, F> BaseCacheResult<Void> refresh(K bizKey, F bizField) {
+        if (null == bizKey || null == bizField) {
+            return BaseCacheResult.fail(scope.getComponentName(), new IllegalArgumentException("bizKey or bizField is null"));
+        }
+        CacheResult loadRet = scope.getCacheLoader().load(HashCacheLoadCommand.of(bizKey, bizField));
+        if (!loadRet.isSuccess()) {
+            return BaseCacheResult.fail(scope.getComponentName(), loadRet.errorInfo());
+        }
+        if (null != loadRet.value()) {
+            HashCachePutAllCommand putCmd = HashCachePutAllCommand.builder()
+                    .bizKey(bizKey)
+                    .valueMap(Collections.singletonMap(bizField, loadRet.value()))
+                    .ttl(CacheTtl.builder()
+                            .localLogicSecs(scope.getConfig().getLocal().getLogicTtlSecs())
+                            .localPhysicalSecs(scope.getConfig().getLocal().getPhysicalTtlSecs())
+                            .remoteLogicSecs(scope.getConfig().getRemote().getLogicTtlSecs())
+                            .remotePhysicalSecs(scope.getConfig().getRemote().getPhysicalTtlSecs())
+                            .build())
+                    .writeTier(WriteTier.ALL)
+                    .build();
+            scope.getMultiLevelCache().putAll(putCmd);
+        } else {
+            HashCacheRemoveCommand rmCmd = HashCacheRemoveCommand.of(bizKey, bizField);
+            scope.getMultiLevelCache().remove(rmCmd);
+        }
+        return BaseCacheResult.success(scope.getComponentName());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <K, F, T> BaseCacheResult<Void> batchRefresh(K bizKey, List<F> bizFields) {
+        if (null == bizKey || CollUtil.isEmpty(bizFields)) {
+            return BaseCacheResult.fail(scope.getComponentName(), new IllegalArgumentException("bizKey or bizField is null"));
+        }
+        CacheResult loadRet = scope.getCacheLoader().batchLoad(HashCacheBatchLoadCommand.of(bizKey, bizFields));
+        if (!loadRet.isSuccess()) {
+            return BaseCacheResult.fail(scope.getComponentName(), loadRet.errorInfo());
+        }
+
+        List<F> missedFields = new ArrayList<>();
+        if (null != loadRet.value()) {
+            Map<Object, Object> valueMap = (Map<Object, Object>) loadRet.value();
+            for (F field : bizFields) {
+                if (!valueMap.containsKey(field)) {
+                    missedFields.add(field);
+                }
+            }
+            if (CollUtil.isNotEmpty(valueMap)) {
+                putAll(bizKey, valueMap);
+            }
+        } else {
+            HashCacheRemoveCommand rmCmd = HashCacheRemoveCommand.of(bizKey, missedFields);
+            scope.getMultiLevelCache().remove(rmCmd);
+        }
+        return BaseCacheResult.success(scope.getComponentName());
+    }
+
+    @Override
     public <K, F> BaseCacheResult<Void> remove(K bizKey, F bizField) {
         HashCacheRemoveCommand cmd = HashCacheRemoveCommand.of(bizKey, bizField);
-        scope.getMultiTierCache().remove(cmd);
+        scope.getMultiLevelCache().remove(cmd);
         return BaseCacheResult.success(scope.getComponentName());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <K, F> BaseCacheResult<Void> batchRemove(K bizKey, List<F> bizFields) {
+        HashCacheBatchRemoveCommand cmd = HashCacheBatchRemoveCommand.of(bizKey, new ArrayList<>(bizFields));
+        return (BaseCacheResult<Void>) scope.getMultiLevelCache().batchRemove(cmd);
     }
 
     private CacheResult singleInvoke(StructureBehaviorKey structureBehaviorKey, CacheInvocationCommand command) {
@@ -140,6 +207,22 @@ public class BaseHashCacheAgent implements HashCacheAgent {
         } catch (Throwable e) {
             return BaseCacheResult.fail(scope.getComponentName(), e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <K> BaseCacheResult<Void> putAll(K bizKey, Map<Object, Object> valueMap) {
+        HashCachePutAllCommand putCmd = HashCachePutAllCommand.builder()
+                .bizKey(bizKey)
+                .valueMap(valueMap)
+                .ttl(CacheTtl.builder()
+                        .localLogicSecs(scope.getConfig().getLocal().getLogicTtlSecs())
+                        .localPhysicalSecs(scope.getConfig().getLocal().getPhysicalTtlSecs())
+                        .remoteLogicSecs(scope.getConfig().getRemote().getLogicTtlSecs())
+                        .remotePhysicalSecs(scope.getConfig().getRemote().getPhysicalTtlSecs())
+                        .build())
+                .writeTier(WriteTier.ALL)
+                .build();
+        return (BaseCacheResult<Void>) scope.getMultiLevelCache().putAll(putCmd);
     }
 
 
@@ -322,7 +405,7 @@ public class BaseHashCacheAgent implements HashCacheAgent {
                 .writeTier(WriteTier.ALL)
                 .build();
 
-        CacheResult writeResult = this.scope.getMultiTierCache().putAll(putAllCmd);
+        CacheResult writeResult = this.scope.getMultiLevelCache().putAll(putAllCmd);
 
         // 3) 本实例 local 广播（仅在写入成功且开启时）
         if (writeResult.isSuccess() && normalized.isBroadcast()) {

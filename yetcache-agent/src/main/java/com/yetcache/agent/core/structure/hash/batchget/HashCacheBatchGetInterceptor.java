@@ -63,7 +63,7 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
             // Step 1: 读缓存
             TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
             HashCacheBatchGetCommand batchGetCmd = new HashCacheBatchGetCommand(bizKey, bizFields, valueTypeRef);
-            CacheResult storeResult = agentScope.getMultiTierCache().batchGet(batchGetCmd);
+            CacheResult storeResult = agentScope.getMultiLevelCache().batchGet(batchGetCmd);
 
             List<Object> missedFields = new ArrayList<>();
             Map<Object, CacheValueHolder<?>> cacheValueHolderMap = (Map<Object, CacheValueHolder<?>>) storeResult.value();
@@ -109,7 +109,7 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
                                     .build())
                             .writeTier(WriteTier.ALL)
                             .build();
-                    agentScope.getMultiTierCache().putAll(putAllCmd);
+                    agentScope.getMultiLevelCache().putAll(putAllCmd);
                 }
             }
 

@@ -8,6 +8,8 @@ import com.yetcache.core.result.CacheResult;
  */
 public interface HashCacheLoader {
     String getComponentName();
-    CacheResult load(HashCacheLoadCommand cmd);
-    CacheResult batchLoad(HashCacheBatchLoadCommand cmd);
+
+    <K, F>  CacheResult load(HashCacheLoadCommand<K, F> cmd);
+
+    <K, F> CacheResult batchLoad(HashCacheBatchLoadCommand<K, F> cmd);
 }

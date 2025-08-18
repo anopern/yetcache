@@ -1,12 +1,9 @@
 package com.yetcache.core.cache.hash;
 
 import cn.hutool.core.collection.CollUtil;
-import com.yetcache.core.cache.command.HashCacheRemoveCommand;
+import com.yetcache.core.cache.command.*;
 import com.yetcache.core.codec.*;
 import com.yetcache.core.cache.WriteTier;
-import com.yetcache.core.cache.command.HashCacheBatchGetCommand;
-import com.yetcache.core.cache.command.HashCacheSingleGetCommand;
-import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.*;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
@@ -23,19 +20,19 @@ import java.util.stream.Collectors;
  * @since 2025/7/14
  */
 @Slf4j
-public class DefaultMultiTierHashCache implements MultiTierHashCache {
+public class DefaultMultiLevelHashCache implements MultiLevelHashCache {
     private final String componentName;
     private CaffeineHashCache localCache;
     private RedisHashCache remoteCache;
     private final KeyConverter keyConverter;
     private final FieldConverter fieldConverter;
 
-    public DefaultMultiTierHashCache(String componentName,
-                                     HashCacheConfig config,
-                                     RedissonClient redissonClient,
-                                     KeyConverter keyConverter,
-                                     FieldConverter fieldConverter,
-                                     JsonValueCodec jsonValueCodec) {
+    public DefaultMultiLevelHashCache(String componentName,
+                                      HashCacheConfig config,
+                                      RedissonClient redissonClient,
+                                      KeyConverter keyConverter,
+                                      FieldConverter fieldConverter,
+                                      JsonValueCodec jsonValueCodec) {
         this.componentName = Objects.requireNonNull(componentName, "cacheName");
         this.keyConverter = Objects.requireNonNull(keyConverter, "keyConverter");
         this.fieldConverter = Objects.requireNonNull(fieldConverter, "fieldConverter");
@@ -49,7 +46,7 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
     }
 
     @Override
-    public <T> CacheResult get(HashCacheSingleGetCommand cmd) {
+    public <T> CacheResult get(HashCacheGetCommand cmd) {
         String key = keyConverter.convert(cmd.getBizKey());
         String field = fieldConverter.convert(cmd.getBizField());
 
@@ -151,33 +148,6 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
 //    }
 
 
-//    @Override
-//    @SuppressWarnings("unchecked")
-//    public CacheResult put(HashCacheSinglePutCommand cmd) {
-//        String key = keyConverter.convert(cmd.getBizKey());
-//        String field = fieldConverter.convert(cmd.getBizField());
-//        Object value = cmd.getValue();
-//
-//        // Step 1: 写入本地缓存（如启用）
-//        if (localCache != null) {
-//            CacheValueHolder localHolder = (CacheValueHolder) CacheValueHolder.wrap(value,
-//                    cmd.getLocalLogicTtlSecs());
-//            localCache.put(key, field, localHolder);
-//        }
-//
-//        // Step 2: 写入远程缓存（如启用）
-//        if (remoteCache != null) {
-//            CacheValueHolder remoteHolder = (CacheValueHolder) CacheValueHolder.wrap(value,
-//                    cmd.getRemoteLogicTtlSecs());
-//            long realTtlSecs = TtlRandomizer.randomizeSecs(cmd.getRemotePhysicalTtlSecs(),
-//                    config.getRemote().getTtlRandomPct());
-//            remoteCache.put(key, field, remoteHolder, realTtlSecs);
-//        }
-//
-//        // Step 3: 返回结构化结果
-//        return SingleCacheResult.success(componentName);
-//    }
-
     @Override
     public <T> CacheResult putAll(HashCachePutAllCommand cmd) {
         Object bizKey = cmd.getBizKey();
@@ -198,6 +168,20 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
             localCache.putAll(key, localHolderMap);
         }
 
+        return BaseCacheResult.success(componentName);
+    }
+
+    @Override
+    public   CacheResult batchRemove(HashCacheBatchRemoveCommand cmd) {
+        String key = keyConverter.convert(cmd.getBizKey());
+        List<String> fields = cmd.getBizFields().stream().map(fieldConverter::convert)
+                .collect(Collectors.toList());
+        if (localCache != null) {
+            localCache.batchRemove(key, fields);
+        }
+        if (remoteCache != null) {
+            remoteCache.batchRemove(key, fields);
+        }
         return BaseCacheResult.success(componentName);
     }
 
@@ -227,33 +211,7 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
 
         return BaseCacheResult.success(componentName);
     }
-//
-//    @Override
-//    public DynamicCacheStorageBatchAccessResult<Void, Void> invalidateAll(K bizKey) {
-//        String key = keyConverter.convert(bizKey);
-//
-//        // 清除本地缓存
-//        if (localCache != null) {
-//            localCache.removeAll(key);
-//        }
-//
-//        // 清除远程缓存
-//        if (remoteCache != null) {
-//            remoteCache.invalidateAll(key);
-//        }
-//
-//        return DynamicCacheStorageBatchAccessResult.success();
-//    }
 
-    //    private Map<F, CacheValueHolder> rawHolderMap2typeHolderMap(Map<String, CacheValueHolder> rwaMap) {
-//        // 构建返回值 Map<F, CacheValueHolder>（回转字段）
-//        return rwaMap.entrySet().stream()
-//                .collect(Collectors.toMap(
-//                        e -> fieldConverter.revert(e.getKey()),
-//                        Map.Entry::getValue
-//                ));
-//    }
-//
     @SuppressWarnings("unchecked")
     private <T> Map<String, CacheValueHolder<T>> typeMap2rawHolderMap(Map<Object, ?> valueMap, long ttlSecs) {
         return valueMap.entrySet().stream()

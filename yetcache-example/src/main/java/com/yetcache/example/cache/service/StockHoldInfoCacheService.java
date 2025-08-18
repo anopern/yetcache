@@ -55,6 +55,27 @@ public final class StockHoldInfoCacheService {
         }
     }
 
+    public void batchRemove(String fundAccount, List<Long> ids) {
+        BaseCacheResult<Void> batchRemoveResult = stockHoldInfoCacheAgent.batchRemove(fundAccount, ids);
+        if (!batchRemoveResult.isSuccess()) {
+            throw new RuntimeException(batchRemoveResult.message());
+        }
+    }
+
+    public void refresh(String fundAccount, Long id) {
+        BaseCacheResult<Void> refreshResult = stockHoldInfoCacheAgent.refresh(fundAccount, id);
+        if (!refreshResult.isSuccess()) {
+            throw new RuntimeException(refreshResult.message());
+        }
+    }
+
+    public void batchRefresh(String fundAccount, List<Long> ids) {
+        BaseCacheResult<Void> refreshResult = stockHoldInfoCacheAgent.batchRefresh(fundAccount, ids);
+        if (!refreshResult.isSuccess()) {
+            throw new RuntimeException(refreshResult.message());
+        }
+    }
+
 //    public List<StockHoldInfo> listAll(String fundAccount) {
 //        return listAll(fundAccount, false);
 //    }

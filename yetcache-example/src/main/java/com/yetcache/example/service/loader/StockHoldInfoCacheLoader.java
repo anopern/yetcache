@@ -31,13 +31,13 @@ public class StockHoldInfoCacheLoader extends AbstractHashCacheLoader {
     }
 
     @Override
-    public CacheResult load(HashCacheLoadCommand cmd) {
+    public <K, F> CacheResult load(HashCacheLoadCommand<K, F> cmd) {
         Long id = (Long) cmd.getBizField();
         return BaseCacheResult.success(getComponentName(), stockHoldInfoService.getById(id));
     }
 
     @Override
-    public CacheResult batchLoad(HashCacheBatchLoadCommand cmd) {
+    public <K, F> CacheResult batchLoad(HashCacheBatchLoadCommand<K, F> cmd) {
         List<Long> ids = cmd.getBizFields().stream()
                 .map(item -> (Long) item)
                 .collect(Collectors.toList());

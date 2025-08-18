@@ -88,6 +88,10 @@ public class BaseCacheResult<T> implements CacheResult {
         return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitTierInfo, null, null);
     }
 
+    public static <T> BaseCacheResult<T> fail(String componentName, ErrorInfo errorInfo) {
+        return new BaseCacheResult<>(componentName, BaseResultCode.FAIL, null, null, errorInfo, null);
+    }
+
     public static <T> BaseCacheResult<T> fail(String componentName, Throwable e) {
         ErrorInfo errorInfo = new ErrorInfo(e);
         return new BaseCacheResult<>(componentName, BaseResultCode.FAIL, null, null, errorInfo, null);

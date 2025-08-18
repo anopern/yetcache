@@ -105,5 +105,14 @@ public class CaffeineHashCache {
             map.remove(field);
         }
     }
+
+    public void batchRemove(String key, List<String> fields) {
+        ConcurrentHashMap<String, CacheValueHolder<?>> map = cache.getIfPresent(key);
+        if (map != null) {
+            for (String field : fields) {
+                map.remove(field);
+            }
+        }
+    }
 }
 

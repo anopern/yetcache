@@ -13,7 +13,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class HashCacheBatchLoadCommand {
-    private Object bizKey;
-    private List<Object> bizFields;
+public class HashCacheBatchLoadCommand<K, F> {
+    private K bizKey;
+    private List<F> bizFields;
+
+    public static <K, F> HashCacheBatchLoadCommand<K, F> of(K bizKey, List<F> bizFields) {
+        return new HashCacheBatchLoadCommand<>(bizKey, bizFields);
+    }
 }

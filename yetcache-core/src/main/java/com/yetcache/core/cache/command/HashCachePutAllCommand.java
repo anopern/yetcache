@@ -23,7 +23,4 @@ public class HashCachePutAllCommand {
     private final Map<Object, Object> valueMap;
     private final CacheTtl ttl;
     private final WriteTier writeTier;
-    private final TypeRef<?> valueTypeRef;
-
-
 }

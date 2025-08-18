@@ -4,7 +4,7 @@ import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.hash.HashAgentScope;
 import com.yetcache.agent.core.structure.hash.HashCacheLoadCommand;
 import com.yetcache.agent.interceptor.*;
-import com.yetcache.core.cache.command.HashCacheSingleGetCommand;
+import com.yetcache.core.cache.command.HashCacheGetCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.codec.TypeRef;
 import com.yetcache.core.result.*;
@@ -51,8 +51,8 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
         String componentName = agentScope.getComponentName();
         try {
             TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
-            HashCacheSingleGetCommand storeGetCmd = new HashCacheSingleGetCommand(bizKey, bizField, valueTypeRef);
-            CacheResult storeResult = agentScope.getMultiTierCache().get(storeGetCmd);
+            HashCacheGetCommand storeGetCmd = new HashCacheGetCommand(bizKey, bizField, valueTypeRef);
+            CacheResult storeResult = agentScope.getMultiLevelCache().get(storeGetCmd);
             if (storeResult.code() == 0 && HitTier.NONE != storeResult.hitTierInfo().hitTier()) {
                 CacheValueHolder<?> holder = (CacheValueHolder<?>) storeResult.value();
                 if (holder.isNotLogicExpired()) {

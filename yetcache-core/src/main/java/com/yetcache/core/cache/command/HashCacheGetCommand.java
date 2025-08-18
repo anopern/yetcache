@@ -14,14 +14,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class HashCacheSingleGetCommand {
+public class HashCacheGetCommand {
     private Object bizKey;
     private Object bizField;
 
     private TypeRef<?> valueTypeRef;
 
-    public static <T> HashCacheSingleGetCommand of(Object bizKey, Object bizField, TypeRef<T> ref) {
-        return new HashCacheSingleGetCommand(bizKey, bizField, ref);
+    public static <T> HashCacheGetCommand of(Object bizKey, Object bizField, TypeRef<T> ref) {
+        return new HashCacheGetCommand(bizKey, bizField, ref);
     }
 
     // ✅ 泛型访问器：在使用点把 <?> 进化回 <T>

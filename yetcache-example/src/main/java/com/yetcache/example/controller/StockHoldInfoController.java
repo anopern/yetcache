@@ -42,6 +42,22 @@ public class StockHoldInfoController {
     public void remove(@RequestBody StockHoldInfoBatchGetReq req) {
           cacheService.remove(req.getFundAccount(), req.getId());
     }
+
+    @PostMapping("/refresh")
+    public void refresh(@RequestBody StockHoldInfoBatchGetReq req) {
+        cacheService.refresh(req.getFundAccount(), req.getId());
+    }
+
+    @PostMapping("/batchRefresh")
+    public void batchRefresh(@RequestBody StockHoldInfoBatchGetReq req) {
+        cacheService.batchRefresh(req.getFundAccount(), req.getIds());
+    }
+
+    @PostMapping("/batchRemove")
+    public void batchRemove(@RequestBody StockHoldInfoBatchGetReq req) {
+        cacheService.batchRemove(req.getFundAccount(), req.getIds());
+    }
+
 //
 //    @PostMapping("/listAll")
 //    public List<StockHoldInfo> listAll(@RequestBody StockHoldInfo dto) {

@@ -97,9 +97,10 @@ public class RedisHashCache {
     public void remove(String key, String field) {
         map(key).remove(field);
     }
-//
-//    public void invalidateAll(String key) {
-//        RMap<String, CacheValueHolder<V>> map = rClient.getMap(key);
-//        map.clear();
-//    }
+
+    public void batchRemove(String key, List<String> fields) {
+        RMap<String, String> map = map(key);
+        String[] fieldArray = fields.toArray(new String[0]);
+        map.fastRemove(fieldArray);
+    }
 }

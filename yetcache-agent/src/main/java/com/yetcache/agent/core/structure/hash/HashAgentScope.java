@@ -4,7 +4,7 @@ import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.AgentScope;
 import com.yetcache.agent.core.port.HashCacheFillPort;
 import com.yetcache.core.codec.TypeDescriptor;
-import com.yetcache.core.cache.hash.MultiTierHashCache;
+import com.yetcache.core.cache.hash.MultiLevelHashCache;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
@@ -17,7 +17,7 @@ import lombok.Getter;
 @Getter
 public class HashAgentScope implements AgentScope {
     private final String componentName;
-    private final MultiTierHashCache multiTierCache;
+    private final MultiLevelHashCache multiLevelCache;
     private final HashCacheConfig config;
     private final HashCacheLoader cacheLoader;
     private final CacheBroadcastPublisher broadcastPublisher;
@@ -27,7 +27,7 @@ public class HashAgentScope implements AgentScope {
     private final FieldConverter fieldConverter;
 
     public HashAgentScope(String componentName,
-                          MultiTierHashCache multiTierCache,
+                          MultiLevelHashCache multiLevelCache,
                           HashCacheConfig config,
                           KeyConverter keyConverter,
                           FieldConverter fieldConverter,
@@ -36,7 +36,7 @@ public class HashAgentScope implements AgentScope {
                           HashCacheFillPort hashCacheFillPort,
                           TypeDescriptor typeDescriptor) {
         this.componentName = componentName;
-        this.multiTierCache = multiTierCache;
+        this.multiLevelCache = multiLevelCache;
         this.config = config;
         this.keyConverter = keyConverter;
         this.fieldConverter = fieldConverter;

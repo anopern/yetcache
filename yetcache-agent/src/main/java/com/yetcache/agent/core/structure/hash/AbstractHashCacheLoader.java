@@ -9,12 +9,12 @@ import com.yetcache.core.result.CacheResult;
  */
 public abstract class AbstractHashCacheLoader implements HashCacheLoader {
     @Override
-    public CacheResult load(HashCacheLoadCommand cmd) {
+    public <K, F> CacheResult load(HashCacheLoadCommand<K, F> cmd) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public CacheResult batchLoad(HashCacheBatchLoadCommand cmd) {
+    public <K, F> CacheResult batchLoad(HashCacheBatchLoadCommand<K, F> cmd) {
         throw new UnsupportedOperationException();
     }
 }

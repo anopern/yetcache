@@ -4,6 +4,7 @@ import com.yetcache.agent.core.PutAllOptions;
 import com.yetcache.agent.core.structure.CacheAgent;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
+
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +15,11 @@ import java.util.Map;
 public interface HashCacheAgent extends CacheAgent {
     <K, F, T> BaseCacheResult<T> get(K bizKey, F bizField);
 
-    <K, F, T>    CacheResult batchGet(K bizKey, List<F> bizFields);
+    <K, F, T> CacheResult batchGet(K bizKey, List<F> bizFields);
+
+    <K, F> CacheResult refresh(K bizKey, F bizField);
+
+    <K, F, T> CacheResult batchRefresh(K bizKey, List<F> bizFields);
 
 //    DynamicHashCacheAgentBatchAccessResult<F, V> listAll(K bizKey);
 
@@ -23,6 +28,8 @@ public interface HashCacheAgent extends CacheAgent {
 //    DynamicHashCacheAgentBatchAccessResult<Void, Void> refreshAll(K bizKey);
 
     <K, F> CacheResult remove(K bizKey, F bizField);
+
+    <K, F> CacheResult batchRemove(K bizKey, List<F> bizFields);
 
 //    BaseSingleResult<Void, Void> removeAll(K bizKey);
 
