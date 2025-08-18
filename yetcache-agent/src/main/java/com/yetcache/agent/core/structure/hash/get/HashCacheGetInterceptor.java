@@ -56,24 +56,25 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
             if (storeResult.code() == 0 && HitTier.NONE != storeResult.hitTierInfo().hitTier()) {
                 CacheValueHolder<?> holder = (CacheValueHolder<?>) storeResult.value();
                 if (holder.isNotLogicExpired()) {
-                    return SingleCacheResult.hit(componentName, holder, storeResult.hitTierInfo().hitTier());
+                    return BaseCacheResult.singleHit(componentName, holder, storeResult.hitTierInfo());
                 }
             }
             HashCacheLoadCommand loadCmd = new HashCacheLoadCommand(bizKey, bizField);
             // 回源加载数据
             CacheResult loadResult = agentScope.getCacheLoader().load(loadCmd);
             if (loadResult.isSuccess() && null == loadResult.value()) {
-                return SingleCacheResult.miss(componentName);
+                return BaseCacheResult.miss(componentName);
             }
             Map<Object, Object> bizFieldValueNap = Collections.singletonMap(bizField, loadResult.value());
             // 封装为缓存值并写入缓存
 
             agentScope.getHashCacheFillPort().fillAndBroadcast(bizKey, bizFieldValueNap);
 
-            return SingleCacheResult.hit(componentName, CacheValueHolder.wrap(loadResult.value(), 0), HitTier.SOURCE);
+            return BaseCacheResult.singleHit(componentName, CacheValueHolder.wrap(loadResult.value(), 0),
+                    HitTier.SOURCE);
         } catch (Exception e) {
             log.warn("cache load failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);
-            return SingleCacheResult.fail(componentName, e);
+            return BaseCacheResult.fail(componentName, e);
         }
     }
 }

@@ -4,8 +4,8 @@ import cn.hutool.core.collection.CollUtil;
 import com.yetcache.agent.core.structure.hash.AbstractHashCacheLoader;
 import com.yetcache.agent.core.structure.hash.HashCacheBatchLoadCommand;
 import com.yetcache.agent.core.structure.hash.HashCacheLoadCommand;
+import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
-import com.yetcache.core.result.SingleCacheResult;
 import com.yetcache.example.entity.StockHoldInfo;
 import com.yetcache.example.service.IStockHoldInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +26,14 @@ public class StockHoldInfoCacheLoader extends AbstractHashCacheLoader {
     private IStockHoldInfoService stockHoldInfoService;
 
     @Override
+    public String getComponentName() {
+        return "stock-hold-info-cache-loader";
+    }
+
+    @Override
     public CacheResult load(HashCacheLoadCommand cmd) {
         Long id = (Long) cmd.getBizField();
-        return SingleCacheResult.success(stockHoldInfoService.getById(id));
+        return BaseCacheResult.success(getComponentName(), stockHoldInfoService.getById(id));
     }
 
     @Override
@@ -40,14 +45,8 @@ public class StockHoldInfoCacheLoader extends AbstractHashCacheLoader {
         if (CollUtil.isNotEmpty(stockHoldInfos)) {
             Map<Long, StockHoldInfo> stockHoldInfoMap = stockHoldInfos.stream()
                     .collect(Collectors.toMap(StockHoldInfo::getId, stockHoldInfo -> stockHoldInfo));
-            return SingleCacheResult.success(stockHoldInfoMap);
+            return BaseCacheResult.success(getComponentName(), stockHoldInfoMap);
         }
-        return SingleCacheResult.success(Collections.emptyMap());
+        return BaseCacheResult.success(getComponentName(), Collections.emptyMap());
     }
-
-    //    @Override
-//    public Map<Long, StockHoldInfo> loadAll(String fundAccount) {
-//        return stockHoldInfoService.listByFundAccount(fundAccount)
-//                .stream().collect(Collectors.toMap(StockHoldInfo::getId, stockHoldInfo -> stockHoldInfo));
-//    }
 }

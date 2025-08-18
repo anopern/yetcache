@@ -13,7 +13,6 @@ import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.K;
 import org.redisson.api.RedissonClient;
 
 import java.util.*;
@@ -58,7 +57,7 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
         if (localCache != null) {
             CacheValueHolder<T> valueHolder = localCache.getIfPresent(key, field, cmd.getValueTypeRef());
             if (valueHolder != null && valueHolder.isNotLogicExpired()) {
-                return SingleCacheResult.hit(componentName, valueHolder, HitTier.LOCAL);
+                return BaseCacheResult.singleHit(componentName, valueHolder, HitTier.LOCAL);
             }
         }
 
@@ -70,12 +69,12 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
                 if (localCache != null) {
                     localCache.put(key, field, holder);
                 }
-                return SingleCacheResult.hit(componentName, holder, HitTier.REMOTE);
+                return BaseCacheResult.singleHit(componentName, holder, HitTier.REMOTE);
             }
         }
 
         // 3. 所有缓存都 miss
-        return SingleCacheResult.miss(componentName);
+        return BaseCacheResult.miss(componentName);
     }
 
     @Override
@@ -116,7 +115,7 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
                 }
             }
 
-            return BaseCacheResult.hit(componentName, valueHolderMap, DefaultHitTierInfo.of(hitTierMap));
+            return BaseCacheResult.batchHit(componentName, valueHolderMap, DefaultHitTierInfo.of(hitTierMap));
         } catch (Exception e) {
             log.warn("缓存回源加载失败，cacheName={}, bizKey={}, bizFields={}", componentName, bizKey, bizFields, e);
             return BaseCacheResult.fail(componentName, e);
@@ -226,7 +225,7 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
             remoteCache.remove(key, field);
         }
 
-        return BaseCacheResult.success(componentName);
+        return BatchCacheResult.success(componentName);
     }
 //
 //    @Override

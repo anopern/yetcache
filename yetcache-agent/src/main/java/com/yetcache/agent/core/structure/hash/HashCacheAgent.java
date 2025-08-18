@@ -2,8 +2,8 @@ package com.yetcache.agent.core.structure.hash;
 
 import com.yetcache.agent.core.PutAllOptions;
 import com.yetcache.agent.core.structure.CacheAgent;
+import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
-import com.yetcache.core.result.SingleCacheResult;
 import java.util.List;
 import java.util.Map;
 
@@ -12,7 +12,7 @@ import java.util.Map;
  * @since 2025/7/14
  */
 public interface HashCacheAgent extends CacheAgent {
-    <K, F, T> SingleCacheResult<T> get(K bizKey, F bizField);
+    <K, F, T> BaseCacheResult<T> get(K bizKey, F bizField);
 
     <K, F, T>    CacheResult batchGet(K bizKey, List<F> bizFields);
 

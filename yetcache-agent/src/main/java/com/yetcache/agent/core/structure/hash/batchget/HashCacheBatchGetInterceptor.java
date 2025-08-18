@@ -114,7 +114,7 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
             }
 
             HitTierInfo hitTierInfo = new DefaultHitTierInfo(resultHitTierMap);
-            return BaseCacheResult.hit(agentScope.getComponentName(), resultValueHolderMap, hitTierInfo);
+            return BaseCacheResult.batchHit(agentScope.getComponentName(), resultValueHolderMap, hitTierInfo);
         } catch (Exception e) {
             log.warn("batchGet failed. key={}, fields={}, error={}", bizKey, bizFields, e.getMessage(), e);
             return BaseCacheResult.fail(agentScope.getComponentName(), e);

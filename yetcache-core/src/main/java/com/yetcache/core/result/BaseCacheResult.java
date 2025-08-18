@@ -75,7 +75,16 @@ public class BaseCacheResult<T> implements CacheResult {
         return BaseResultCode.SUCCESS.code().equals(this.code);
     }
 
-    public static <T> BaseCacheResult<T> hit(String componentName, T value, HitTierInfo hitTierInfo) {
+    public static <T> BaseCacheResult<T> singleHit(String componentName, T value, HitTier hitTier) {
+        DefaultHitTierInfo hitTierInfo = new DefaultHitTierInfo(hitTier);
+        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitTierInfo, null, null);
+    }
+
+    public static <T> BaseCacheResult<T> singleHit(String componentName, T value, HitTierInfo hitTierInfo) {
+        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitTierInfo, null, null);
+    }
+
+    public static <T> BaseCacheResult<T> batchHit(String componentName, T value, HitTierInfo hitTierInfo) {
         return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitTierInfo, null, null);
     }
 
@@ -87,4 +96,14 @@ public class BaseCacheResult<T> implements CacheResult {
     public static <T> BaseCacheResult<T> success(String componentName) {
         return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, null, null, null, null);
     }
+
+    public static <T> BaseCacheResult<T> success(String componentName, T value) {
+        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, null, null, null);
+    }
+
+    public static <T> BaseCacheResult<T> miss(String componentName) {
+        DefaultHitTierInfo hitTierInfo = new DefaultHitTierInfo(HitTier.NONE);
+        return new BatchCacheResult<>(componentName, 0, "", null, hitTierInfo, null, null);
+    }
+
 }

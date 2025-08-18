@@ -22,9 +22,9 @@ import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.codec.TypeRefRegistry;
 import com.yetcache.core.config.CacheTier;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
+import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.BatchCacheResult;
 import com.yetcache.core.result.CacheResult;
-import com.yetcache.core.result.SingleCacheResult;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import lombok.Getter;
@@ -97,28 +97,28 @@ public class BaseHashCacheAgent implements HashCacheAgent {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <K, F, T> SingleCacheResult<T> get(K bizKey, F bizField) {
+    public <K, F, T> BaseCacheResult<T> get(K bizKey, F bizField) {
         StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH,
                 BehaviorType.SINGLE_GET);
         CacheInvocationCommand command = new HashCacheAgentGetInvocationCommand(bizKey, bizField);
-        return (SingleCacheResult<T>) singleInvoke(structureBehaviorKey, command);
+        return (BaseCacheResult<T>) singleInvoke(structureBehaviorKey, command);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <K, F, T> BatchCacheResult<F, T> batchGet(K bizKey, List<F> bizFields) {
+    public <K, F, T> BaseCacheResult<T> batchGet(K bizKey, List<F> bizFields) {
         StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH,
                 BehaviorType.BATCH_GET);
         List<Object> objBizFields = new ArrayList<>(bizFields);
         CacheInvocationCommand command = new HashCacheAgentBatchGetInvocationCommand(bizKey, objBizFields);
-        return (BatchCacheResult<F, T>) batchInvoke(structureBehaviorKey, command);
+        return (BaseCacheResult<T>) batchInvoke(structureBehaviorKey, command);
     }
 
     @Override
-    public <K, F> SingleCacheResult<Void> remove(K bizKey, F bizField) {
+    public <K, F> BaseCacheResult<Void> remove(K bizKey, F bizField) {
         HashCacheRemoveCommand cmd = HashCacheRemoveCommand.of(bizKey, bizField);
         scope.getMultiTierCache().remove(cmd);
-        return SingleCacheResult.success(scope.getComponentName());
+        return BaseCacheResult.success(scope.getComponentName());
     }
 
     private CacheResult singleInvoke(StructureBehaviorKey structureBehaviorKey, CacheInvocationCommand command) {
@@ -126,9 +126,9 @@ public class BaseHashCacheAgent implements HashCacheAgent {
         try {
             CacheInvocationChain chain = chainRegistry.getChain(structureBehaviorKey);
             CacheResult rawResult = chain.proceed(ctx);
-            return SingleCacheResult.hit(scope.getComponentName(), rawResult.value(), rawResult.hitTierInfo().hitTier());
+            return BaseCacheResult.singleHit(scope.getComponentName(), rawResult.value(), rawResult.hitTierInfo().hitTier());
         } catch (Throwable e) {
-            return SingleCacheResult.fail(scope.getComponentName(), e);
+            return BaseCacheResult.fail(scope.getComponentName(), e);
         }
     }
 

@@ -14,6 +14,10 @@ public class BatchCacheResult<F, T> extends BaseCacheResult<T> {
         super(componentName, code, message, value, hitTierInfo, errorInfo, metadata);
     }
 
+    public BatchCacheResult(String componentName, ResultCode rt, T value, HitTierInfo hitTierInfo, ErrorInfo errorInfo, Metadata metadata) {
+        super(componentName, rt.code(), rt.message(), value, hitTierInfo, errorInfo, metadata);
+    }
+
     public static <F, T> BatchCacheResult<F, T> hit(String componentName, T value, HitTier hitTier) {
         DefaultHitTierInfo hitTierInfo = new DefaultHitTierInfo(hitTier);
         return new BatchCacheResult<>(componentName, 0, "", value, hitTierInfo, null, null);
