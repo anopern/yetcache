@@ -54,8 +54,12 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
         try {
             TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
             BaseCacheResult<?> fromStore = getFromStore(bizKey, bizField, agentScope, valueTypeRef);
-            if (fromStore.isSuccess() && fromStore.hitTierInfo().hitTier() == HitTier.NONE) {
-                return loadFromSource(bizKey, bizField, agentScope, valueTypeRef);
+            if (fromStore.isSuccess()) {
+                if (fromStore.hitTierInfo().hitTier() == HitTier.NONE) {
+                    return loadFromSource(bizKey, bizField, agentScope, valueTypeRef);
+                } else {
+                    return BaseCacheResult.singleHit(componentName, fromStore.value(), fromStore.hitTierInfo());
+                }
             }
         } catch (Exception e) {
             log.warn("cache load failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);

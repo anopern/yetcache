@@ -57,10 +57,10 @@ yetcache:
     dynamic-hash:
       stock-hold-info-cache:
         spec:
-          cache-tier: BOTH
+          cache-tier: REMOTE
           cache-name: 'stock-hold-info-cache'
           key-prefix: 'nd:asset:stock:hold'
         local:
-          logic-ttl-secs: 10
+          logic-ttl-secs: 300
         remote:
-          logic-ttl-secs: 20
+          logic-ttl-secs: 5
