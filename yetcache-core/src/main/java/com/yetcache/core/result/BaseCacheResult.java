@@ -103,7 +103,7 @@ public class BaseCacheResult<T> implements CacheResult {
 
     public static <T> BaseCacheResult<T> miss(String componentName) {
         DefaultHitTierInfo hitTierInfo = new DefaultHitTierInfo(HitTier.NONE);
-        return new BatchCacheResult<>(componentName, 0, "", null, hitTierInfo, null, null);
+        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, null, hitTierInfo, null, null);
     }
 
 }

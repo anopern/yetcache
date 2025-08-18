@@ -23,7 +23,6 @@ import com.yetcache.core.codec.TypeRefRegistry;
 import com.yetcache.core.config.CacheTier;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.result.BaseCacheResult;
-import com.yetcache.core.result.BatchCacheResult;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
@@ -137,9 +136,9 @@ public class BaseHashCacheAgent implements HashCacheAgent {
         try {
             CacheInvocationChain chain = chainRegistry.getChain(structureBehaviorKey);
             CacheResult rawResult = chain.proceed(ctx);
-            return BatchCacheResult.hit(scope.getComponentName(), rawResult.value(), rawResult.hitTierInfo().hitTier());
+            return BaseCacheResult.batchHit(scope.getComponentName(), rawResult.value(), rawResult.hitTierInfo());
         } catch (Throwable e) {
-            return BatchCacheResult.fail(scope.getComponentName(), e);
+            return BaseCacheResult.fail(scope.getComponentName(), e);
         }
     }
 

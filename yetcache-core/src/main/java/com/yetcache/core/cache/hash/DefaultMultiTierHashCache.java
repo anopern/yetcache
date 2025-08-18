@@ -225,7 +225,7 @@ public class DefaultMultiTierHashCache implements MultiTierHashCache {
             remoteCache.remove(key, field);
         }
 
-        return BatchCacheResult.success(componentName);
+        return BaseCacheResult.success(componentName);
     }
 //
 //    @Override
