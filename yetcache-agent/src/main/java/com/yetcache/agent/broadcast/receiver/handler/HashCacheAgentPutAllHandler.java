@@ -36,7 +36,7 @@ public class HashCacheAgentPutAllHandler implements CacheBroadcastHandler {
         if (null == sbKey) {
             return false;
         }
-        return StructureType.DYNAMIC_HASH.equals(sbKey.getStructureType())
+        return StructureType.HASH.equals(sbKey.getStructureType())
                 && BehaviorType.PUT_ALL.equals(sbKey.getBehaviorType());
     }
 

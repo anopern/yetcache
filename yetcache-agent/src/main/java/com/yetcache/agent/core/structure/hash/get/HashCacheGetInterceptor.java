@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author walter.yan
@@ -19,6 +20,7 @@ import java.util.Map;
  */
 @Slf4j
 public class HashCacheGetInterceptor implements CacheInterceptor {
+    private final ReentrantLock lock = new ReentrantLock();
 
     @Override
     public String id() {
@@ -32,12 +34,12 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
 
     @Override
     public int getOrder() {
-        return 1;
+        return Integer.MAX_VALUE;
     }
 
     @Override
     public boolean supportStructureBehaviorKey(StructureBehaviorKey sbKey) {
-        return StructureType.DYNAMIC_HASH.equals(sbKey.getStructureType())
+        return StructureType.HASH.equals(sbKey.getStructureType())
                 && BehaviorType.GET.equals(sbKey.getBehaviorType());
     }
 
@@ -51,14 +53,39 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
         String componentName = agentScope.getComponentName();
         try {
             TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
-            HashCacheGetCommand storeGetCmd = new HashCacheGetCommand(bizKey, bizField, valueTypeRef);
-            CacheResult storeResult = agentScope.getMultiLevelCache().get(storeGetCmd);
-            if (storeResult.code() == BaseResultCode.SUCCESS.code()
-                    && HitTier.NONE != storeResult.hitTierInfo().hitTier()) {
-                CacheValueHolder<?> holder = (CacheValueHolder<?>) storeResult.value();
-                if (holder.isNotLogicExpired()) {
-                    return BaseCacheResult.singleHit(componentName, holder, storeResult.hitTierInfo());
-                }
+            BaseCacheResult<?> fromStore = getFromStore(bizKey, bizField, agentScope, valueTypeRef);
+            if (fromStore.isSuccess() && fromStore.hitTierInfo().hitTier() == HitTier.NONE) {
+                return loadFromSource(bizKey, bizField, agentScope, valueTypeRef);
+            }
+        } catch (Exception e) {
+            log.warn("cache load failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);
+            return BaseCacheResult.fail(componentName, e);
+        }
+        return runner.proceed(ctx);
+    }
+
+    private BaseCacheResult<?> getFromStore(Object bizKey, Object bizField, HashAgentScope agentScope,
+                                            TypeRef<?> valueTypeRef) {
+        HashCacheGetCommand storeGetCmd = new HashCacheGetCommand(bizKey, bizField, valueTypeRef);
+        CacheResult storeResult = agentScope.getMultiLevelCache().get(storeGetCmd);
+        if (storeResult.code() == BaseResultCode.SUCCESS.code()
+                && HitTier.NONE != storeResult.hitTierInfo().hitTier()) {
+            CacheValueHolder<?> holder = (CacheValueHolder<?>) storeResult.value();
+            if (holder.isNotLogicExpired()) {
+                return BaseCacheResult.singleHit(agentScope.getComponentName(), holder, storeResult.hitTierInfo());
+            }
+        }
+        return BaseCacheResult.miss(agentScope.getComponentName());
+    }
+
+    private BaseCacheResult<?> loadFromSource(Object bizKey, Object bizField, HashAgentScope agentScope,
+                                              TypeRef<?> valueTypeRef) {
+        String componentName = agentScope.getComponentName();
+        try {
+            lock.lock();
+            BaseCacheResult<?> storeResult = getFromStore(bizKey, bizField, agentScope, valueTypeRef);
+            if (storeResult.isSuccess() && storeResult.hitTierInfo().hitTier() != HitTier.NONE) {
+                return storeResult;
             }
             HashCacheLoadCommand<?, ?> loadCmd = new HashCacheLoadCommand<>(bizKey, bizField);
             // 回源加载数据
@@ -76,6 +103,8 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
         } catch (Exception e) {
             log.warn("cache load failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);
             return BaseCacheResult.fail(componentName, e);
+        } finally {
+            lock.unlock();
         }
     }
 }

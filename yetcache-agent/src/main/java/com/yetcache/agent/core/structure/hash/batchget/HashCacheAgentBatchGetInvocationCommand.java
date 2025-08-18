@@ -18,11 +18,21 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class HashCacheAgentBatchGetInvocationCommand implements CacheInvocationCommand {
+    private String componentName;
     private Object bizKey;
     private List<Object> bizFields;
 
     @Override
+    public String componentName() {
+        return this.componentName;
+    }
+
+    @Override
     public StructureBehaviorKey structureBehaviorKey() {
-        return StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.BATCH_GET);
+        return StructureBehaviorKey.of(StructureType.HASH, BehaviorType.BATCH_GET);
+    }
+
+    public static HashCacheAgentBatchGetInvocationCommand of(String componentName, Object bizKey, List<Object> bizFields) {
+        return new HashCacheAgentBatchGetInvocationCommand(componentName, bizKey, bizFields);
     }
 }

@@ -22,13 +22,21 @@ public class HashCacheAgentGetInvocationCommand implements CacheInvocationComman
     private Object bizKey;
     private Object bizField;
 
+    public static HashCacheAgentGetInvocationCommand of(String componentName, Object bizKey, Object bizField) {
+        return HashCacheAgentGetInvocationCommand.builder()
+                .componentName(componentName)
+                .bizKey(bizKey)
+                .bizField(bizField)
+                .build();
+    }
+
     @Override
     public String componentName() {
-        return null;
+        return this.componentName;
     }
 
     @Override
     public StructureBehaviorKey structureBehaviorKey() {
-        return StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.GET);
+        return StructureBehaviorKey.of(StructureType.HASH, BehaviorType.GET);
     }
 }

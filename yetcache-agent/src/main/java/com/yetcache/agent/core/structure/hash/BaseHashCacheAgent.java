@@ -99,20 +99,20 @@ public class BaseHashCacheAgent implements HashCacheAgent {
     @Override
     @SuppressWarnings("unchecked")
     public <K, F, T> BaseCacheResult<T> get(K bizKey, F bizField) {
-        StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH,
+        StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.HASH,
                 BehaviorType.GET);
-        CacheInvocationCommand command = new HashCacheAgentGetInvocationCommand(bizKey, bizField);
-        return (BaseCacheResult<T>) singleInvoke(structureBehaviorKey, command);
+        CacheInvocationCommand cmd = HashCacheAgentGetInvocationCommand.of(scope.getComponentName(), bizKey, bizField);
+        return (BaseCacheResult<T>) singleInvoke(structureBehaviorKey, cmd);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <K, F, T> BaseCacheResult<T> batchGet(K bizKey, List<F> bizFields) {
-        StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH,
+        StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.HASH,
                 BehaviorType.BATCH_GET);
-        List<Object> objBizFields = new ArrayList<>(bizFields);
-        CacheInvocationCommand command = new HashCacheAgentBatchGetInvocationCommand(bizKey, objBizFields);
-        return (BaseCacheResult<T>) batchInvoke(structureBehaviorKey, command);
+        CacheInvocationCommand cmd = HashCacheAgentBatchGetInvocationCommand.of(scope.getComponentName(), bizKey,
+                new ArrayList<>(bizFields));
+        return (BaseCacheResult<T>) batchInvoke(structureBehaviorKey, cmd);
     }
 
     @Override
@@ -414,7 +414,7 @@ public class BaseHashCacheAgent implements HashCacheAgent {
                         .descriptor(CommandDescriptor.builder()
                                 .shape(CacheShape.HASH.getName())
                                 .componentName(scope.getComponentName())
-                                .structureBehaviorKey(StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.PUT_ALL))
+                                .structureBehaviorKey(StructureBehaviorKey.of(StructureType.HASH, BehaviorType.PUT_ALL))
                                 .instanceId(InstanceIdProvider.getInstanceId())
                                 .publishAt(System.currentTimeMillis())
                                 .build())

@@ -1,5 +1,6 @@
 package com.yetcache.agent.governance.plugin;
 
+import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.result.CacheResult;
 import io.micrometer.core.instrument.Counter;
@@ -24,7 +25,7 @@ public class MetricsInterceptor implements CacheInterceptor {
 
     @Override
     public String id() {
-        return "hash-metrics";
+        return "cache-agent-metrics";
     }
 
     @Override
@@ -34,12 +35,12 @@ public class MetricsInterceptor implements CacheInterceptor {
 
     @Override
     public int getOrder() {
-        return 0;
+        return 1;
     }
 
     @Override
-    public boolean supportStructureBehaviorKey(StructureBehaviorKey structureBehaviorKey) {
-        return false;
+    public boolean supportStructureBehaviorKey(StructureBehaviorKey sb) {
+        return sb.getStructureType() == StructureType.HASH && sb.getBehaviorType() == BehaviorType.GET;
     }
 
     @Override
@@ -65,6 +66,7 @@ public class MetricsInterceptor implements CacheInterceptor {
 
             /* ---------- Timer (微秒级) ---------- */
             Timer.builder("yetcache.access.latency")
+                    .publishPercentileHistogram(true)
                     .tag("cache", cmd.componentName())
                     .tag("method", method)
                     .tag("outcome", outcome)

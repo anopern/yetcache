@@ -28,7 +28,7 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
 
     @Override
     public String id() {
-        return "DynamicHashCacheBatchGetInterceptor";
+        return "hash-cache-batch-get-agent-interceptor";
     }
 
     @Override
@@ -38,12 +38,12 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
 
     @Override
     public int getOrder() {
-        return 1;
+        return Integer.MAX_VALUE;
     }
 
     @Override
     public boolean supportStructureBehaviorKey(StructureBehaviorKey sbKey) {
-        return StructureType.DYNAMIC_HASH.equals(sbKey.getStructureType())
+        return StructureType.HASH.equals(sbKey.getStructureType())
                 && BehaviorType.BATCH_GET.equals(sbKey.getBehaviorType());
     }
 
@@ -81,7 +81,7 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
 
             // Step 2: 回源
             if (!missedFields.isEmpty()) {
-                HashCacheBatchLoadCommand loadCmd = new HashCacheBatchLoadCommand(bizKey, missedFields);
+                HashCacheBatchLoadCommand<?, ?> loadCmd = new HashCacheBatchLoadCommand<>(bizKey, missedFields);
                 BaseCacheResult<Map<Object, Object>> loadResult = (BaseCacheResult<Map<Object, Object>>)
                         agentScope.getCacheLoader().batchLoad(loadCmd);
                 if (!loadResult.isSuccess()) {

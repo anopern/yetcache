@@ -61,6 +61,6 @@ yetcache:
           cache-name: 'stock-hold-info-cache'
           key-prefix: 'nd:asset:stock:hold'
         local:
-          logic-ttl-secs: 300
+          logic-ttl-secs: 10
         remote:
-          logic-ttl-secs: 900
+          logic-ttl-secs: 20

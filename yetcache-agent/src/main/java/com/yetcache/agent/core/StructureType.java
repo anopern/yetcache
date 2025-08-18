@@ -5,7 +5,7 @@ package com.yetcache.agent.core;
  * @since 2025/7/16
  */
 public enum StructureType {
-    DYNAMIC_HASH,
+    HASH,
     KV,
     CONFIG;
 

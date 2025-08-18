@@ -3,8 +3,10 @@ package com.yetcache.agent.config;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.hash.batchget.HashCacheBatchGetInterceptor;
 import com.yetcache.agent.core.structure.hash.get.HashCacheGetInterceptor;
+import com.yetcache.agent.governance.plugin.MetricsInterceptor;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.config.YetCacheProperties;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -33,7 +35,7 @@ public class YetcacheInterceptorConfiguration {
     }
 
     @Bean
-    public HashCacheGetInterceptor dynamicHashCacheGetInterceptor(
+    public HashCacheGetInterceptor hashCacheGetInterceptor(
             CacheInvocationInterceptorRegistry interceptorRegistry) {
         HashCacheGetInterceptor interceptor = new HashCacheGetInterceptor();
         interceptorRegistry.register(interceptor);
@@ -41,9 +43,18 @@ public class YetcacheInterceptorConfiguration {
     }
 
     @Bean
-    public HashCacheBatchGetInterceptor dynamicHashCacheBatchGetInterceptor(
+    public HashCacheBatchGetInterceptor hashCacheBatchGetInterceptor(
             CacheInvocationInterceptorRegistry interceptorRegistry) {
         HashCacheBatchGetInterceptor interceptor = new HashCacheBatchGetInterceptor();
+        interceptorRegistry.register(interceptor);
+        return interceptor;
+    }
+
+    @Bean
+    public MetricsInterceptor metricsInterceptor(
+            CacheInvocationInterceptorRegistry interceptorRegistry,
+            MeterRegistry registry) {
+        MetricsInterceptor interceptor = new MetricsInterceptor(registry);
         interceptorRegistry.register(interceptor);
         return interceptor;
     }
@@ -52,8 +63,8 @@ public class YetcacheInterceptorConfiguration {
     public ApplicationRunner registerDefaultChains(CacheInvocationChainRegistry registry,
                                                    CacheInvocationChainBuilder chainBuilder) {
         return args -> {
-            StructureBehaviorKey dhGetSb = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.GET);
-            StructureBehaviorKey dhBatchGetSb = StructureBehaviorKey.of(StructureType.DYNAMIC_HASH, BehaviorType.BATCH_GET);
+            StructureBehaviorKey dhGetSb = StructureBehaviorKey.of(StructureType.HASH, BehaviorType.GET);
+            StructureBehaviorKey dhBatchGetSb = StructureBehaviorKey.of(StructureType.HASH, BehaviorType.BATCH_GET);
             CacheInvocationChain dhGetChain = chainBuilder.build(dhGetSb);
             CacheInvocationChain dhBatchGetChain = chainBuilder.build(dhBatchGetSb);
             registry.register(dhGetSb, dhGetChain);
