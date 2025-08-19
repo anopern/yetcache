@@ -1,7 +1,7 @@
 package com.yetcache.core.cache;
 
 import com.yetcache.core.config.YetCacheProperties;
-import com.yetcache.core.config.dynamichash.HashCacheConfig;
+import com.yetcache.core.config.hash.HashCacheConfig;
 import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.core.config.kv.MultiLevelKVCacheConfig;
 import com.yetcache.core.merger.CacheConfigMerger;

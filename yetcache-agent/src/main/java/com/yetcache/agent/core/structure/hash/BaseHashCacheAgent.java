@@ -23,7 +23,7 @@ import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.codec.TypeRefRegistry;
 import com.yetcache.core.config.CacheLevel;
-import com.yetcache.core.config.dynamichash.HashCacheConfig;
+import com.yetcache.core.config.hash.HashCacheConfig;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.support.field.FieldConverter;

@@ -1,4 +1,4 @@
-package com.yetcache.core.config.dynamichash;
+package com.yetcache.core.config.hash;
 
 import com.yetcache.core.config.CacheLevel;
 import lombok.Data;

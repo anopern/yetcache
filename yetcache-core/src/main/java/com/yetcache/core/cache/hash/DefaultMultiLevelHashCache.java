@@ -6,7 +6,7 @@ import com.yetcache.core.codec.*;
 import com.yetcache.core.cache.WriteLevel;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.*;
-import com.yetcache.core.config.dynamichash.HashCacheConfig;
+import com.yetcache.core.config.hash.HashCacheConfig;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import lombok.extern.slf4j.Slf4j;

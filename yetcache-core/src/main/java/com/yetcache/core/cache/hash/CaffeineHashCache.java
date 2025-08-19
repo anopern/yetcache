@@ -4,7 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.codec.TypeRef;
-import com.yetcache.core.config.dynamichash.CaffeineHashCacheConfig;
+import com.yetcache.core.config.hash.CaffeineHashCacheConfig;
 import com.yetcache.core.support.util.TtlRandomizer;
 
 import java.util.Collections;

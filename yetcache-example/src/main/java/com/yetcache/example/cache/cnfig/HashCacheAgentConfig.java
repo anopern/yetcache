@@ -15,7 +15,7 @@ import com.yetcache.core.codec.jackson.JacksonJsonValueCodec;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.TypeRef;
 import com.yetcache.core.cache.YetCacheConfigResolver;
-import com.yetcache.core.config.dynamichash.HashCacheConfig;
+import com.yetcache.core.config.hash.HashCacheConfig;
 import com.yetcache.core.support.field.TypeFieldConverter;
 import com.yetcache.core.support.key.LongKeyConverter;
 import com.yetcache.example.entity.StockHoldInfo;

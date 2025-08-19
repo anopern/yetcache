@@ -5,7 +5,7 @@ import com.yetcache.agent.core.AgentScope;
 import com.yetcache.agent.core.port.HashCacheFillPort;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.cache.hash.MultiLevelHashCache;
-import com.yetcache.core.config.dynamichash.HashCacheConfig;
+import com.yetcache.core.config.hash.HashCacheConfig;
 import com.yetcache.core.support.field.FieldConverter;
 import com.yetcache.core.support.key.KeyConverter;
 import lombok.Getter;
