@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.yetcache.agent.core.structure.hash.BaseHashCacheAgent;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.BaseCacheResult;
-import com.yetcache.core.result.HitTier;
+import com.yetcache.core.result.HitLevel;
 import com.yetcache.example.entity.StockHoldInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,7 +27,7 @@ public final class StockHoldInfoCacheService {
 
     public Optional<StockHoldInfo> get(String fundAccount, Long id) {
         BaseCacheResult<CacheValueHolder<StockHoldInfo>> result = stockHoldInfoCacheAgent.get(fundAccount, id);
-        if (result.isSuccess() && HitTier.NONE != result.hitTierInfo().hitTier()) {
+        if (result.isSuccess() && HitLevel.NONE != result.hitLevelInfo().hitLevel()) {
             CacheValueHolder<StockHoldInfo> valueHolder = result.value();
             return Optional.of(valueHolder.getValue());
         }

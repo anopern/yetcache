@@ -1,6 +1,6 @@
 package com.yetcache.core.config.dynamichash;
 
-import com.yetcache.core.config.CacheTier;
+import com.yetcache.core.config.CacheLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,18 +14,18 @@ public class HashCacheSpec {
     protected String cacheName;
     protected String keyPrefix;
 
-    protected CacheTier cacheTier;
+    protected CacheLevel cacheLevel;
     protected Boolean useHashTag;
     protected Boolean allowNullValue;
     protected Long fullyLoadedExpireSecs;
     protected Long refreshIntervalSecs;
 
-    public HashCacheSpec(CacheTier cacheTier,
+    public HashCacheSpec(CacheLevel cacheLevel,
                          Boolean useHashTag,
                          Boolean allowNullValue,
                          Long fullyLoadedExpireSecs,
                          Long refreshIntervalSecs) {
-        this.cacheTier = cacheTier;
+        this.cacheLevel = cacheLevel;
         this.useHashTag = useHashTag;
         this.allowNullValue = allowNullValue;
         this.fullyLoadedExpireSecs = fullyLoadedExpireSecs;
@@ -36,7 +36,7 @@ public class HashCacheSpec {
         if (other == null) return;
         this.cacheName = other.cacheName;
         this.keyPrefix = other.keyPrefix;
-        this.cacheTier = other.cacheTier;
+        this.cacheLevel = other.cacheLevel;
         this.useHashTag = other.useHashTag;
         this.allowNullValue = other.allowNullValue;
         this.fullyLoadedExpireSecs = other.fullyLoadedExpireSecs;
@@ -44,6 +44,6 @@ public class HashCacheSpec {
     }
 
     public static HashCacheSpec defaultSpec() {
-        return new HashCacheSpec(CacheTier.BOTH, true, false, 2 * 60L, 30 * 60L);
+        return new HashCacheSpec(CacheLevel.BOTH, true, false, 2 * 60L, 30 * 60L);
     }
 }

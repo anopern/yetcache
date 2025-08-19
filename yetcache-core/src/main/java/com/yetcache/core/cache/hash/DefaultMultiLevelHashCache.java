@@ -3,7 +3,7 @@ package com.yetcache.core.cache.hash;
 import cn.hutool.core.collection.CollUtil;
 import com.yetcache.core.cache.command.*;
 import com.yetcache.core.codec.*;
-import com.yetcache.core.cache.WriteTier;
+import com.yetcache.core.cache.WriteLevel;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.*;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
@@ -37,10 +37,10 @@ public class DefaultMultiLevelHashCache implements MultiLevelHashCache {
         this.keyConverter = Objects.requireNonNull(keyConverter, "keyConverter");
         this.fieldConverter = Objects.requireNonNull(fieldConverter, "fieldConverter");
 
-        if (config.getSpec().getCacheTier().useLocal()) {
+        if (config.getSpec().getCacheLevel().useLocal()) {
             this.localCache = new CaffeineHashCache(config.getLocal());
         }
-        if (config.getSpec().getCacheTier().useRemote()) {
+        if (config.getSpec().getCacheLevel().useRemote()) {
             this.remoteCache = new RedisHashCache(redissonClient, jsonValueCodec);
         }
     }
@@ -54,7 +54,7 @@ public class DefaultMultiLevelHashCache implements MultiLevelHashCache {
         if (localCache != null) {
             CacheValueHolder<T> valueHolder = localCache.getIfPresent(key, field, cmd.getValueTypeRef());
             if (valueHolder != null && valueHolder.isNotLogicExpired()) {
-                return BaseCacheResult.singleHit(componentName, valueHolder, HitTier.LOCAL);
+                return BaseCacheResult.singleHit(componentName, valueHolder, HitLevel.LOCAL);
             }
         }
 
@@ -66,7 +66,7 @@ public class DefaultMultiLevelHashCache implements MultiLevelHashCache {
                 if (localCache != null) {
                     localCache.put(key, field, holder);
                 }
-                return BaseCacheResult.singleHit(componentName, holder, HitTier.REMOTE);
+                return BaseCacheResult.singleHit(componentName, holder, HitLevel.REMOTE);
             }
         }
 
@@ -83,7 +83,7 @@ public class DefaultMultiLevelHashCache implements MultiLevelHashCache {
             // 批量转换为原始字段
             List<String> rawFields = bizFields.stream().map(fieldConverter::convert).collect(Collectors.toList());
             final Map<Object, CacheValueHolder<T>> valueHolderMap = new HashMap<>();
-            final Map<Object, HitTier> hitTierMap = new HashMap<>();
+            final Map<Object, HitLevel> hitLevelMap = new HashMap<>();
             // 本地缓存尝试
             final Map<String, CacheValueHolder<T>> localResult = localCache != null
                     ? localCache.batchGet(key, rawFields, cmd.valueTypeRef()) : Collections.emptyMap();
@@ -93,7 +93,7 @@ public class DefaultMultiLevelHashCache implements MultiLevelHashCache {
                 CacheValueHolder<T> valueHolder = entry.getValue();
                 if (null != valueHolder && valueHolder.isNotLogicExpired()) {
                     valueHolderMap.put(bizField, valueHolder);
-                    hitTierMap.put(bizField, HitTier.LOCAL);
+                    hitLevelMap.put(bizField, HitLevel.LOCAL);
                     missingLocalFields.remove(entry.getKey());
                 }
             }
@@ -112,7 +112,7 @@ public class DefaultMultiLevelHashCache implements MultiLevelHashCache {
                 }
             }
 
-            return BaseCacheResult.batchHit(componentName, valueHolderMap, DefaultHitTierInfo.of(hitTierMap));
+            return BaseCacheResult.batchHit(componentName, valueHolderMap, DefaultHitLevelInfo.of(hitLevelMap));
         } catch (Exception e) {
             log.warn("缓存回源加载失败，cacheName={}, bizKey={}, bizFields={}", componentName, bizKey, bizFields, e);
             return BaseCacheResult.fail(componentName, e);
@@ -155,14 +155,14 @@ public class DefaultMultiLevelHashCache implements MultiLevelHashCache {
         String key = keyConverter.convert(bizKey);
 
         // 写入远程缓存
-        if (isWriteRemote(cmd.getWriteTier()) && remoteCache != null) {
+        if (isWriteRemote(cmd.getWriteLevel()) && remoteCache != null) {
             Map<String, CacheValueHolder<T>> remoteHolderMap = typeMap2rawHolderMap(valueMap,
                     cmd.getTtl().getRemoteLogicSecs());
             remoteCache.putAll(key, remoteHolderMap, cmd.getTtl().getRemotePhysicalSecs());
         }
 
         // 写入本地缓存
-        if (isWriteLocal(cmd.getWriteTier()) && localCache != null) {
+        if (isWriteLocal(cmd.getWriteLevel()) && localCache != null) {
             Map<String, CacheValueHolder<T>> localHolderMap = typeMap2rawHolderMap(valueMap,
                     cmd.getTtl().getLocalLogicSecs());
             localCache.putAll(key, localHolderMap);
@@ -185,12 +185,12 @@ public class DefaultMultiLevelHashCache implements MultiLevelHashCache {
         return BaseCacheResult.success(componentName);
     }
 
-    private boolean isWriteLocal(WriteTier writeTier) {
-        return writeTier == WriteTier.ALL || writeTier == WriteTier.LOCAL;
+    private boolean isWriteLocal(WriteLevel writeLevel) {
+        return writeLevel == WriteLevel.ALL || writeLevel == WriteLevel.LOCAL;
     }
 
-    private boolean isWriteRemote(WriteTier writeTier) {
-        return writeTier == WriteTier.ALL || writeTier == WriteTier.REMOTE;
+    private boolean isWriteRemote(WriteLevel writeLevel) {
+        return writeLevel == WriteLevel.ALL || writeLevel == WriteLevel.REMOTE;
     }
 
 

@@ -6,7 +6,7 @@ import com.yetcache.agent.core.structure.hash.HashAgentScope;
 import com.yetcache.agent.core.structure.hash.HashCacheBatchLoadCommand;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.CacheTtl;
-import com.yetcache.core.cache.WriteTier;
+import com.yetcache.core.cache.WriteLevel;
 import com.yetcache.core.cache.command.HashCacheBatchGetCommand;
 import com.yetcache.core.cache.command.HashCachePutAllCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
@@ -57,7 +57,7 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
         List<Object> bizFields = cmd.getBizFields();
         HashAgentScope agentScope = (HashAgentScope) ctx.getAgentScope();
         Map<Object, CacheValueHolder<?>> resultValueHolderMap = new HashMap<>();
-        Map<Object, HitTier> resultHitTierMap = new HashMap<>();
+        Map<Object, HitLevel> resultHitTierMap = new HashMap<>();
 
         try {
             // Step 1: 读缓存
@@ -67,7 +67,7 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
 
             List<Object> missedFields = new ArrayList<>();
             Map<Object, CacheValueHolder<?>> cacheValueHolderMap = (Map<Object, CacheValueHolder<?>>) storeResult.value();
-            Map<Object, HitTier> cacheHitTierMap = storeResult.hitTierInfo().hitTierMap();
+            Map<Object, HitLevel> cacheHitTierMap = storeResult.hitLevelInfo().hitLevelMap();
 
             for (Object field : bizFields) {
                 CacheValueHolder<?> holder = cacheValueHolderMap.get(field);
@@ -94,7 +94,7 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
                         if (loaded != null) {
                             CacheValueHolder<?> holder = CacheValueHolder.wrap(loaded, 0);
                             resultValueHolderMap.put(field, holder);
-                            resultHitTierMap.put(field, HitTier.SOURCE);
+                            resultHitTierMap.put(field, HitLevel.SOURCE);
                         }
                     }
                     // Step 3: 回写缓存
@@ -107,14 +107,14 @@ public class HashCacheBatchGetInterceptor implements CacheInterceptor {
                                     .remoteLogicSecs(agentScope.getConfig().getRemote().getLogicTtlSecs())
                                     .remotePhysicalSecs(agentScope.getConfig().getRemote().getPhysicalTtlSecs())
                                     .build())
-                            .writeTier(WriteTier.ALL)
+                            .writeLevel(WriteLevel.ALL)
                             .build();
                     agentScope.getMultiLevelCache().putAll(putAllCmd);
                 }
             }
 
-            HitTierInfo hitTierInfo = new DefaultHitTierInfo(resultHitTierMap);
-            return BaseCacheResult.batchHit(agentScope.getComponentName(), resultValueHolderMap, hitTierInfo);
+            HitLevelInfo hitLevelInfo = new DefaultHitLevelInfo(resultHitTierMap);
+            return BaseCacheResult.batchHit(agentScope.getComponentName(), resultValueHolderMap, hitLevelInfo);
         } catch (Exception e) {
             log.warn("batchGet failed. key={}, fields={}, error={}", bizKey, bizFields, e.getMessage(), e);
             return BaseCacheResult.fail(agentScope.getComponentName(), e);

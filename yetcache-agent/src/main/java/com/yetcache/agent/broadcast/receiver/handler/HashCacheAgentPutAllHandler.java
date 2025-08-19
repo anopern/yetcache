@@ -13,7 +13,7 @@ import com.yetcache.agent.regitry.CacheAgentRegistryHub;
 import com.yetcache.core.codec.JsonTypeConverter;
 import com.yetcache.core.codec.TypeRef;
 import com.yetcache.core.codec.TypeRefRegistry;
-import com.yetcache.core.config.CacheTier;
+import com.yetcache.core.config.CacheLevel;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -61,7 +61,7 @@ public class HashCacheAgentPutAllHandler implements CacheBroadcastHandler {
         CacheAgent agent = agentOpt.get();
         if (agent instanceof HashCacheAgent) {
             BaseHashCacheAgent hashAgent = (BaseHashCacheAgent) agent;
-            if (hashAgent.cacheTier() == CacheTier.LOCAL || hashAgent.cacheTier() == CacheTier.BOTH) {
+            if (hashAgent.cacheLevel() == CacheLevel.LOCAL || hashAgent.cacheLevel() == CacheLevel.BOTH) {
                 Map<String, Object> typedFieldValueMap = resolveTypedFieldValueMap(cmd);
                 hashAgent.putAllToLocal(key, typedFieldValueMap);
             }

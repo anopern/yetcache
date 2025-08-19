@@ -6,8 +6,8 @@ import java.util.Map;
  * @author walter.yan
  * @since 2025/8/6
  */
-public interface HitTierInfo {
-    HitTier hitTier();
+public interface HitLevelInfo {
+    HitLevel hitLevel();
 
-    Map<Object, HitTier> hitTierMap();
+    Map<Object, HitLevel> hitLevelMap();
 }

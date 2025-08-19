@@ -59,7 +59,7 @@ public class MetricsInterceptor implements CacheInterceptor {
                     .tag("cache", cmd.componentName())
                     .tag("method", method)
                     .tag("outcome", outcome)
-                    .tag("hit-tier", Optional.ofNullable(result.hitTierInfo().hitTier())
+                    .tag("hit-tier", Optional.ofNullable(result.hitLevelInfo().hitLevel())
                             .map(Enum::name).orElse(""))
                     .register(registry)
                     .increment();
@@ -70,7 +70,7 @@ public class MetricsInterceptor implements CacheInterceptor {
                     .tag("cache", cmd.componentName())
                     .tag("method", method)
                     .tag("outcome", outcome)
-                    .tag("hit-tier", Optional.ofNullable(result.hitTierInfo().hitTier())
+                    .tag("hit-tier", Optional.ofNullable(result.hitLevelInfo().hitLevel())
                             .map(Enum::name).orElse(""))
                     .register(registry)
                     .record(costNs, TimeUnit.NANOSECONDS);

@@ -1,6 +1,6 @@
 package com.yetcache.core.config.kv;
 
-import com.yetcache.core.config.CacheTier;
+import com.yetcache.core.config.CacheLevel;
 import com.yetcache.core.config.TenantMode;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,20 +11,20 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class MultiTierKVCacheSpec {
+public class MultiLevelKVCacheSpec {
     protected String cacheName;
     protected String keyPrefix;
-    protected CacheTier cacheTier;
+    protected CacheLevel cacheLevel;
     protected TenantMode tenantMode;
     protected Boolean useHashTag;
 
-    public MultiTierKVCacheSpec(CacheTier cacheTier, TenantMode tenantMode, Boolean useHashTag) {
-        this.cacheTier = cacheTier;
+    public MultiLevelKVCacheSpec(CacheLevel cacheLevel, TenantMode tenantMode, Boolean useHashTag) {
+        this.cacheLevel = cacheLevel;
         this.tenantMode = tenantMode;
         this.useHashTag = useHashTag;
     }
 
-    public static MultiTierKVCacheSpec defaultSpec() {
-        return new MultiTierKVCacheSpec(CacheTier.BOTH, TenantMode.NONE, true);
+    public static MultiLevelKVCacheSpec defaultSpec() {
+        return new MultiLevelKVCacheSpec(CacheLevel.BOTH, TenantMode.NONE, true);
     }
 }

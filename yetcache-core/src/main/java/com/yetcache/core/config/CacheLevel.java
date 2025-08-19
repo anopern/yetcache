@@ -4,7 +4,7 @@ package com.yetcache.core.config;
  * @author walter.yan
  * @since 2025/6/25
  */
-public enum CacheTier {
+public enum CacheLevel {
     LOCAL, REMOTE, BOTH;
 
     public boolean useLocal() {

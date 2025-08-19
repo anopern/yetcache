@@ -14,28 +14,28 @@ public class BaseCacheResult<T> implements CacheResult {
     private Integer code;
     private String message;
     private T value;
-    private HitTierInfo hitTierInfo;
+    private HitLevelInfo hitLevelInfo;
     private ErrorInfo errorInfo;
     private Metadata metadata;
 
-    public BaseCacheResult(String componentName, Integer code, String message, T value, HitTierInfo hitTierInfo, ErrorInfo errorInfo, Metadata metadata) {
+    public BaseCacheResult(String componentName, Integer code, String message, T value, HitLevelInfo hitLevelInfo, ErrorInfo errorInfo, Metadata metadata) {
         this.componentName = componentName;
         this.code = code;
         this.message = message;
         this.value = value;
-        this.hitTierInfo = hitTierInfo;
+        this.hitLevelInfo = hitLevelInfo;
         this.errorInfo = errorInfo;
         this.metadata = metadata;
     }
 
 
-    public BaseCacheResult(String componentName, ResultCode resultCode, T value, HitTierInfo hitTierInfo,
+    public BaseCacheResult(String componentName, ResultCode resultCode, T value, HitLevelInfo hitLevelInfo,
                            ErrorInfo errorInfo, Metadata metadata) {
         this.componentName = componentName;
         this.code = resultCode.code();
         this.message = resultCode.message();
         this.value = value;
-        this.hitTierInfo = hitTierInfo;
+        this.hitLevelInfo = hitLevelInfo;
         this.errorInfo = errorInfo;
         this.metadata = metadata;
     }
@@ -66,8 +66,8 @@ public class BaseCacheResult<T> implements CacheResult {
     }
 
     @Override
-    public HitTierInfo hitTierInfo() {
-        return this.hitTierInfo;
+    public HitLevelInfo hitLevelInfo() {
+        return this.hitLevelInfo;
     }
 
     @Override
@@ -75,17 +75,17 @@ public class BaseCacheResult<T> implements CacheResult {
         return BaseResultCode.SUCCESS.code().equals(this.code);
     }
 
-    public static <T> BaseCacheResult<T> singleHit(String componentName, T value, HitTier hitTier) {
-        DefaultHitTierInfo hitTierInfo = new DefaultHitTierInfo(hitTier);
-        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitTierInfo, null, null);
+    public static <T> BaseCacheResult<T> singleHit(String componentName, T value, HitLevel hitLevel) {
+        DefaultHitLevelInfo hitLevelInfo1 = new DefaultHitLevelInfo(hitLevel);
+        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitLevelInfo1, null, null);
     }
 
-    public static <T> BaseCacheResult<T> singleHit(String componentName, T value, HitTierInfo hitTierInfo) {
-        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitTierInfo, null, null);
+    public static <T> BaseCacheResult<T> singleHit(String componentName, T value, HitLevelInfo hitLevelInfo) {
+        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitLevelInfo, null, null);
     }
 
-    public static <T> BaseCacheResult<T> batchHit(String componentName, T value, HitTierInfo hitTierInfo) {
-        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitTierInfo, null, null);
+    public static <T> BaseCacheResult<T> batchHit(String componentName, T value, HitLevelInfo hitLevelInfo) {
+        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitLevelInfo, null, null);
     }
 
     public static <T> BaseCacheResult<T> fail(String componentName, ErrorInfo errorInfo) {
@@ -106,8 +106,8 @@ public class BaseCacheResult<T> implements CacheResult {
     }
 
     public static <T> BaseCacheResult<T> miss(String componentName) {
-        DefaultHitTierInfo hitTierInfo = new DefaultHitTierInfo(HitTier.NONE);
-        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, null, hitTierInfo, null, null);
+        DefaultHitLevelInfo hitLevelInfo = new DefaultHitLevelInfo(HitLevel.NONE);
+        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, null, hitLevelInfo, null, null);
     }
 
 }

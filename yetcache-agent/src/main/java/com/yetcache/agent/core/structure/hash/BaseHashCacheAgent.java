@@ -22,7 +22,7 @@ import com.yetcache.core.cache.hash.MultiLevelHashCache;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.codec.TypeRefRegistry;
-import com.yetcache.core.config.CacheTier;
+import com.yetcache.core.config.CacheLevel;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
@@ -134,7 +134,7 @@ public class BaseHashCacheAgent implements HashCacheAgent {
                             .remoteLogicSecs(scope.getConfig().getRemote().getLogicTtlSecs())
                             .remotePhysicalSecs(scope.getConfig().getRemote().getPhysicalTtlSecs())
                             .build())
-                    .writeTier(WriteTier.ALL)
+                    .writeLevel(WriteLevel.ALL)
                     .build();
             scope.getMultiLevelCache().putAll(putCmd);
         } else {
@@ -192,7 +192,7 @@ public class BaseHashCacheAgent implements HashCacheAgent {
         try {
             CacheInvocationChain chain = chainRegistry.getChain(structureBehaviorKey);
             CacheResult rawResult = chain.proceed(ctx);
-            return BaseCacheResult.singleHit(scope.getComponentName(), rawResult.value(), rawResult.hitTierInfo().hitTier());
+            return BaseCacheResult.singleHit(scope.getComponentName(), rawResult.value(), rawResult.hitLevelInfo().hitLevel());
         } catch (Throwable e) {
             return BaseCacheResult.fail(scope.getComponentName(), e);
         }
@@ -203,7 +203,7 @@ public class BaseHashCacheAgent implements HashCacheAgent {
         try {
             CacheInvocationChain chain = chainRegistry.getChain(structureBehaviorKey);
             CacheResult rawResult = chain.proceed(ctx);
-            return BaseCacheResult.batchHit(scope.getComponentName(), rawResult.value(), rawResult.hitTierInfo());
+            return BaseCacheResult.batchHit(scope.getComponentName(), rawResult.value(), rawResult.hitLevelInfo());
         } catch (Throwable e) {
             return BaseCacheResult.fail(scope.getComponentName(), e);
         }
@@ -220,7 +220,7 @@ public class BaseHashCacheAgent implements HashCacheAgent {
                         .remoteLogicSecs(scope.getConfig().getRemote().getLogicTtlSecs())
                         .remotePhysicalSecs(scope.getConfig().getRemote().getPhysicalTtlSecs())
                         .build())
-                .writeTier(WriteTier.ALL)
+                .writeLevel(WriteLevel.ALL)
                 .build();
         return (BaseCacheResult<Void>) scope.getMultiLevelCache().putAll(putCmd);
     }
@@ -402,7 +402,7 @@ public class BaseHashCacheAgent implements HashCacheAgent {
                         .remoteLogicSecs(scope.getConfig().getRemote().getLogicTtlSecs())
                         .remotePhysicalSecs(scope.getConfig().getRemote().getPhysicalTtlSecs())
                         .build())
-                .writeTier(WriteTier.ALL)
+                .writeLevel(WriteLevel.ALL)
                 .build();
 
         CacheResult writeResult = this.scope.getMultiLevelCache().putAll(putAllCmd);
@@ -464,8 +464,8 @@ public class BaseHashCacheAgent implements HashCacheAgent {
 //        return ResultFactory.fail(componentName, t);
 //    }
 
-    public CacheTier cacheTier() {
-        return scope.getConfig().getSpec().getCacheTier();
+    public CacheLevel cacheLevel() {
+        return scope.getConfig().getSpec().getCacheLevel();
     }
 
     @Override

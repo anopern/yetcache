@@ -24,7 +24,7 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
 
     @Override
     public String id() {
-        return "DynamicHashCacheGetInterceptor";
+        return "hash-cache-get-interceptor";
     }
 
     @Override
@@ -43,7 +43,6 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
                 && BehaviorType.GET.equals(sbKey.getBehaviorType());
     }
 
-
     @Override
     public CacheResult invoke(CacheInvocationContext ctx, ChainRunner runner) throws Throwable {
         HashCacheAgentGetInvocationCommand cmd = (HashCacheAgentGetInvocationCommand) ctx.getCommand();
@@ -55,10 +54,10 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
             TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
             BaseCacheResult<?> fromStore = getFromStore(bizKey, bizField, agentScope, valueTypeRef);
             if (fromStore.isSuccess()) {
-                if (fromStore.hitTierInfo().hitTier() == HitTier.NONE) {
+                if (fromStore.hitLevelInfo().hitLevel() == HitLevel.NONE) {
                     return loadFromSource(bizKey, bizField, agentScope, valueTypeRef);
                 } else {
-                    return BaseCacheResult.singleHit(componentName, fromStore.value(), fromStore.hitTierInfo());
+                    return BaseCacheResult.singleHit(componentName, fromStore.value(), fromStore.hitLevelInfo());
                 }
             }
         } catch (Exception e) {
@@ -73,10 +72,10 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
         HashCacheGetCommand storeGetCmd = new HashCacheGetCommand(bizKey, bizField, valueTypeRef);
         CacheResult storeResult = agentScope.getMultiLevelCache().get(storeGetCmd);
         if (storeResult.code() == BaseResultCode.SUCCESS.code()
-                && HitTier.NONE != storeResult.hitTierInfo().hitTier()) {
+                && HitLevel.NONE != storeResult.hitLevelInfo().hitLevel()) {
             CacheValueHolder<?> holder = (CacheValueHolder<?>) storeResult.value();
             if (holder.isNotLogicExpired()) {
-                return BaseCacheResult.singleHit(agentScope.getComponentName(), holder, storeResult.hitTierInfo());
+                return BaseCacheResult.singleHit(agentScope.getComponentName(), holder, storeResult.hitLevelInfo());
             }
         }
         return BaseCacheResult.miss(agentScope.getComponentName());
@@ -88,7 +87,7 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
         try {
             lock.lock();
             BaseCacheResult<?> storeResult = getFromStore(bizKey, bizField, agentScope, valueTypeRef);
-            if (storeResult.isSuccess() && storeResult.hitTierInfo().hitTier() != HitTier.NONE) {
+            if (storeResult.isSuccess() && storeResult.hitLevelInfo().hitLevel() != HitLevel.NONE) {
                 return storeResult;
             }
             HashCacheLoadCommand<?, ?> loadCmd = new HashCacheLoadCommand<>(bizKey, bizField);
@@ -103,7 +102,7 @@ public class HashCacheGetInterceptor implements CacheInterceptor {
             agentScope.getHashCacheFillPort().fillAndBroadcast(bizKey, bizFieldValueNap);
 
             return BaseCacheResult.singleHit(componentName, CacheValueHolder.wrap(loadResult.value(), 0),
-                    HitTier.SOURCE);
+                    HitLevel.SOURCE);
         } catch (Exception e) {
             log.warn("cache load failed, agent = {}, key = {}, field = {}", componentName, bizKey, bizField, e);
             return BaseCacheResult.fail(componentName, e);

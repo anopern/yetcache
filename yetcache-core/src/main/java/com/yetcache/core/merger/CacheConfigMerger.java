@@ -3,7 +3,7 @@ package com.yetcache.core.merger;
 import com.yetcache.core.config.GlobalConfig;
 import com.yetcache.core.config.dynamichash.HashCacheConfig;
 import com.yetcache.core.config.flathash.FlatHashCacheConfig;
-import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
+import com.yetcache.core.config.kv.MultiLevelKVCacheConfig;
 
 /**
  * 工具类：用于合并全局配置与指定缓存配置
@@ -11,11 +11,11 @@ import com.yetcache.core.config.kv.MultiTierKVCacheConfig;
  * @author chat
  */
 public class CacheConfigMerger {
-    public static MultiTierKVCacheConfig merge(GlobalConfig global, MultiTierKVCacheConfig raw) {
+    public static MultiLevelKVCacheConfig merge(GlobalConfig global, MultiLevelKVCacheConfig raw) {
         if (global == null || global.getKv() == null) {
             return raw;
         }
-        MultiTierKVCacheConfig globalKV = global.getKv();
+        MultiLevelKVCacheConfig globalKV = global.getKv();
         return FieldMerger.mergeNonNullFields(globalKV, raw, 10);
     }
 

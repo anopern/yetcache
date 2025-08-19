@@ -13,7 +13,7 @@ public interface CacheResult {
 
     Object value();
 
-    HitTierInfo hitTierInfo();
+    HitLevelInfo hitLevelInfo();
 
     ErrorInfo errorInfo();
 
