@@ -54,7 +54,7 @@ public class HashCacheAgentPutAllHandler implements CacheBroadcastHandler {
             return;
         }
         Optional<CacheAgent> agentOpt = cacheAgentRegistryHub.find(cmd.getDescriptor().getComponentName());
-        if (agentOpt.isEmpty()) {
+        if (!agentOpt.isPresent()) {
             log.error("缓存代理类 {} 不存在", cmd.getDescriptor().getComponentName());
             return;
         }

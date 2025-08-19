@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -24,10 +23,14 @@ public class MessageDelayPolicy {
     }
 
     public Decision decide(Long publishedAt) {
-        if (publishedAt == null) return Decision.APPLY_WITH_WARN; // 或可配置
+        if (publishedAt == null) {
+            return Decision.APPLY_WITH_WARN;
+        }
         Duration age = Duration.between(Instant.ofEpochMilli(publishedAt),
                 Instant.ofEpochMilli(System.currentTimeMillis()));
-        if (!age.isNegative() && age.compareTo(maxAge) <= 0) return Decision.APPLY;
+        if (!age.isNegative() && age.compareTo(maxAge) <= 0) {
+            return Decision.APPLY;
+        }
 
         if (action == ExceededAction.DROP) {
             return Decision.DROP;

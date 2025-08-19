@@ -34,9 +34,9 @@ public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
     @Override
     public void onMessage(String messageJson) {
         try {
-            log.debug("receive message: {}", messageJson);
+            log.debug("[Yetcache]receive message: {}", messageJson);
             if (StrUtil.isBlank(messageJson)) {
-                log.error("receive message is empty");
+                log.error("[Yetcache]receive message is empty");
                 return;
             }
 
@@ -48,7 +48,7 @@ public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
 
             CommandDescriptor descriptor = cmd.getDescriptor();
             if (InstanceIdProvider.getInstanceId().equalsIgnoreCase(descriptor.getInstanceId())) {
-                log.debug("ignore local published message: {}", messageJson);
+                log.debug("[Yetcache]ignore local published message: {}", messageJson);
                 return;
             }
 
@@ -61,10 +61,9 @@ public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
             MessageDelayPolicy delayPolicy = delayPolicyRegistry.get(descriptor.getComponentName());
             Decision decision = delayPolicy.decide(descriptor.getPublishAt());
             if (decision == Decision.DROP) {
-                log.debug("ignore late published message: {}", messageJson);
-                return;
+                log.debug("[Yetcache]ignore late published message: {}", messageJson);
             } else if (decision == Decision.REMOVE) {
-                log.debug("remove stale entry: {}", messageJson);
+                log.debug("[Yetcache]remove stale entry: {}", messageJson);
             } else if (decision == Decision.REFRESH) {
                 log.debug("[YetCache] refresh message: {}", messageJson);
             } else if (decision == Decision.APPLY) {
