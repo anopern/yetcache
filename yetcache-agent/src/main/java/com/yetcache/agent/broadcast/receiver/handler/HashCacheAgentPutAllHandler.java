@@ -1,7 +1,7 @@
 package com.yetcache.agent.broadcast.receiver.handler;
 
 import cn.hutool.core.collection.CollUtil;
-import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
+import com.yetcache.agent.broadcast.command.CacheCommand;
 import com.yetcache.agent.broadcast.command.playload.HashPlayload;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.CacheAgent;
@@ -41,7 +41,7 @@ public class HashCacheAgentPutAllHandler implements CacheBroadcastHandler {
     }
 
     @Override
-    public void handle(CacheUpdateCommand cmd) {
+    public void handle(CacheCommand cmd) {
         if (null == cmd.getPayload()) {
             log.error("缓存代理类 {} 缓存更新命令 {} 缺少 payload", cmd.getDescriptor().getComponentName(), cmd);
             return;
@@ -70,7 +70,7 @@ public class HashCacheAgentPutAllHandler implements CacheBroadcastHandler {
         }
     }
 
-    private <T> Map<String, T> resolveTypedFieldValueMap(CacheUpdateCommand cmd) {
+    private <T> Map<String, T> resolveTypedFieldValueMap(CacheCommand cmd) {
         String componentName = cmd.getDescriptor().getComponentName();
         HashPlayload playload = (HashPlayload) cmd.getPayload();
         try {

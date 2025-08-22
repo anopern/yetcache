@@ -1,7 +1,7 @@
 package com.yetcache.agent.broadcast.receiver.handler;
 
 
-import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
+import com.yetcache.agent.broadcast.command.CacheCommand;
 import com.yetcache.agent.interceptor.StructureBehaviorKey;
 
 /**
@@ -11,5 +11,5 @@ import com.yetcache.agent.interceptor.StructureBehaviorKey;
 public interface CacheBroadcastHandler {
     boolean supports(StructureBehaviorKey sbKey);
 
-    void handle(CacheUpdateCommand cmd);
+    void handle(CacheCommand cmd);
 }

@@ -19,7 +19,7 @@ import java.util.Map;
 public class CommandDescriptor {
     private String shape;
     protected String componentName;
-    protected StructureBehaviorKey structureBehaviorKey;
+    protected StructureBehaviorKey sbKey;
     protected String instanceId;
     private Long publishAt;
     protected Map<String, String> extra;

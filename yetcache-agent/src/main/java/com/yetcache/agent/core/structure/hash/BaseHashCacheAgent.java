@@ -3,7 +3,7 @@ package com.yetcache.agent.core.structure.hash;
 import cn.hutool.core.collection.CollUtil;
 import com.yetcache.agent.broadcast.InstanceIdProvider;
 import com.yetcache.agent.broadcast.command.CacheShape;
-import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
+import com.yetcache.agent.broadcast.command.CacheCommand;
 import com.yetcache.agent.broadcast.command.CommandDescriptor;
 import com.yetcache.agent.broadcast.command.playload.HashPlayload;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
@@ -225,154 +225,6 @@ public class BaseHashCacheAgent implements HashCacheAgent {
         return (BaseCacheResult<Void>) scope.getMultiLevelCache().putAll(putCmd);
     }
 
-
-    //
-//
-//    @Override
-//    public DynamicHashCacheAgentSingleAccessResult<K, F, V> listAll(K bizKey) {
-//        boolean force = CacheAccessContext.isForceRefresh();
-//        return invoke("listAll", () -> loadAllAndUpdate(bizKey, force), new CacheAccessKey(bizKey, null));
-//    }
-//
-//    @Override
-//    public BaseBatchResult<Void, Void> batchRefresh(K bizKey, List<F> bizFields) {
-//        return invoke("batchRefresh", () -> doBatchRefresh(bizKey, bizFields),
-//                CacheAccessKey.batch(bizKey, bizFields));
-//    }
-
-//    @Override
-//    public BaseBatchResult<Void, Void> invalidateFields(K bizKey, List<F> bizFields) {
-//        return null;
-//    }
-
-//    public BaseBatchResult<Void, Void> doInvalidateFields(K bizKey, List<F> bizFields) {
-//        try {
-//            multiTierCache.invalidateFields(bizKey, bizFields);
-//        } catch (Exception e) {
-//            log.warn("invalidateFields failed, agent = {}", componentName, e);
-//            return BaseBatchResult.fail(componentName, e);
-//        }
-//        return null;
-//    }
-
-//    public BaseBatchResult<Void, Void> doBatchRefresh(K bizKey, List<F> bizFields) {
-//        try {
-//            Map<F, V> loaded = cacheLoader.batchLoad(bizKey, bizFields);
-//            multiTierCache.putAll(bizKey, loaded);
-//            List<F> missedFields = bizFields.stream()
-//                    .filter(field -> !loaded.containsKey(field))
-//                    .collect(Collectors.toList());
-//            if (CollUtil.isEmpty(missedFields)) {
-//                for (Map.Entry<F, V> entry : loaded.entrySet()) {
-//                    multiTierCache.invalidate(bizKey, entry.getKey());
-//                }
-//            }
-//            return BaseBatchResult.success(componentName);
-//        } catch (Exception e) {
-//            log.warn("batchRefresh failed, agent = {}", componentName, e);
-//            return BaseBatchResult.fail(componentName, e);
-//        } finally {
-//            CacheAccessContext.clear();
-//        }
-//    }
-
-    //
-//    @Override
-//    public DynamicHashCacheAgentSingleAccessResult<K, F, V> refreshAll(K bizKey) {
-//        return invoke("refreshAll", () -> loadAllAndUpdate(bizKey, true));
-//    }
-//
-//    private DynamicHashCacheAgentSingleAccessResult<K, F, V> loadAllAndUpdate(K bizKey, boolean force) {
-//        try {
-//            // ✅ 1. 非强制刷新时，优先使用结构新鲜期窗口逻辑
-//            if (!force && withinFullyLoadedExpireWindow(bizKey)) {
-//                log.debug("Fully-loaded freshness window active for key = {}", bizKey);
-//                StorageCacheAccessResultBak<Map<F, CacheValueHolder>> result = cache.listAll(bizKey);
-//                if (result.outcome() == CacheOutcome.HIT) {
-//                    return DynamicHashCacheAgentSingleAccessResult.success(
-//                            getCacheName(), result.value(), result.getTier());
-//                }
-//            }
-//
-//            // ✅ 2. 回源加载数据
-//            Map<F, V> loadedMap = cacheLoader.loadAll(bizKey);
-//            if (loadedMap == null || loadedMap.isEmpty()) {
-//                // ✅ 如果 source 明确为空，删除缓存，防止污染
-//                cache.invalidateAll(bizKey);
-//                fullyLoadedTs.invalidate(bizKey);
-//                log.info("force refresh removed empty structure, agent = {}, key = {}", cacheName, bizKey);
-//                return DynamicHashCacheAgentSingleAccessResult.dynamicHashNotFound(getCacheName());
-//            }
-//
-//            // ✅ 3. 回源成功 → 缓存 + 更新结构级 fullyLoadedTs 标记
-//            cache.putAll(bizKey, loadedMap);
-//            fullyLoadedTs.put(bizKey, System.currentTimeMillis());
-//
-//            return DynamicHashCacheAgentSingleAccessResult.success(
-//                    getCacheName(),
-//                    CacheValueHolderHelper.wrapAsHolderMap(loadedMap),
-//                    HitTier.SOURCE);
-//
-//        } catch (Exception e) {
-//            log.warn("cache loadAll failed, agent = {}, key = {}", cacheName, bizKey, e);
-//            return DynamicHashCacheAgentSingleAccessResult.dynamicHashFail(cacheName, e);
-//        } finally {
-//            CacheAccessContext.clear();
-//        }
-//    }
-//
-//    private boolean withinFullyLoadedExpireWindow(K bizKey) {
-//        long expireSecs = config.getSpec().getFullyLoadedExpireSecs();
-//        if (expireSecs <= 0) {
-//            return false;
-//        }
-//
-//        Long lastFullLoad = fullyLoadedTs.getIfPresent(bizKey);
-//        return lastFullLoad != null &&
-//                (System.currentTimeMillis() - lastFullLoad <= expireSecs * 1000L);
-//    }
-//
-//
-//    @Override
-//    public DynamicHashCacheAgentSingleAccessResult<K, F, V> remove(K bizKey, F bizField) {
-//        return invoke("invalidate", () -> doInvalidate(bizKey, bizField));
-//    }
-//
-//    private DynamicHashCacheAgentSingleAccessResult<K, F, V> doInvalidate(K bizKey, F bizField) {
-//        try {
-//            cache.invalidate(bizKey, bizField);
-//            return DynamicHashCacheAgentSingleAccessResult.success(getCacheName(),
-//                    Collections.emptyMap(), HitTier.NONE); // 删除不关心命中层
-//        } catch (Exception e) {
-//            log.warn("invalidate failed, agent = {}, key = {}, field = {}", cacheName, bizKey, bizField, e);
-//            return DynamicHashCacheAgentSingleAccessResult.dynamicHashFail(cacheName, e);
-//        } finally {
-//            CacheAccessContext.clear();
-//        }
-//    }
-//
-//    @Override
-//    public DynamicHashCacheAgentSingleAccessResult<K, F, V> removeAll(K bizKey) {
-//        return invoke("invalidateAll", () -> doInvalidateAll(bizKey));
-//    }
-//
-//    @Override
-//    public DynamicHashCacheAgentSingleAccessResult<K, F, V> put(K bizKey, F bizField, V value) {
-//        return invoke("put", () -> doPut(bizKey, bizField, value), new CacheAccessKey(bizKey, bizField));
-//    }
-//
-//    public DynamicHashCacheAgentSingleAccessResult<K, F, V> doPut(K bizKey, F bizField, V value) {
-//        if (bizKey == null || bizField == null || value == null) {
-//            return DynamicHashCacheAgentSingleAccessResult.badParam(cacheName);
-//        }
-//        try {
-//            cache.put(bizKey, bizField, value);
-//            return DynamicHashCacheAgentSingleAccessResult.success(cacheName);
-//        } catch (Exception e) {
-//            return DynamicHashCacheAgentSingleAccessResult.dynamicHashFail(cacheName, e);
-//        }
-//    }
-//
     @Override
     public <K, F, T> CacheResult putAll(K bizKey, Map<F, T> valueMap, PutAllOptions opts) {
         log.debug("缓存代理类 {} 缓存更新 bizKey: {}, valueMap: {}, opts: {}", scope.getComponentName(), bizKey,
@@ -410,11 +262,11 @@ public class BaseHashCacheAgent implements HashCacheAgent {
         // 3) 本实例 local 广播（仅在写入成功且开启时）
         if (writeResult.isSuccess() && normalized.isBroadcast()) {
             try {
-                CacheUpdateCommand broadcastCmd = CacheUpdateCommand.builder()
+                CacheCommand broadcastCmd = CacheCommand.builder()
                         .descriptor(CommandDescriptor.builder()
                                 .shape(CacheShape.HASH.getName())
                                 .componentName(scope.getComponentName())
-                                .structureBehaviorKey(StructureBehaviorKey.of(StructureType.HASH, BehaviorType.PUT_ALL))
+                                .sbKey(StructureBehaviorKey.of(StructureType.HASH, BehaviorType.PUT_ALL))
                                 .instanceId(InstanceIdProvider.getInstanceId())
                                 .publishAt(System.currentTimeMillis())
                                 .build())
@@ -428,7 +280,6 @@ public class BaseHashCacheAgent implements HashCacheAgent {
                         .build();
                 this.scope.getBroadcastPublisher().publish(broadcastCmd);
             } catch (Exception e) {
-                // 不让广播失败影响主流程；按需记录日志/埋点
                 log.warn("broadcastPutAll(local) failed, bizKey={}, cause={}", bizKey, e.toString());
             }
         }
@@ -444,25 +295,6 @@ public class BaseHashCacheAgent implements HashCacheAgent {
                         Map.Entry::getValue));
         return putAll(bizKey, typedValueMap, PutAllOptions.builder().broadcast(false).build());
     }
-
-    //    private DynamicHashCacheAgentSingleAccessResult<K, F, V> doInvalidateAll(K bizKey) {
-//        try {
-//            multitierCache.invalidateAll(bizKey);
-//            return DynamicHashCacheAgentSingleAccessResult.success(getCacheName(),
-//                    Collections.emptyMap(), HitTier.NONE);
-//        } catch (Exception e) {
-//            log.warn("invalidateAll failed, agent = {}, key = {}", cacheName, bizKey, e);
-//            return DynamicHashCacheAgentSingleAccessResult.dynamicHashFail(cacheName, e);
-//        } finally {
-//            CacheAccessContext.clear();
-//        }
-//    }
-
-//    @Override
-//    @SuppressWarnings("unchecked")
-//    protected BaseResult<Void> defaultFail(String method, Throwable t) {
-//        return ResultFactory.fail(componentName, t);
-//    }
 
     public CacheLevel cacheLevel() {
         return scope.getConfig().getSpec().getCacheLevel();

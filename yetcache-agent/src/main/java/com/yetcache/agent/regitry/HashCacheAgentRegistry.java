@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2025/7/26
  */
 
-public class DynamicHashCacheAgentRegistry {
+public class HashCacheAgentRegistry {
 
     // 存储 agent 实例，按 componentName 唯一标识
     private final Map<String, HashCacheAgent> agentMap = new ConcurrentHashMap<>();

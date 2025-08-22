@@ -21,5 +21,7 @@ public class HashCacheBatchGetCommand {
     private TypeRef<?> valueTypeRef;
 
     @SuppressWarnings("unchecked")
-    public <T> TypeRef<T> valueTypeRef() { return (TypeRef<T>) valueTypeRef; }
+    public <T> TypeRef<T> valueTypeRef() {
+        return (TypeRef<T>) valueTypeRef;
+    }
 }

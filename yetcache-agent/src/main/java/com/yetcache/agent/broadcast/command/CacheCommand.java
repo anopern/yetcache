@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CacheUpdateCommand {
+public class CacheCommand {
     private CommandDescriptor descriptor;
     private Object payload;
 }

@@ -3,7 +3,7 @@ package com.yetcache.agent.broadcast.receiver;
 import cn.hutool.core.util.StrUtil;
 import com.yetcache.agent.broadcast.InstanceIdProvider;
 import com.yetcache.agent.broadcast.command.CacheShape;
-import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
+import com.yetcache.agent.broadcast.command.CacheCommand;
 import com.yetcache.agent.broadcast.command.CommandDescriptor;
 import com.yetcache.agent.broadcast.command.playload.HashPlayload;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandler;
@@ -40,7 +40,7 @@ public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
                 return;
             }
 
-            CacheUpdateCommand cmd = jsonValueCodec.decode(messageJson, CacheUpdateCommand.class);
+            CacheCommand cmd = jsonValueCodec.decode(messageJson, CacheCommand.class);
             if (null == cmd || null == cmd.getDescriptor()) {
                 log.warn("[YetCache] Invalid message: {}", messageJson);
                 return;
@@ -71,7 +71,7 @@ public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
                     HashPlayload hashPlayload = jsonTypeConverter.convert(cmd.getPayload(), HashPlayload.class);
                     cmd.setPayload(hashPlayload);
                 }
-                Optional<CacheBroadcastHandler> handlerOpt = handlerRegistry.getHandler(descriptor.getStructureBehaviorKey());
+                Optional<CacheBroadcastHandler> handlerOpt = handlerRegistry.getHandler(descriptor.getSbKey());
                 if (!handlerOpt.isPresent()) {
                     log.error("[YetCache] No broadcast handler for: {}", messageJson);
                     return;

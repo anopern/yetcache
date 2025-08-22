@@ -12,7 +12,7 @@ import java.util.Optional;
  * @since 2025/7/26
  */
 public class CacheAgentRegistryHub {
-    private final DynamicHashCacheAgentRegistry dhRegistry = new DynamicHashCacheAgentRegistry();
+    private final HashCacheAgentRegistry dhRegistry = new HashCacheAgentRegistry();
 
     public void register(CacheAgent agent) {
         if (agent instanceof HashCacheAgent) {

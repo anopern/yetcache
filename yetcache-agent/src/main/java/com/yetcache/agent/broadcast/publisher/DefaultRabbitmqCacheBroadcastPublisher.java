@@ -1,6 +1,6 @@
 package com.yetcache.agent.broadcast.publisher;
 
-import com.yetcache.agent.broadcast.command.CacheUpdateCommand;
+import com.yetcache.agent.broadcast.command.CacheCommand;
 import com.yetcache.core.config.broadcast.RabbitMqConfig;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
@@ -25,7 +25,7 @@ public class DefaultRabbitmqCacheBroadcastPublisher implements CacheBroadcastPub
     }
 
     @Override
-    public void publish(CacheUpdateCommand command) {
+    public void publish(CacheCommand command) {
         try {
             Message message = messageConverter.toMessage(command, new MessageProperties());
             message.getMessageProperties().setDeliveryMode(
