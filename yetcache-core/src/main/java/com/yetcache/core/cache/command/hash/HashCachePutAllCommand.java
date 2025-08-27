@@ -1,4 +1,4 @@
-package com.yetcache.core.cache.command;
+package com.yetcache.core.cache.command.hash;
 
 import com.yetcache.core.cache.CacheTtl;
 import com.yetcache.core.cache.WriteLevel;

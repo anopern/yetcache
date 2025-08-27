@@ -1,4 +1,4 @@
-package com.yetcache.core.cache.command;
+package com.yetcache.core.cache.command.hash;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

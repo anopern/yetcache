@@ -1,6 +1,6 @@
 package com.yetcache.core.cache.hash;
 
-import com.yetcache.core.cache.command.*;
+import com.yetcache.core.cache.command.hash.*;
 import com.yetcache.core.result.CacheResult;
 
 /**

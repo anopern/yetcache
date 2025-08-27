@@ -4,7 +4,7 @@ import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.hash.HashAgentScope;
 import com.yetcache.agent.core.structure.hash.HashCacheLoadCommand;
 import com.yetcache.agent.interceptor.*;
-import com.yetcache.core.cache.command.HashCacheGetCommand;
+import com.yetcache.core.cache.command.hash.HashCacheGetCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.codec.TypeRef;
 import com.yetcache.core.result.*;

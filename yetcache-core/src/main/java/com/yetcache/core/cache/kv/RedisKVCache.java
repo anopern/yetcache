@@ -1,12 +1,15 @@
 package com.yetcache.core.cache.kv;
 
+import cn.hutool.core.util.StrUtil;
 import com.yetcache.core.cache.support.CacheValueHolder;
-import com.yetcache.core.config.kv.RedisKVCacheConfig;
-import com.yetcache.core.support.util.TtlRandomizer;
+import com.yetcache.core.codec.JsonValueCodec;
+import com.yetcache.core.codec.TypeRef;
+import com.yetcache.core.codec.TypeRefs;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
-
+import org.redisson.client.codec.StringCodec;
+import org.redisson.codec.CompositeCodec;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -19,23 +22,48 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class RedisKVCache {
 
-    protected final RedisKVCacheConfig config;
     protected final RedissonClient rClient;
+    private final JsonValueCodec codec;
 
-    public RedisKVCache(RedisKVCacheConfig config, RedissonClient rClient) {
-        this.config = config;
+    public RedisKVCache(RedissonClient rClient, JsonValueCodec codec) {
         this.rClient = rClient;
+        this.codec = codec;
     }
 
-    public <T> CacheValueHolder<T> getIfPresent(String key) {
-        RBucket<CacheValueHolder<T>> bucket = rClient.getBucket(key);
-        return bucket.get();
+    private RBucket<String> bucket(String key) {
+        return rClient.getBucket(key, new CompositeCodec(StringCodec.INSTANCE, StringCodec.INSTANCE));
     }
 
-    public <T> void put(String key, CacheValueHolder<T> value) {
-        RBucket<CacheValueHolder<T>> bucket = rClient.getBucket(key);
-        long realTtlSecs = TtlRandomizer.randomizeSecs(config.getTtlSecs(), config.getTtlRandomPct());
-        bucket.set(value, realTtlSecs, TimeUnit.SECONDS);
+    public <T> CacheValueHolder<T> get(String key, TypeRef<T> valueTypeRef) {
+        String json = bucket(key).get();
+        if (null == json) {
+            return null;
+        }
+        try {
+            TypeRef<CacheValueHolder<T>> holderRef = TypeRefs.holderOf(valueTypeRef);
+            return codec.decode(json, holderRef.getType());
+        } catch (Exception e) {
+            throw new IllegalStateException("decode failed", e);
+        }
+    }
+
+    public <T> void put(String key, CacheValueHolder<T> valueHolder, long physicalTtlSecs) {
+        if (StrUtil.isBlank(key)) {
+            throw new IllegalArgumentException("key is blank");
+        }
+        if (null == valueHolder) {
+            throw new IllegalArgumentException("value is null");
+        }
+        if (physicalTtlSecs <= 0) {
+            throw new IllegalArgumentException("ttl is invalid");
+        }
+        try {
+            RBucket<String> bucket = bucket(key);
+            bucket.set(codec.encode(valueHolder));
+            bucket.expire(physicalTtlSecs, TimeUnit.SECONDS);
+        } catch (Exception ex) {
+            log.warn("序列化字段失败：key={}, err={}", key, ex.getMessage(), ex);
+        }
     }
 
     public void remove(String key) {
