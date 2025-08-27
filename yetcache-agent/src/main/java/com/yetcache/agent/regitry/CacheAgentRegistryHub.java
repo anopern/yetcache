@@ -1,7 +1,7 @@
 package com.yetcache.agent.regitry;
 
 import com.yetcache.agent.core.structure.CacheAgent;
-import com.yetcache.agent.core.structure.hash.HashCacheAgent;
+import com.yetcache.agent.core.structure.kv.KvCacheAgent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,22 +12,22 @@ import java.util.Optional;
  * @since 2025/7/26
  */
 public class CacheAgentRegistryHub {
-    private final HashCacheAgentRegistry dhRegistry = new HashCacheAgentRegistry();
+    private final KvCacheAgentRegistry kvRegistry = new KvCacheAgentRegistry();
 
     public void register(CacheAgent agent) {
-        if (agent instanceof HashCacheAgent) {
-            dhRegistry.register((HashCacheAgent) agent);
+        if (agent instanceof KvCacheAgent) {
+            kvRegistry.register((KvCacheAgent) agent);
         }
     }
 
     public Optional<CacheAgent> find(String name) {
-        if (dhRegistry.get(name) != null) return Optional.of(dhRegistry.get(name));
+        if (kvRegistry.get(name) != null) {
+            return Optional.of(kvRegistry.get(name));
+        }
         return Optional.empty();
     }
 
     public List<CacheAgent> allAgents() {
-        List<CacheAgent> all = new ArrayList<>();
-        all.addAll(dhRegistry.listAgents());
-        return all;
+        return new ArrayList<>(kvRegistry.listAgents());
     }
 }

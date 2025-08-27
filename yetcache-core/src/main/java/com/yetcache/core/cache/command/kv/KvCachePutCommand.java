@@ -20,4 +20,8 @@ public class KvCachePutCommand {
     private final Object bizKey;
     private final Object value;
     private final CacheTtl ttl;
+
+    public static   KvCachePutCommand of (final Object bizKey, final Object value, final CacheTtl ttl) {
+        return new KvCachePutCommand(bizKey, value, ttl);
+    }
 }

@@ -2,7 +2,6 @@ package com.yetcache.core.cache;
 
 import com.yetcache.core.config.YetCacheProperties;
 import com.yetcache.core.config.hash.HashCacheConfig;
-import com.yetcache.core.config.flathash.FlatHashCacheConfig;
 import com.yetcache.core.config.kv.KvCacheConfig;
 import com.yetcache.core.merger.CacheConfigMerger;
 
@@ -18,7 +17,7 @@ public class YetCacheConfigResolver {
         this.props = props;
     }
 
-    public KvCacheConfig resolveKV(String cacheName) {
+    public KvCacheConfig resolveKv(String cacheName) {
         KvCacheConfig raw = props.getCaches().getKv().get(cacheName);
         if (raw == null) {
             throw new IllegalArgumentException("KV结构未配置: " + cacheName);

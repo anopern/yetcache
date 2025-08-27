@@ -2,12 +2,12 @@ package com.yetcache.agent.core.structure.kv;
 
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.StructureType;
-import com.yetcache.agent.core.port.CacheAgentPortRegistry;
-import com.yetcache.agent.core.port.DefaultKvCacheAgentRemovePort;
-import com.yetcache.agent.core.port.KvCacheAgentRemovePort;
+import com.yetcache.agent.core.port.*;
 import com.yetcache.agent.core.structure.kv.get.KvCacheAgentGetInvocationCommand;
 import com.yetcache.agent.core.structure.kv.loader.KvCacheLoader;
 import com.yetcache.agent.interceptor.*;
+import com.yetcache.core.cache.CacheTtl;
+import com.yetcache.core.cache.command.kv.KvCachePutCommand;
 import com.yetcache.core.cache.command.kv.KvCacheRemoveCommand;
 import com.yetcache.core.cache.kv.MultiTierKvCache;
 import com.yetcache.core.codec.JsonValueCodec;
@@ -35,7 +35,7 @@ public class BaseKvCacheAgent implements KvCacheAgent {
                             KvCacheConfig config,
                             RedissonClient redissonClient,
                             KeyConverter keyConverter,
-                            KvCacheLoader<?, ?> cacheLoader,
+                            KvCacheLoader<?> cacheLoader,
                             CacheBroadcastPublisher broadcastPublisher,
                             CacheInvocationChainRegistry chainRegistry,
                             TypeRefRegistry typeRefRegistry,
@@ -47,9 +47,11 @@ public class BaseKvCacheAgent implements KvCacheAgent {
                 jsonValueCodec);
 
         KvCacheAgentRemovePort removePort = new DefaultKvCacheAgentRemovePort(this);
+        KvCacheAgentPutPort putPort = new DefaultKvCacheAgentPutPort(this);
         agentPortRegistry.register(cacheAgentName, BehaviorType.REMOVE, removePort);
+        agentPortRegistry.register(cacheAgentName, BehaviorType.PUT, putPort);
         this.scope = new KvCacheAgentScope(cacheAgentName, multiLevelCache, config, keyConverter, cacheLoader,
-                broadcastPublisher, removePort, typeDescriptor);
+                broadcastPublisher, removePort, putPort, typeDescriptor);
 
         String typeId = TypeDescriptor.toTypeId(typeDescriptor.getValueTypeRef());
         if (null == typeRefRegistry.get(typeId)) {
@@ -66,6 +68,17 @@ public class BaseKvCacheAgent implements KvCacheAgent {
         StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.KV, BehaviorType.GET);
         CacheInvocationCommand cmd = KvCacheAgentGetInvocationCommand.of(scope.getCacheAgentName(), bizKey);
         return (BaseCacheResult<T>) singleInvoke(structureBehaviorKey, cmd);
+    }
+
+    @Override
+    public <K, T> CacheResult put(K bizKey, T value) {
+        KvCachePutCommand cmd = KvCachePutCommand.of(bizKey, value, CacheTtl.builder()
+                .localLogicSecs(scope.getConfig().getLocal().getLogicTtlSecs())
+                .localPhysicalSecs(scope.getConfig().getLocal().getPhysicalTtlSecs())
+                .remoteLogicSecs(scope.getConfig().getRemote().getLogicTtlSecs())
+                .remotePhysicalSecs(scope.getConfig().getRemote().getPhysicalTtlSecs())
+                .build());
+        return scope.getMultiLevelCache().put(cmd);
     }
 
     @Override

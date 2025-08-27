@@ -20,7 +20,7 @@ public class KvCacheAgentScope implements AgentScope {
     private final String cacheAgentName;
     private final MultiTierKvCache multiLevelCache;
     private final KvCacheConfig config;
-    private final KvCacheLoader<?, ?> cacheLoader;
+    private final KvCacheLoader<?> cacheLoader;
     private final CacheBroadcastPublisher broadcastPublisher;
     private final KvCacheAgentRemovePort cacheRemovePort;
     private final KvCacheAgentPutPort cachePutPort;
@@ -31,7 +31,7 @@ public class KvCacheAgentScope implements AgentScope {
                              MultiTierKvCache multiLevelCache,
                              KvCacheConfig config,
                              KeyConverter keyConverter,
-                             KvCacheLoader<?, ?> cacheLoader,
+                             KvCacheLoader<?> cacheLoader,
                              CacheBroadcastPublisher broadcastPublisher,
                              KvCacheAgentRemovePort cacheRemovePort,
                              KvCacheAgentPutPort cachePutPort,

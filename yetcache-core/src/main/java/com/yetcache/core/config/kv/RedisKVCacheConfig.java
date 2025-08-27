@@ -1,6 +1,5 @@
 package com.yetcache.core.config.kv;
 
-import com.yetcache.core.config.PenetrationProtectConfig;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,14 +10,20 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class RedisKVCacheConfig {
-    protected Long ttlSecs;
+    protected Long logicTtlSecs;
+    protected Long physicalTtlSecs;
     protected Double ttlRandomPct;
-    protected PenetrationProtectConfig penetrationProtect;
+
+    public RedisKVCacheConfig(RedisKVCacheConfig other) {
+        this.logicTtlSecs = other.logicTtlSecs;
+        this.physicalTtlSecs = other.physicalTtlSecs;
+        this.ttlRandomPct = other.ttlRandomPct;
+    }
     public static RedisKVCacheConfig defaultConfig() {
         RedisKVCacheConfig config = new RedisKVCacheConfig();
-        config.setTtlSecs(20 * 60L);
+        config.setLogicTtlSecs(20 * 60L);
+        config.setPhysicalTtlSecs(3 * 24 * 3600L);
         config.setTtlRandomPct(0.15);
-        config.setPenetrationProtect(PenetrationProtectConfig.defaultConfig());
         return config;
     }
 }

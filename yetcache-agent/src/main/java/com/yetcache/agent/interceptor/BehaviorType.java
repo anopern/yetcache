@@ -7,6 +7,7 @@ package com.yetcache.agent.interceptor;
 public enum BehaviorType {
     GET,
     BATCH_GET,
+    PUT,
     PUT_ALL,
     REMOVE,
 }

@@ -11,5 +11,7 @@ import com.yetcache.core.result.CacheResult;
 public interface KvCacheAgent extends CacheAgent {
     <K, T> BaseCacheResult<T> get(K bizKey);
 
+    <K, T> CacheResult put(K bizKey, T value);
+
     <K> CacheResult remove(K bizKey);
 }

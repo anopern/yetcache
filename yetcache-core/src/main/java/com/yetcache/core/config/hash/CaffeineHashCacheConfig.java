@@ -16,7 +16,9 @@ public class CaffeineHashCacheConfig {
     protected Integer maxSize;
 
     public CaffeineHashCacheConfig(CaffeineHashCacheConfig other) {
-        if (other == null) return;
+        if (other == null) {
+            return;
+        }
         this.logicTtlSecs = other.logicTtlSecs;
         this.physicalTtlSecs = other.physicalTtlSecs;
         this.ttlRandomPct = other.ttlRandomPct;
