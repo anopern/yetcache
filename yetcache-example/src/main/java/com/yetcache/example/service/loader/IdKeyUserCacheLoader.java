@@ -1,7 +1,7 @@
 package com.yetcache.example.service.loader;
 
 import cn.hutool.core.collection.CollUtil;
-import com.yetcache.core.cache.loader.AbstractKVCacheLoader;
+import com.yetcache.agent.core.structure.kv.loader.AbstractKvCacheLoader;
 import com.yetcache.example.entity.User;
 import com.yetcache.example.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import java.util.Map;
  */
 @Component
 @Slf4j
-public class IdKeyUserCacheLoader extends AbstractKVCacheLoader<Long, User> {
+public class IdKeyUserCacheLoader extends AbstractKvCacheLoader<Long, User> {
     @Autowired
     private IUserService userService;
 

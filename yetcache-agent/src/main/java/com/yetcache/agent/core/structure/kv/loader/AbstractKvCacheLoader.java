@@ -1,6 +1,6 @@
-package com.yetcache.core.cache.loader;
+package com.yetcache.agent.core.structure.kv.loader;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -8,7 +8,7 @@ import java.util.Map;
  * @author walter.yan
  * @since 2025/6/25
  */
-public class AbstractKVCacheLoader<K, V> implements KVCacheLoader<K, V> {
+public class AbstractKvCacheLoader<K, V> implements KvCacheLoader<K, V> {
 
     @Override
     public V load(K bizKey) {
@@ -17,6 +17,6 @@ public class AbstractKVCacheLoader<K, V> implements KVCacheLoader<K, V> {
 
     @Override
     public Map<K, V> batchLoad(List<K> bizKeys) {
-        return new HashMap<>();
+        return Collections.emptyMap();
     }
 }

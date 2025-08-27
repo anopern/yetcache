@@ -1,5 +1,6 @@
 package com.yetcache.core.cache.command.kv;
 
+import com.yetcache.core.config.CacheLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,10 +14,18 @@ import lombok.Data;
 @Builder
 public class KvCacheRemoveCommand {
     private final Object bizKey;
+    private final CacheLevel cacheLevel;
 
     public static KvCacheRemoveCommand of(final Object bizKey) {
         return KvCacheRemoveCommand.builder()
                 .bizKey(bizKey)
+                .build();
+    }
+
+    public static KvCacheRemoveCommand ofLocal(final Object bizKey) {
+        return KvCacheRemoveCommand.builder()
+                .bizKey(bizKey)
+                .cacheLevel(CacheLevel.LOCAL)
                 .build();
     }
 }

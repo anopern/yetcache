@@ -5,6 +5,6 @@ package com.yetcache.agent.interceptor;
  * @since 2025/8/6
  */
 public interface CacheInvocationCommand {
-    String componentName();
-    StructureBehaviorKey structureBehaviorKey();
+    String cacheAgentName();
+    StructureBehaviorKey sbKey();
 }

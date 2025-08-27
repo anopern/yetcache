@@ -1,15 +1,14 @@
 package com.yetcache.agent.broadcast.receiver.handler;
 
-
-import com.yetcache.agent.broadcast.command.CacheCommand;
-import com.yetcache.agent.interceptor.StructureBehaviorKey;
+import com.yetcache.agent.broadcast.command.CacheRemoveCommand;
+import com.yetcache.agent.core.StructureType;
 
 /**
  * @author walter.yan
  * @since 2025/7/16
  */
 public interface CacheBroadcastHandler {
-    boolean supports(StructureBehaviorKey sbKey);
+    boolean supports(StructureType structureType);
 
-    void handle(CacheCommand cmd);
+    void handle(CacheRemoveCommand cmd);
 }

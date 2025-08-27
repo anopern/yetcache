@@ -11,13 +11,13 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MultiLevelKVCacheConfig {
-    private MultiLevelKVCacheSpec spec;
+public class KvCacheConfig {
+    private KvCacheSpec spec;
     protected CaffeineKVCacheConfig local;
     protected RedisKVCacheConfig remote;
 
-    public static MultiLevelKVCacheConfig defaultConfig() {
-        return new MultiLevelKVCacheConfig(MultiLevelKVCacheSpec.defaultSpec(),
+    public static KvCacheConfig defaultConfig() {
+        return new KvCacheConfig(KvCacheSpec.defaultSpec(),
                 CaffeineKVCacheConfig.defaultConfig(),
                 RedisKVCacheConfig.defaultConfig());
     }

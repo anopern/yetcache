@@ -2,16 +2,11 @@ package com.yetcache.agent.broadcast.receiver;
 
 import cn.hutool.core.util.StrUtil;
 import com.yetcache.agent.broadcast.InstanceIdProvider;
-import com.yetcache.agent.broadcast.command.CacheShape;
-import com.yetcache.agent.broadcast.command.CacheCommand;
-import com.yetcache.agent.broadcast.command.CommandDescriptor;
-import com.yetcache.agent.broadcast.command.playload.HashPlayload;
+import com.yetcache.agent.broadcast.command.CacheRemoveCommand;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandler;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
+import com.yetcache.agent.core.StructureType;
 import com.yetcache.core.codec.*;
-import com.yetcache.core.config.broadcast.Decision;
-import com.yetcache.core.config.broadcast.MessageDelayPolicy;
-import com.yetcache.core.config.broadcast.MessageDelayPolicyRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -26,9 +21,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
     private final JsonValueCodec jsonValueCodec;
-    private final JsonTypeConverter jsonTypeConverter;
     private final CacheBroadcastHandlerRegistry handlerRegistry;
-    private final MessageDelayPolicyRegistry delayPolicyRegistry;
 
     @RabbitListener(queues = "#{broadcastQueueName}", concurrency = "1-3")
     @Override
@@ -40,44 +33,24 @@ public class RabbitMqCacheBroadcastReceiver implements CacheBroadcastReceiver {
                 return;
             }
 
-            CacheCommand cmd = jsonValueCodec.decode(messageJson, CacheCommand.class);
-            if (null == cmd || null == cmd.getDescriptor()) {
+            CacheRemoveCommand cmd = jsonValueCodec.decode(messageJson, CacheRemoveCommand.class);
+            if (null == cmd) {
                 log.warn("[YetCache] Invalid message: {}", messageJson);
                 return;
             }
 
-            CommandDescriptor descriptor = cmd.getDescriptor();
-            if (InstanceIdProvider.getInstanceId().equalsIgnoreCase(descriptor.getInstanceId())) {
+            if (InstanceIdProvider.getInstanceId().equalsIgnoreCase(cmd.getInstanceId())) {
                 log.debug("[Yetcache]ignore local published message: {}", messageJson);
                 return;
             }
 
-            Optional<CacheShape> cacheShapeOpt = CacheShape.fromName(descriptor.getShape());
-            if (!cacheShapeOpt.isPresent()) {
-                log.error("[YetCache] No cache shape for: {}", descriptor.getShape());
+            StructureType structureType = StructureType.fromString(cmd.getStructureType());
+            Optional<CacheBroadcastHandler> handlerOpt = handlerRegistry.getHandler(structureType);
+            if (!handlerOpt.isPresent()) {
+                log.error("[YetCache] No broadcast handler for: {}", messageJson);
                 return;
             }
-
-            MessageDelayPolicy delayPolicy = delayPolicyRegistry.get(descriptor.getComponentName());
-            Decision decision = delayPolicy.decide(descriptor.getPublishAt());
-            if (decision == Decision.DROP) {
-                log.debug("[Yetcache]ignore late published message: {}", messageJson);
-            } else if (decision == Decision.REMOVE) {
-                log.debug("[Yetcache]remove stale entry: {}", messageJson);
-            } else if (decision == Decision.REFRESH) {
-                log.debug("[YetCache] refresh message: {}", messageJson);
-            } else if (decision == Decision.APPLY) {
-                if (cacheShapeOpt.get() == CacheShape.HASH) {
-                    HashPlayload hashPlayload = jsonTypeConverter.convert(cmd.getPayload(), HashPlayload.class);
-                    cmd.setPayload(hashPlayload);
-                }
-                Optional<CacheBroadcastHandler> handlerOpt = handlerRegistry.getHandler(descriptor.getSbKey());
-                if (!handlerOpt.isPresent()) {
-                    log.error("[YetCache] No broadcast handler for: {}", messageJson);
-                    return;
-                }
-                handlerOpt.get().handle(cmd);
-            }
+            handlerOpt.get().handle(cmd);
         } catch (Exception e) {
             log.warn("[YetCache] Failed to process broadcast message: {}", messageJson, e);
         }

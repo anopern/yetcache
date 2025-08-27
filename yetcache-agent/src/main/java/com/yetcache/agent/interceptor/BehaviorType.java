@@ -8,4 +8,5 @@ public enum BehaviorType {
     GET,
     BATCH_GET,
     PUT_ALL,
+    REMOVE,
 }

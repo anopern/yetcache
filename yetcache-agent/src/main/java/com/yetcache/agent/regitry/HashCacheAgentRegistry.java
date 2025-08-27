@@ -23,7 +23,7 @@ public class HashCacheAgentRegistry {
      */
     public void register(HashCacheAgent agent) {
         Objects.requireNonNull(agent, "Agent must not be null");
-        String name = agent.componentName();
+        String name = agent.cacheAgentName();
         agentMap.put(name, agent);
     }
 

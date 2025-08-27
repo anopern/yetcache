@@ -5,5 +5,5 @@ package com.yetcache.agent.core.structure;
  * @since 2025/7/26
  */
 public interface CacheAgent {
-    String componentName();
+    String cacheAgentName();
 }

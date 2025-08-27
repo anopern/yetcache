@@ -50,13 +50,13 @@ public class MetricsInterceptor implements CacheInterceptor {
         long costNs = System.nanoTime() - startNs;
 
         CacheInvocationCommand cmd = context.getCommand();
-        BehaviorType behaviorType = cmd.structureBehaviorKey().getBehaviorType();
+        BehaviorType behaviorType = cmd.sbKey().getBehaviorType();
         String method = behaviorType.name();
         String outcome = String.valueOf(result.code());
         if (behaviorType == BehaviorType.GET) {
             /* ---------- Counter ---------- */
             Counter.builder("yetcache.access.count")
-                    .tag("cache", cmd.componentName())
+                    .tag("cache", cmd.cacheAgentName())
                     .tag("method", method)
                     .tag("outcome", outcome)
                     .tag("hit-tier", Optional.ofNullable(result.hitLevelInfo().hitLevel())
@@ -67,7 +67,7 @@ public class MetricsInterceptor implements CacheInterceptor {
             /* ---------- Timer (微秒级) ---------- */
             Timer.builder("yetcache.access.latency")
                     .publishPercentileHistogram(true)
-                    .tag("cache", cmd.componentName())
+                    .tag("cache", cmd.cacheAgentName())
                     .tag("method", method)
                     .tag("outcome", outcome)
                     .tag("hit-tier", Optional.ofNullable(result.hitLevelInfo().hitLevel())

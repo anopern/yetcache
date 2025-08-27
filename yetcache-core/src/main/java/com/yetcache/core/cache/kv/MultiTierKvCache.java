@@ -5,10 +5,9 @@ import com.yetcache.core.cache.command.kv.KvCacheGetCommand;
 import com.yetcache.core.cache.command.kv.KvCachePutCommand;
 import com.yetcache.core.cache.command.kv.KvCacheRemoveCommand;
 import com.yetcache.core.cache.support.CacheValueHolder;
-import com.yetcache.core.cache.loader.KVCacheLoader;
 import com.yetcache.core.codec.JsonValueCodec;
-import com.yetcache.core.config.kv.MultiLevelKVCacheConfig;
-import com.yetcache.core.config.kv.MultiLevelKVCacheSpec;
+import com.yetcache.core.config.kv.KvCacheConfig;
+import com.yetcache.core.config.kv.KvCacheSpec;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.HitLevel;
@@ -23,29 +22,26 @@ import org.redisson.api.RedissonClient;
  */
 @Data
 @Slf4j
-public class MultiTierKVCache implements KVCache {
+public class MultiTierKvCache implements KvCache {
     protected String cacheName;
-    private final MultiLevelKVCacheConfig config;
+    private final KvCacheConfig config;
     private CaffeineKVCache localCache;
     private RedisKVCache remoteCache;
     private KeyConverter keyConverter;
-    private final KVCacheLoader<?, ?> cacheLoader;
 
-    public MultiTierKVCache(String cacheName,
-                            MultiLevelKVCacheConfig config,
+    public MultiTierKvCache(String cacheName,
+                            KvCacheConfig config,
                             RedissonClient rClient,
                             KeyConverter keyConverter,
-                            KVCacheLoader<?, ?> cacheLoader,
                             JsonValueCodec jsonValueCodec) {
         this.cacheName = cacheName;
         this.config = config;
-        this.cacheLoader = cacheLoader;
         this.keyConverter = keyConverter;
-        MultiLevelKVCacheSpec spec = config.getSpec();
-        if (spec.getCacheLevel().useLocal()) {
+        KvCacheSpec spec = config.getSpec();
+        if (spec.getCacheLevel().includesLocal()) {
             this.localCache = new CaffeineKVCache(config.getLocal());
         }
-        if (spec.getCacheLevel().useRemote()) {
+        if (spec.getCacheLevel().includesRemote()) {
             this.remoteCache = new RedisKVCache(rClient, jsonValueCodec);
         }
     }
@@ -107,12 +103,12 @@ public class MultiTierKVCache implements KVCache {
         String key = keyConverter.convert(cmd.getBizKey());
 
         // 清除本地缓存
-        if (localCache != null) {
+        if (localCache != null && (null == cmd.getCacheLevel() || cmd.getCacheLevel().includesLocal())) {
             localCache.remove(key);
         }
 
         // 清除远程缓存
-        if (remoteCache != null) {
+        if (remoteCache != null && (null == cmd.getCacheLevel() || cmd.getCacheLevel().includesRemote())) {
             remoteCache.remove(key);
         }
 

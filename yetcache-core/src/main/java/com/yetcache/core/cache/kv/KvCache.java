@@ -10,7 +10,7 @@ import com.yetcache.core.result.CacheResult;
  * @author walter.yan
  * @since 2025/6/18
  */
-public interface KVCache {
+public interface KvCache {
     <T> CacheResult get(KvCacheGetCommand cmd);
 
     <T> CacheResult put(KvCachePutCommand cmd);

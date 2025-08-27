@@ -11,20 +11,22 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class MultiLevelKVCacheSpec {
+public class KvCacheSpec {
     protected String cacheName;
     protected String keyPrefix;
     protected CacheLevel cacheLevel;
     protected TenantMode tenantMode;
     protected Boolean useHashTag;
+    protected Boolean allowNullValue;
 
-    public MultiLevelKVCacheSpec(CacheLevel cacheLevel, TenantMode tenantMode, Boolean useHashTag) {
+    public KvCacheSpec(CacheLevel cacheLevel, TenantMode tenantMode, Boolean useHashTag, Boolean allowNullValue) {
         this.cacheLevel = cacheLevel;
         this.tenantMode = tenantMode;
         this.useHashTag = useHashTag;
+        this.allowNullValue = allowNullValue;
     }
 
-    public static MultiLevelKVCacheSpec defaultSpec() {
-        return new MultiLevelKVCacheSpec(CacheLevel.BOTH, TenantMode.NONE, true);
+    public static KvCacheSpec defaultSpec() {
+        return new KvCacheSpec(CacheLevel.BOTH, TenantMode.NONE, true, false);
     }
 }

@@ -7,11 +7,11 @@ package com.yetcache.core.config;
 public enum CacheLevel {
     LOCAL, REMOTE, BOTH;
 
-    public boolean useLocal() {
+    public boolean includesLocal() {
         return this == LOCAL || this == BOTH;
     }
 
-    public boolean useRemote() {
+    public boolean includesRemote() {
         return this == REMOTE || this == BOTH;
     }
 }

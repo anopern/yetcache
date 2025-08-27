@@ -37,10 +37,10 @@ public class DefaultMultiLevelHashCache implements MultiLevelHashCache {
         this.keyConverter = Objects.requireNonNull(keyConverter, "keyConverter");
         this.fieldConverter = Objects.requireNonNull(fieldConverter, "fieldConverter");
 
-        if (config.getSpec().getCacheLevel().useLocal()) {
+        if (config.getSpec().getCacheLevel().includesLocal()) {
             this.localCache = new CaffeineHashCache(config.getLocal());
         }
-        if (config.getSpec().getCacheLevel().useRemote()) {
+        if (config.getSpec().getCacheLevel().includesRemote()) {
             this.remoteCache = new RedisHashCache(redissonClient, jsonValueCodec);
         }
     }
@@ -172,7 +172,7 @@ public class DefaultMultiLevelHashCache implements MultiLevelHashCache {
     }
 
     @Override
-    public   CacheResult batchRemove(HashCacheBatchRemoveCommand cmd) {
+    public CacheResult batchRemove(HashCacheBatchRemoveCommand cmd) {
         String key = keyConverter.convert(cmd.getBizKey());
         List<String> fields = cmd.getBizFields().stream().map(fieldConverter::convert)
                 .collect(Collectors.toList());
@@ -200,12 +200,12 @@ public class DefaultMultiLevelHashCache implements MultiLevelHashCache {
         String field = fieldConverter.convert(cmd.getBizField());
 
         // 清除本地缓存
-        if (localCache != null) {
+        if (localCache != null && cmd.getCacheLevel().includesLocal()) {
             localCache.remove(key, field);
         }
 
         // 清除远程缓存
-        if (remoteCache != null) {
+        if (remoteCache != null && cmd.getCacheLevel().includesRemote()) {
             remoteCache.remove(key, field);
         }
 
