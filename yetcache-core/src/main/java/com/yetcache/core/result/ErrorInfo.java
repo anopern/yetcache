@@ -9,4 +9,8 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class ErrorInfo {
     private Throwable throwable;
+
+    public static ErrorInfo of(Throwable throwable) {
+        return new ErrorInfo(throwable);
+    }
 }

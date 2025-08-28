@@ -26,6 +26,15 @@ public class KvCacheSpec {
         this.allowNullValue = allowNullValue;
     }
 
+    public KvCacheSpec(KvCacheSpec other) {
+        this.cacheName = other.cacheName;
+        this.keyPrefix = other.keyPrefix;
+        this.cacheLevel = other.cacheLevel;
+        this.tenantMode = other.tenantMode;
+        this.useHashTag = other.useHashTag;
+        this.allowNullValue = other.allowNullValue;
+    }
+
     public static KvCacheSpec defaultSpec() {
         return new KvCacheSpec(CacheLevel.BOTH, TenantMode.NONE, true, false);
     }

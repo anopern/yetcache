@@ -4,13 +4,13 @@ package com.yetcache.core.support.key;
  * @author walter.yan
  * @since 2025/8/16
  */
-public class LongKeyConverter extends AbstractKeyConverter {
+public class LongKeyConverter extends AbstractKeyConverter<Long> {
     public LongKeyConverter(String keyPrefix, boolean useHashTag) {
         super(keyPrefix, useHashTag);
     }
 
     @Override
-    public <T> String convert(T bizKey) {
+    public String convert(Long bizKey) {
         StringBuilder sb = new StringBuilder(keyPrefix);
         if (null != bizKey) {
             String bizKeyStr = String.valueOf(bizKey);
@@ -26,9 +26,10 @@ public class LongKeyConverter extends AbstractKeyConverter {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> T revert(String key) {
-        if (key == null) return null;
+    public Long revert(String key) {
+        if (key == null) {
+            return null;
+        }
 
         String s = key;
 
@@ -61,7 +62,7 @@ public class LongKeyConverter extends AbstractKeyConverter {
         // 4) 解析为 Long（LongKeyConverter 的契约）
         try {
             Long v = Long.valueOf(s);
-            return (T) v;
+            return v;
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid Long bizKey in key: " + key, e);
         }

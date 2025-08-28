@@ -1,0 +1,23 @@
+package com.yetcache.example.quote.source;
+
+import com.yetcache.example.entity.QuoteSimpleQuoteRespVO;
+import com.yetcache.example.quote.source.QuoteSimpleQuoteReqDTO;
+import com.yetcache.example.result.R;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
+
+/**
+ * @author walter.yan
+ * @since 2025/8/28
+ */
+@FeignClient(name = "quotes-dataservice-app",
+        url = "https://hz-sit.yxzq.com")
+public interface QuotesDataService {
+
+    @PostMapping(value = "/quotes-dataservice/api/v3/simple-quote",
+            consumes = {"application/json"}, produces = {"application/json"})
+    R<List<QuoteSimpleQuoteRespVO>> querySimpleQuote(@RequestBody QuoteSimpleQuoteReqDTO req);
+}

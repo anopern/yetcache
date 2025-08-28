@@ -16,6 +16,12 @@ public class KvCacheConfig {
     protected CaffeineKVCacheConfig local;
     protected RedisKVCacheConfig remote;
 
+    public KvCacheConfig(KvCacheConfig other) {
+        this.spec = other.getSpec();
+        this.local = other.getLocal();
+        this.remote = other.getRemote();
+    }
+
     public static KvCacheConfig defaultConfig() {
         return new KvCacheConfig(KvCacheSpec.defaultSpec(),
                 CaffeineKVCacheConfig.defaultConfig(),
