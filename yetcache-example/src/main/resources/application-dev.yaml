@@ -48,9 +48,11 @@ yetcache:
         spec:
           cache-name: 'id-key-user-cache'
           key-prefix: 'nd:acc:user:idk'
-          cache-level: LOCAL
+          cache-level: BOTH
         local:
-          logic-ttl-secs: 10
+          logic-ttl-secs: 120
+        remote:
+          logic-ttl-secs: 20
       quote-latest-price-cache:
         spec:
           cache-name: 'quote-latest-price-cache'

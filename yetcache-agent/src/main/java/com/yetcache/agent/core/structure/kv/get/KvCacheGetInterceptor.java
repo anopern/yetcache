@@ -40,7 +40,7 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
     }
 
     @Override
-    public boolean supportStructureBehaviorKey(StructureBehaviorKey sbKey) {
+    public boolean supports(StructureBehaviorKey sbKey) {
         return StructureType.KV.equals(sbKey.getStructureType())
                 && BehaviorType.GET.equals(sbKey.getBehaviorType());
     }

@@ -19,6 +19,7 @@ import com.yetcache.core.config.kv.KvCacheConfig;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.support.key.KeyConverter;
+import com.yetcache.core.support.util.TtlRandomizer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
@@ -74,11 +75,21 @@ public class BaseKvCacheAgent implements KvCacheAgent {
 
     @Override
     public <K, T> CacheResult put(K bizKey, T value) {
+        Long localLogicTtlSecs = scope.getConfig().getLocal().getLogicTtlSecs();
+        localLogicTtlSecs = TtlRandomizer.randomizeSecs(localLogicTtlSecs,
+                scope.getConfig().getLocal().getTtlRandomPct());
+        Long localPhysicalTtlSecs = scope.getConfig().getLocal().getPhysicalTtlSecs();
+        Long remoteLogicTtlSecs = scope.getConfig().getRemote().getLogicTtlSecs();
+        remoteLogicTtlSecs = TtlRandomizer.randomizeSecs(remoteLogicTtlSecs,
+                scope.getConfig().getRemote().getTtlRandomPct());
+        Long remotePhysicalTtlSecs = scope.getConfig().getRemote().getPhysicalTtlSecs();
+        remotePhysicalTtlSecs = TtlRandomizer.randomizeSecs(remotePhysicalTtlSecs,
+                scope.getConfig().getRemote().getTtlRandomPct());
         KvCachePutCommand cmd = KvCachePutCommand.of(bizKey, value, CacheTtl.builder()
-                .localLogicSecs(scope.getConfig().getLocal().getLogicTtlSecs())
-                .localPhysicalSecs(scope.getConfig().getLocal().getPhysicalTtlSecs())
-                .remoteLogicSecs(scope.getConfig().getRemote().getLogicTtlSecs())
-                .remotePhysicalSecs(scope.getConfig().getRemote().getPhysicalTtlSecs())
+                .localLogicSecs(localLogicTtlSecs)
+                .localPhysicalSecs(localPhysicalTtlSecs)
+                .remoteLogicSecs(remoteLogicTtlSecs)
+                .remotePhysicalSecs(remotePhysicalTtlSecs)
                 .build());
         return scope.getMultiLevelCache().put(cmd);
     }

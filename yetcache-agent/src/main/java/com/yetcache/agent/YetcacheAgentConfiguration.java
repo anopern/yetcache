@@ -146,11 +146,8 @@ public class YetcacheAgentConfiguration {
             registry.register(dhBatchGetSb, dhBatchGetChain);
 
             StructureBehaviorKey kvGetSb = StructureBehaviorKey.of(StructureType.KV, BehaviorType.GET);
-            StructureBehaviorKey kvBatchGetSb = StructureBehaviorKey.of(StructureType.KV, BehaviorType.BATCH_GET);
             CacheInvocationChain kvGetChain = chainBuilder.build(kvGetSb);
-            CacheInvocationChain kvBatchGetChain = chainBuilder.build(kvBatchGetSb);
             registry.register(kvGetSb, kvGetChain);
-            registry.register(kvBatchGetSb, kvBatchGetChain);
         };
     }
 }
