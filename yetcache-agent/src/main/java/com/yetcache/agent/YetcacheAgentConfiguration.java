@@ -1,5 +1,6 @@
 package com.yetcache.agent;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.yetcache.agent.broadcast.BroadcastQueueInitializer;
@@ -18,6 +19,7 @@ import com.yetcache.agent.interceptor.*;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.codec.JsonValueCodec;
+import com.yetcache.core.codec.jackson.JacksonJsonValueCodec;
 import com.yetcache.core.config.YetCacheProperties;
 import com.yetcache.core.config.broadcast.RabbitMqConfig;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -40,6 +42,11 @@ public class YetcacheAgentConfiguration {
     @Bean
     public CacheAgentRegistryHub cacheAgentRegistryHub() {
         return new CacheAgentRegistryHub();
+    }
+
+    @Bean
+    public CacheAgentPortRegistry cacheAgentPortRegistry() {
+        return new CacheAgentPortRegistry();
     }
 
     @Bean
@@ -111,6 +118,11 @@ public class YetcacheAgentConfiguration {
         MetricsInterceptor interceptor = new MetricsInterceptor(registry);
         interceptorRegistry.register(interceptor);
         return interceptor;
+    }
+
+    @Bean
+    public JsonValueCodec jsonValueCodec(ObjectMapper objectMapper) {
+        return new JacksonJsonValueCodec(objectMapper);
     }
 
     @Bean
