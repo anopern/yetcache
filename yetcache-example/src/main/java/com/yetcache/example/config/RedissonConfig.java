@@ -18,7 +18,8 @@ public class RedissonConfig {
         Config config = new Config();
 
         config.useSingleServer()
-                .setAddress("redis://127.0.0.1:6379")
+                .setAddress("redis://10.60.8.47:6383")
+                .setPassword("xpMj4KymXLe5")
                 .setConnectionMinimumIdleSize(10)
                 .setConnectionPoolSize(64)
                 .setIdleConnectionTimeout(10000);
