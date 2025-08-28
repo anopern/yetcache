@@ -61,8 +61,7 @@ public class LongKeyConverter extends AbstractKeyConverter<Long> {
 
         // 4) 解析为 Long（LongKeyConverter 的契约）
         try {
-            Long v = Long.valueOf(s);
-            return v;
+            return Long.valueOf(s);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid Long bizKey in key: " + key, e);
         }

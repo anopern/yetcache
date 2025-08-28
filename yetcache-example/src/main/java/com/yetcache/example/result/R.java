@@ -14,7 +14,7 @@ public class R<T> {
 
     private T data;
 
-    public static <T> R<T> success(T data) {
+    public static <T> R<T> ok(T data) {
         R<T> r = new R<>();
         r.setCode(200);
         r.setMessage("success");

@@ -6,4 +6,5 @@ package com.yetcache.example.config;
  */
 public final class CacheAgentNames {
     public static final String QUOTE_LATEST_PRICE_CACHE_AGENT = "quote-latest-price-cache";
+    public static final String ID_KEY_USER_CACHE = "id-key-user-cache";
 }

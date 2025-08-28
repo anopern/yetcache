@@ -10,6 +10,7 @@ import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.codec.StringCodec;
 import org.redisson.codec.CompositeCodec;
+
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,7 +32,8 @@ public class RedisKVCache {
     }
 
     private RBucket<String> bucket(String key) {
-        return rClient.getBucket(key, new CompositeCodec(StringCodec.INSTANCE, StringCodec.INSTANCE));
+        return rClient.getBucket(key, new CompositeCodec(StringCodec.INSTANCE, StringCodec.INSTANCE
+                , StringCodec.INSTANCE));
     }
 
     public <T> CacheValueHolder<T> get(String key, TypeRef<T> valueTypeRef) {

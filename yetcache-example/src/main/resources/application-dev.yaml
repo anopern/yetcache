@@ -44,23 +44,15 @@ management:
 yetcache:
   caches:
     kv:
-      user-id-key-cache:
+      id-key-user-cache:
         spec:
-          cache-name: 'user-id-key-cache'
+          cache-name: 'id-key-user-cache'
           key-prefix: 'nd:acc:user:idk'
-          refresh-interval-secs: 60
-    flat-hash:
-      config-common-info-cache:
-        spec:
-          cache-name: 'config-common-info-cache'
-          key-prefix: 'nd:cfg:common:info'
-    dynamic-hash:
-      stock-hold-info-cache:
-        spec:
-          cache-tier: BOTH
-          cache-name: 'stock-hold-info-cache'
-          key-prefix: 'nd:asset:stock:hold'
+          cache-level: LOCAL
         local:
-          logic-ttl-secs: 5
-        remote:
           logic-ttl-secs: 10
+      quote-latest-price-cache:
+        spec:
+          cache-name: 'quote-latest-price-cache'
+          key-prefix: 'com:quote:latest'
+

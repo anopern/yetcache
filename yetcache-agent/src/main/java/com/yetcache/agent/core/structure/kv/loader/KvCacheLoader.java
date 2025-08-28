@@ -10,7 +10,7 @@ public interface KvCacheLoader<K> {
 
     String getLoaderName();
 
- CacheResult load(KvCacheLoadCommand<K> cmd);
+    CacheResult load(KvCacheLoadCommand<K> cmd);
 
-  CacheResult batchLoad(KvCacheBatchLoadCommand<K> cmd);
+    CacheResult batchLoad(KvCacheBatchLoadCommand<K> cmd);
 }

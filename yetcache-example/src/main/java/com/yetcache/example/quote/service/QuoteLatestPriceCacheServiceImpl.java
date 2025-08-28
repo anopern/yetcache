@@ -10,6 +10,7 @@ import com.yetcache.example.quote.vo.QuoteLatestPriceVO;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,9 +19,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-@AllArgsConstructor(onConstructor = @__(@Autowired))
 public class QuoteLatestPriceCacheServiceImpl implements QuoteLatestPriceCacheService {
-    private final BaseKvCacheAgent cacheAgent;
+    @Qualifier("quoteLatestPriceCacheAgent")
+    private BaseKvCacheAgent cacheAgent;
 
     @Override
     public BaseCacheResult<QuoteLatestPriceVO> get(QuoteLatestPriceQuery query, QuoteLatestPriceQueryContext context) {
