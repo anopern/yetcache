@@ -1,4 +1,4 @@
-package com.yetcache.agent.interceptor;
+package com.yetcache.agent.core;
 
 /**
  * @author walter.yan

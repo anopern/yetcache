@@ -24,7 +24,7 @@ public class BroadcastQueueInitializer {
         // 2. 构建 queue 名称
         String queueName;
         if (Boolean.TRUE.equals(config.getAnonymous())) {
-            queueName = ""; // broker 会自动生成
+            queueName = "";
         } else {
             String instanceId = InstanceIdProvider.getInstanceId();
             queueName = config.getQueuePrefix() + instanceId;

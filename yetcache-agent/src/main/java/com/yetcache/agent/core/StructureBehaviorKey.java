@@ -1,6 +1,5 @@
-package com.yetcache.agent.interceptor;
+package com.yetcache.agent.core;
 
-import com.yetcache.agent.core.StructureType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

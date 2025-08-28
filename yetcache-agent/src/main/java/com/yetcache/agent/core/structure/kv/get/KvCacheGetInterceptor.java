@@ -1,8 +1,9 @@
 package com.yetcache.agent.core.structure.kv.get;
 
+import com.yetcache.agent.core.BehaviorType;
+import com.yetcache.agent.core.StructureBehaviorKey;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.kv.KvCacheAgentScope;
-import com.yetcache.agent.core.structure.kv.loader.KvCacheBatchLoadCommand;
 import com.yetcache.agent.core.structure.kv.loader.KvCacheLoadCommand;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.command.kv.KvCacheGetCommand;
@@ -88,7 +89,7 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
             if (storeResult.isSuccess() && storeResult.hitLevelInfo().hitLevel() != HitLevel.NONE) {
                 return storeResult;
             }
-            KvCacheLoadCommand<?> loadCmd = new KvCacheLoadCommand<>(bizKey);
+            KvCacheLoadCommand loadCmd = new KvCacheLoadCommand<>(bizKey);
             // 回源加载数据
             CacheResult loadResult = agentScope.getCacheLoader().load(loadCmd);
             if (loadResult.isSuccess() && null == loadResult.value()) {

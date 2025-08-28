@@ -2,7 +2,7 @@ package com.yetcache.agent.broadcast.receiver;
 
 import cn.hutool.core.util.StrUtil;
 import com.yetcache.agent.broadcast.InstanceIdProvider;
-import com.yetcache.agent.broadcast.command.CacheRemoveCommand;
+import com.yetcache.agent.broadcast.CacheRemoveCommand;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandler;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
 import com.yetcache.agent.core.StructureType;

@@ -3,13 +3,9 @@ package com.yetcache.example.service.loader;
 import com.yetcache.agent.core.structure.kv.loader.AbstractKvCacheLoader;
 import com.yetcache.agent.core.structure.kv.loader.KvCacheBatchLoadCommand;
 import com.yetcache.agent.core.structure.kv.loader.KvCacheLoadCommand;
-import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
-import com.yetcache.core.result.HitLevel;
-import com.yetcache.example.entity.User;
 import com.yetcache.example.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.K;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +26,11 @@ public class IdKeyUserCacheLoader extends AbstractKvCacheLoader<Long> {
 
     @Override
     public CacheResult load(KvCacheLoadCommand<Long> cmd) {
+        return null;
+    }
+
+    @Override
+    public CacheResult batchLoad(KvCacheBatchLoadCommand<Long> cmd) {
         return null;
     }
 

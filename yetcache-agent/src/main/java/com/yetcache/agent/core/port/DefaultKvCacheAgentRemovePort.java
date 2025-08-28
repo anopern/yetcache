@@ -2,8 +2,8 @@ package com.yetcache.agent.core.port;
 
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.structure.kv.KvCacheAgent;
-import com.yetcache.agent.interceptor.BehaviorType;
-import com.yetcache.agent.interceptor.StructureBehaviorKey;
+import com.yetcache.agent.core.BehaviorType;
+import com.yetcache.agent.core.StructureBehaviorKey;
 import com.yetcache.core.result.CacheResult;
 import lombok.AllArgsConstructor;
 

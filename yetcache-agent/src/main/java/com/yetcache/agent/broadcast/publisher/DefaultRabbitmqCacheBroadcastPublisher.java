@@ -1,6 +1,6 @@
 package com.yetcache.agent.broadcast.publisher;
 
-import com.yetcache.agent.broadcast.command.CacheRemoveCommand;
+import com.yetcache.agent.broadcast.CacheRemoveCommand;
 import com.yetcache.core.config.broadcast.RabbitMqConfig;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
@@ -27,6 +27,7 @@ public class DefaultRabbitmqCacheBroadcastPublisher implements CacheBroadcastPub
     @Override
     public void publish(CacheRemoveCommand command) {
         try {
+            command.setPublishAt(System.currentTimeMillis());
             Message message = messageConverter.toMessage(command, new MessageProperties());
             message.getMessageProperties().setDeliveryMode(
                     config.getDurable() != null && config.getDurable()

@@ -1,5 +1,7 @@
 package com.yetcache.agent.interceptor;
 
+import com.yetcache.agent.core.StructureBehaviorKey;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;

@@ -1,6 +1,8 @@
 package com.yetcache.agent.core.structure.kv;
 
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
+import com.yetcache.agent.core.BehaviorType;
+import com.yetcache.agent.core.StructureBehaviorKey;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.port.*;
 import com.yetcache.agent.core.structure.kv.get.KvCacheAgentGetInvocationCommand;

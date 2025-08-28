@@ -35,4 +35,4 @@ build/
 .DS_Store
 .idea/
 target/
-application-fs.yaml
+application-fins.yaml

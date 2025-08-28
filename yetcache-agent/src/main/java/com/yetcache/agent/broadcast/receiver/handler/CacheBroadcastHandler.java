@@ -1,6 +1,6 @@
 package com.yetcache.agent.broadcast.receiver.handler;
 
-import com.yetcache.agent.broadcast.command.CacheRemoveCommand;
+import com.yetcache.agent.broadcast.CacheRemoveCommand;
 import com.yetcache.agent.core.StructureType;
 
 /**

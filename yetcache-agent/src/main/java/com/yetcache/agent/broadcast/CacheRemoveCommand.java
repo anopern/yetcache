@@ -1,4 +1,4 @@
-package com.yetcache.agent.broadcast.command;
+package com.yetcache.agent.broadcast;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

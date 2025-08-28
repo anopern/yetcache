@@ -1,6 +1,6 @@
 package com.yetcache.agent.broadcast.publisher;
 
-import com.yetcache.agent.broadcast.command.CacheRemoveCommand;
+import com.yetcache.agent.broadcast.CacheRemoveCommand;
 
 /**
  * @author walter.yan

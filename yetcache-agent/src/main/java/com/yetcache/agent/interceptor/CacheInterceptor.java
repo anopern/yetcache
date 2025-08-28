@@ -1,5 +1,6 @@
 package com.yetcache.agent.interceptor;
 
+import com.yetcache.agent.core.StructureBehaviorKey;
 import com.yetcache.core.result.CacheResult;
 
 

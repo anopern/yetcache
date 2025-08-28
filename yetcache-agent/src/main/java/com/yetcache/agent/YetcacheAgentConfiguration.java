@@ -1,20 +1,29 @@
-package com.yetcache.agent.config;
+package com.yetcache.agent;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.yetcache.agent.broadcast.BroadcastQueueInitializer;
+import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
+import com.yetcache.agent.broadcast.publisher.DefaultRabbitmqCacheBroadcastPublisher;
 import com.yetcache.agent.broadcast.receiver.CacheBroadcastReceiver;
 import com.yetcache.agent.broadcast.receiver.RabbitMqCacheBroadcastReceiver;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
-import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
-import com.yetcache.agent.broadcast.publisher.DefaultRabbitmqCacheBroadcastPublisher;
-import com.yetcache.agent.broadcast.receiver.handler.impl.KvCacheAgentRemoveLocalHandler;
+import com.yetcache.agent.broadcast.receiver.handler.KvCacheAgentRemoveLocalHandler;
+import com.yetcache.agent.core.BehaviorType;
+import com.yetcache.agent.core.StructureBehaviorKey;
+import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.port.CacheAgentPortRegistry;
+import com.yetcache.agent.governance.plugin.MetricsInterceptor;
+import com.yetcache.agent.interceptor.*;
+import com.yetcache.agent.regitry.CacheAgentRegistryHub;
+import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.config.YetCacheProperties;
 import com.yetcache.core.config.broadcast.RabbitMqConfig;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,11 +32,20 @@ import java.io.IOException;
 
 /**
  * @author walter.yan
- * @since 2025/7/12
+ * @since 2025/8/7
  */
 @Configuration
 @EnableConfigurationProperties(YetCacheProperties.class)
-public class YetcacheBroadcastConfiguration {
+public class YetcacheAgentConfiguration {
+    @Bean
+    public CacheAgentRegistryHub cacheAgentRegistryHub() {
+        return new CacheAgentRegistryHub();
+    }
+
+    @Bean
+    public YetCacheConfigResolver yetCacheConfigResolver(YetCacheProperties props) {
+        return new YetCacheConfigResolver(props);
+    }
 
     @Bean
     public String broadcastQueueName(YetCacheProperties yetCacheProperties,
@@ -68,5 +86,43 @@ public class YetcacheBroadcastConfiguration {
         KvCacheAgentRemoveLocalHandler handler = new KvCacheAgentRemoveLocalHandler(cacheAgentPortRegistry);
         handlerRegistry.register(handler);
         return handler;
+    }
+
+    @Bean
+    public CacheInvocationInterceptorRegistry cacheInvocationInterceptorRegistry() {
+        return new CacheInvocationInterceptorRegistry();
+    }
+
+    @Bean
+    public CacheInvocationChainBuilder cacheInvocationChainBuilder(CacheInvocationInterceptorRegistry interceptorRegistry) {
+        return new CacheInvocationChainBuilder(interceptorRegistry);
+    }
+
+    @Bean
+    public CacheInvocationChainRegistry cacheInvocationChainRegistry() {
+        return new CacheInvocationChainRegistry();
+    }
+
+
+    @Bean
+    public MetricsInterceptor metricsInterceptor(
+            CacheInvocationInterceptorRegistry interceptorRegistry,
+            MeterRegistry registry) {
+        MetricsInterceptor interceptor = new MetricsInterceptor(registry);
+        interceptorRegistry.register(interceptor);
+        return interceptor;
+    }
+
+    @Bean
+    public ApplicationRunner registerDefaultChains(CacheInvocationChainRegistry registry,
+                                                   CacheInvocationChainBuilder chainBuilder) {
+        return args -> {
+            StructureBehaviorKey dhGetSb = StructureBehaviorKey.of(StructureType.HASH, BehaviorType.GET);
+            StructureBehaviorKey dhBatchGetSb = StructureBehaviorKey.of(StructureType.HASH, BehaviorType.BATCH_GET);
+            CacheInvocationChain dhGetChain = chainBuilder.build(dhGetSb);
+            CacheInvocationChain dhBatchGetChain = chainBuilder.build(dhBatchGetSb);
+            registry.register(dhGetSb, dhGetChain);
+            registry.register(dhBatchGetSb, dhBatchGetChain);
+        };
     }
 }

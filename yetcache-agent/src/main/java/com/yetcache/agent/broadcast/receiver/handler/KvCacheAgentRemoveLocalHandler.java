@@ -1,11 +1,10 @@
-package com.yetcache.agent.broadcast.receiver.handler.impl;
+package com.yetcache.agent.broadcast.receiver.handler;
 
-import com.yetcache.agent.broadcast.command.CacheRemoveCommand;
-import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandler;
+import com.yetcache.agent.broadcast.CacheRemoveCommand;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.port.CacheAgentPortRegistry;
 import com.yetcache.agent.core.port.KvCacheAgentRemovePort;
-import com.yetcache.agent.interceptor.BehaviorType;
+import com.yetcache.agent.core.BehaviorType;
 import lombok.AllArgsConstructor;
 
 /**

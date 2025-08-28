@@ -1,6 +1,6 @@
 package com.yetcache.agent.core.port;
 
-import com.yetcache.agent.interceptor.BehaviorType;
+import com.yetcache.agent.core.BehaviorType;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

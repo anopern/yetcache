@@ -1,6 +1,6 @@
 package com.yetcache.agent.core.port;
 
-import com.yetcache.agent.interceptor.StructureBehaviorKey;
+import com.yetcache.agent.core.StructureBehaviorKey;
 
 /**
  * @author walter.yan
