@@ -76,8 +76,6 @@ public class MetricsInterceptor implements CacheInterceptor {
                             .map(Enum::name).orElse(""))
                     .register(registry)
                     .record(costNs, TimeUnit.NANOSECONDS);
-        } else if (behaviorType == BehaviorType.BATCH_GET) {
-
         } else {
             log.error("Unsupported behavior type: {}", behaviorType);
         }
