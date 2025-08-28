@@ -14,6 +14,7 @@ import com.yetcache.agent.core.BehaviorType;
 import com.yetcache.agent.core.StructureBehaviorKey;
 import com.yetcache.agent.core.StructureType;
 import com.yetcache.agent.core.port.CacheAgentPortRegistry;
+import com.yetcache.agent.core.structure.kv.get.KvCacheGetInterceptor;
 import com.yetcache.agent.governance.plugin.MetricsInterceptor;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.agent.regitry.CacheAgentRegistryHub;
@@ -121,6 +122,14 @@ public class YetcacheAgentConfiguration {
     }
 
     @Bean
+    public KvCacheGetInterceptor kvCacheGetInterceptor(
+            CacheInvocationInterceptorRegistry interceptorRegistry) {
+        KvCacheGetInterceptor interceptor = new KvCacheGetInterceptor();
+        interceptorRegistry.register(interceptor);
+        return interceptor;
+    }
+
+    @Bean
     public JsonValueCodec jsonValueCodec(ObjectMapper objectMapper) {
         return new JacksonJsonValueCodec(objectMapper);
     }
@@ -135,6 +144,13 @@ public class YetcacheAgentConfiguration {
             CacheInvocationChain dhBatchGetChain = chainBuilder.build(dhBatchGetSb);
             registry.register(dhGetSb, dhGetChain);
             registry.register(dhBatchGetSb, dhBatchGetChain);
+
+            StructureBehaviorKey kvGetSb = StructureBehaviorKey.of(StructureType.KV, BehaviorType.GET);
+            StructureBehaviorKey kvBatchGetSb = StructureBehaviorKey.of(StructureType.KV, BehaviorType.BATCH_GET);
+            CacheInvocationChain kvGetChain = chainBuilder.build(kvGetSb);
+            CacheInvocationChain kvBatchGetChain = chainBuilder.build(kvBatchGetSb);
+            registry.register(kvGetSb, kvGetChain);
+            registry.register(kvBatchGetSb, kvBatchGetChain);
         };
     }
 }

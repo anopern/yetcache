@@ -17,7 +17,7 @@ import java.util.List;
         url = "https://hz-sit.yxzq.com")
 public interface QuotesDataService {
 
-    @PostMapping(value = "/quotes-dataservice/api/v3/simple-quote",
+    @PostMapping(value = "/quotes-dataservice-app/api/v3/simple-quote",
             consumes = {"application/json"}, produces = {"application/json"})
     R<List<QuoteSimpleQuoteRespVO>> querySimpleQuote(@RequestBody QuoteSimpleQuoteReqDTO req);
 }

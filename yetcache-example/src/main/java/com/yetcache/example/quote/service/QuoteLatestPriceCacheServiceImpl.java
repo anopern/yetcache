@@ -29,6 +29,7 @@ public class QuoteLatestPriceCacheServiceImpl implements QuoteLatestPriceCacheSe
                 .market(exchangeTypeEnum.getMarket())
                 .symbol(query.getCode())
                 .level(context.getLevel())
+                .session(context.getSession())
                 .build();
         return cacheAgent.get(bizKey);
     }
