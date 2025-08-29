@@ -1,5 +1,6 @@
 package com.yetcache.example.quote.source;
 
+import com.yetcache.example.entity.QuoteSimpleQuoteList;
 import com.yetcache.example.entity.QuoteSimpleQuoteRespVO;
 import com.yetcache.example.quote.source.QuoteSimpleQuoteReqDTO;
 import com.yetcache.example.result.R;
@@ -19,5 +20,5 @@ public interface QuotesDataService {
 
     @PostMapping(value = "/quotes-dataservice-app/api/v3/simple-quote",
             consumes = {"application/json"}, produces = {"application/json"})
-    R<List<QuoteSimpleQuoteRespVO>> querySimpleQuote(@RequestBody QuoteSimpleQuoteReqDTO req);
+    R<QuoteSimpleQuoteList> querySimpleQuote(@RequestBody QuoteSimpleQuoteReqDTO req);
 }

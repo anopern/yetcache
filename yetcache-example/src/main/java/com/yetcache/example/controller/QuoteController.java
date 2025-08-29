@@ -32,9 +32,9 @@ public class QuoteController {
 
     @PostMapping("/latestPrice")
     public R<QuoteLatestPriceVO> latestPrice(@RequestBody QuoteLatestPriceDTO dto) {
-        BaseCacheResult<QuoteLatestPriceVO> ret = quoteLatestPriceCacheService.get(dto.getQuery(), dto.getContext());
-        if (ret.isSuccess()) {
-            return R.ok(ret.getValue());
+        BaseCacheResult<QuoteLatestPriceVO> result = quoteLatestPriceCacheService.get(dto.getQuery(), dto.getContext());
+        if (result.isSuccess()) {
+            return R.ok(result.value());
         }
         return R.fail("操作失败！");
     }

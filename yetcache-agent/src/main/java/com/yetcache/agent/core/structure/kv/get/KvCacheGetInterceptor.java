@@ -92,6 +92,9 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
             KvCacheLoadCommand loadCmd = new KvCacheLoadCommand<>(bizKey);
             // 回源加载数据
             CacheResult loadResult = agentScope.getCacheLoader().load(loadCmd);
+            if (!loadResult.isSuccess()) {
+                return BaseCacheResult.fail(cacheAgentName, loadResult.errorInfo());
+            }
             if (loadResult.isSuccess() && null == loadResult.value()) {
                 return BaseCacheResult.miss(cacheAgentName);
             }

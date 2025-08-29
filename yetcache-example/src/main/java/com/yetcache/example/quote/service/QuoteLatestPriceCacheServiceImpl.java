@@ -1,7 +1,9 @@
 package com.yetcache.example.quote.service;
 
 import com.yetcache.agent.core.structure.kv.BaseKvCacheAgent;
+import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.result.BaseCacheResult;
+import com.yetcache.example.entity.User;
 import com.yetcache.example.quote.QuoteLatestPriceQuery;
 import com.yetcache.example.quote.QuoteLatestPriceQueryContext;
 import com.yetcache.example.quote.YxExchangeTypeEnum;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class QuoteLatestPriceCacheServiceImpl implements QuoteLatestPriceCacheService {
     @Qualifier("quoteLatestPriceCacheAgent")
+    @Autowired
     private BaseKvCacheAgent cacheAgent;
 
     @Override
@@ -32,6 +35,11 @@ public class QuoteLatestPriceCacheServiceImpl implements QuoteLatestPriceCacheSe
                 .level(context.getLevel())
                 .session(context.getSession())
                 .build();
-        return cacheAgent.get(bizKey);
+        BaseCacheResult<CacheValueHolder<QuoteLatestPriceVO>> result = cacheAgent.get(bizKey);
+        if (result.isSuccess() && result.value() != null) {
+            CacheValueHolder<QuoteLatestPriceVO> valueHolder = result.value();
+            return BaseCacheResult.success(result.getComponentName(), valueHolder.getValue());
+        }
+        return BaseCacheResult.fail(result.getComponentName(), result.errorInfo());
     }
 }

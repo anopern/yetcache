@@ -8,6 +8,7 @@ import com.yetcache.agent.core.structure.kv.loader.KvCacheLoadCommand;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.ErrorInfo;
+import com.yetcache.example.entity.QuoteSimpleQuoteList;
 import com.yetcache.example.entity.QuoteSimpleQuoteRespVO;
 import com.yetcache.example.quote.key.QuoteLatestPriceCacheKey;
 import com.yetcache.example.quote.source.QuoteSimpleQuoteReqDTO;
@@ -48,13 +49,13 @@ public class QuoteLatestPriceCacheLoader extends AbstractKvCacheLoader<QuoteLate
                 .build();
 
         try {
-            R<List<QuoteSimpleQuoteRespVO>> resp = quotesDataService.querySimpleQuote(req);
-            if (resp.getCode() == 200) {
-                List<QuoteSimpleQuoteRespVO> respVOList = resp.getData();
-                if (CollUtil.isEmpty(respVOList)) {
+            R<QuoteSimpleQuoteList> resp = quotesDataService.querySimpleQuote(req);
+            if (resp.getCode() == 0) {
+                QuoteSimpleQuoteList respVOList = resp.getData();
+                if (null == respVOList || CollUtil.isEmpty(respVOList.getList())) {
                     return BaseCacheResult.success(getLoaderName(), null);
                 }
-                QuoteSimpleQuoteRespVO respVO = respVOList.get(0);
+                QuoteSimpleQuoteRespVO respVO = respVOList.getList().get(0);
                 QuoteLatestPriceVO priceVO = QuoteLatestPriceVO.builder()
                         .exchangeType(respVO.getId().getGreyMarket())
                         .code(respVO.getId().getSymbol())
