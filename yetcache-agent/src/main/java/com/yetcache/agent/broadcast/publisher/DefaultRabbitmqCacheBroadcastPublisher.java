@@ -27,7 +27,6 @@ public class DefaultRabbitmqCacheBroadcastPublisher implements CacheBroadcastPub
     @Override
     public void publish(CacheRemoveCommand command) {
         try {
-            command.setPublishAt(System.currentTimeMillis());
             Message message = messageConverter.toMessage(command, new MessageProperties());
             message.getMessageProperties().setDeliveryMode(
                     config.getDurable() != null && config.getDurable()

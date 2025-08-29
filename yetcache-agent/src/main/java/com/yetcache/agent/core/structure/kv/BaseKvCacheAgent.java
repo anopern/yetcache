@@ -1,5 +1,7 @@
 package com.yetcache.agent.core.structure.kv;
 
+import com.yetcache.agent.broadcast.CacheRemoveCommand;
+import com.yetcache.agent.broadcast.InstanceIdProvider;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.BehaviorType;
 import com.yetcache.agent.core.StructureBehaviorKey;
@@ -23,6 +25,8 @@ import com.yetcache.core.support.util.TtlRandomizer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author walter.yan
@@ -91,7 +95,21 @@ public class BaseKvCacheAgent implements KvCacheAgent {
                 .remoteLogicSecs(remoteLogicTtlSecs)
                 .remotePhysicalSecs(remotePhysicalTtlSecs)
                 .build());
-        return scope.getMultiLevelCache().put(cmd);
+        CacheResult putResult = scope.getMultiLevelCache().put(cmd);
+
+        CompletableFuture.runAsync(() ->{
+            @SuppressWarnings("unchecked")
+            CacheRemoveCommand removeCmd = CacheRemoveCommand.builder()
+                    .structureType(StructureType.KV.name())
+                    .cacheAgentName(scope.getCacheAgentName())
+                    .key(scope.getKeyConverter().convert(cmd.getBizKey()))
+                    .instanceId(InstanceIdProvider.getInstanceId())
+                    .publishAt(System.currentTimeMillis())
+                    .build();
+            scope.getBroadcastPublisher().publish(removeCmd);
+        });
+
+        return putResult;
     }
 
     @Override

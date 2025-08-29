@@ -36,3 +36,4 @@ build/
 .idea/
 target/
 application-fins.yaml
+logs/
