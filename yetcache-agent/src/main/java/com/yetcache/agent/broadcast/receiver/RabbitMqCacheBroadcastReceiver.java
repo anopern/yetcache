@@ -5,7 +5,7 @@ import com.yetcache.agent.broadcast.InstanceIdProvider;
 import com.yetcache.agent.broadcast.CacheRemoveCommand;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandler;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
-import com.yetcache.agent.core.StructureType;
+import com.yetcache.agent.agent.StructureType;
 import com.yetcache.core.codec.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

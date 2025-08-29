@@ -1,6 +1,6 @@
 package com.yetcache.core.codec;
 
-import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.support.CacheValueHolder;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

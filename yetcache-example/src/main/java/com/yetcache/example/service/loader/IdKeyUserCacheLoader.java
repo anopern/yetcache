@@ -1,8 +1,8 @@
 package com.yetcache.example.service.loader;
 
-import com.yetcache.agent.core.structure.kv.loader.AbstractKvCacheLoader;
-import com.yetcache.agent.core.structure.kv.loader.KvCacheBatchLoadCommand;
-import com.yetcache.agent.core.structure.kv.loader.KvCacheLoadCommand;
+import com.yetcache.agent.agent.kv.loader.AbstractKvCacheLoader;
+import com.yetcache.agent.agent.kv.loader.KvCacheBatchLoadCommand;
+import com.yetcache.agent.agent.kv.loader.KvCacheLoadCommand;
 import com.yetcache.core.result.*;
 import com.yetcache.example.entity.User;
 import com.yetcache.example.service.IUserService;

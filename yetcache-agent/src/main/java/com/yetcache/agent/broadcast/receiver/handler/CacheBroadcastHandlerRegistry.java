@@ -1,6 +1,6 @@
 package com.yetcache.agent.broadcast.receiver.handler;
 
-import com.yetcache.agent.core.StructureType;
+import com.yetcache.agent.agent.StructureType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

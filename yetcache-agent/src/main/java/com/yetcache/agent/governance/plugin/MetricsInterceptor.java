@@ -1,8 +1,8 @@
 package com.yetcache.agent.governance.plugin;
 
-import com.yetcache.agent.core.BehaviorType;
-import com.yetcache.agent.core.StructureBehaviorKey;
-import com.yetcache.agent.core.StructureType;
+import com.yetcache.agent.agent.BehaviorType;
+import com.yetcache.agent.agent.StructureBehaviorKey;
+import com.yetcache.agent.agent.StructureType;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.result.CacheResult;
 import io.micrometer.core.instrument.Counter;

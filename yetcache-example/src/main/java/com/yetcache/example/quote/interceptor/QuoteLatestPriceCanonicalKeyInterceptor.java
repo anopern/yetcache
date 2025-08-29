@@ -1,10 +1,10 @@
 package com.yetcache.example.quote.interceptor;
 
-import com.yetcache.agent.core.BehaviorType;
-import com.yetcache.agent.core.StructureBehaviorKey;
-import com.yetcache.agent.core.StructureType;
-import com.yetcache.agent.core.structure.kv.KvCacheAgentScope;
-import com.yetcache.agent.core.structure.kv.get.KvCacheAgentGetInvocationCommand;
+import com.yetcache.agent.agent.BehaviorType;
+import com.yetcache.agent.agent.StructureBehaviorKey;
+import com.yetcache.agent.agent.StructureType;
+import com.yetcache.agent.agent.kv.KvCacheAgentScope;
+import com.yetcache.agent.agent.kv.interceptor.KvCacheAgentGetInvocationCommand;
 import com.yetcache.agent.interceptor.CacheInterceptor;
 import com.yetcache.agent.interceptor.CacheInvocationContext;
 import com.yetcache.agent.interceptor.ChainRunner;

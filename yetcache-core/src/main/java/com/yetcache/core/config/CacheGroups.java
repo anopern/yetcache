@@ -1,9 +1,7 @@
 package com.yetcache.core.config;
 
-import com.yetcache.core.config.hash.HashCacheConfig;
 import com.yetcache.core.config.kv.KvCacheConfig;
 import lombok.Data;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,5 +12,4 @@ import java.util.Map;
 @Data
 public class CacheGroups {
     protected Map<String, KvCacheConfig> kv = new HashMap<>();
-    protected Map<String, HashCacheConfig> dynamicHash = new HashMap<>();
 }

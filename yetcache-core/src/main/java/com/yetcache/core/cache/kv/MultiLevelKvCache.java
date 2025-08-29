@@ -1,9 +1,9 @@
 package com.yetcache.core.cache.kv;
 
 
-import com.yetcache.core.cache.command.kv.KvCacheGetCommand;
-import com.yetcache.core.cache.command.kv.KvCachePutCommand;
-import com.yetcache.core.cache.command.kv.KvCacheRemoveCommand;
+import com.yetcache.core.cache.kv.command.KvCacheGetCommand;
+import com.yetcache.core.cache.kv.command.KvCachePutCommand;
+import com.yetcache.core.cache.kv.command.KvCacheRemoveCommand;
 import com.yetcache.core.result.CacheResult;
 
 /**

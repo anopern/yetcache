@@ -1,8 +1,8 @@
 package com.yetcache.example.cache.cnfig;
 
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
-import com.yetcache.agent.core.port.CacheAgentPortRegistry;
-import com.yetcache.agent.core.structure.kv.BaseKvCacheAgent;
+import com.yetcache.agent.agent.CacheAgentPortRegistry;
+import com.yetcache.agent.agent.kv.BaseKvCacheAgent;
 import com.yetcache.agent.interceptor.CacheInvocationChainRegistry;
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.codec.JsonValueCodec;

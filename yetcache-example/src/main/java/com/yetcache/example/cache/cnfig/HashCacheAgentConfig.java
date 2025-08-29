@@ -9,7 +9,7 @@
 //import com.yetcache.agent.core.structure.hash.BaseHashCacheAgent;
 //import com.yetcache.agent.core.structure.hash.HashCacheLoader;
 //import com.yetcache.agent.interceptor.CacheInvocationChainRegistry;
-//import com.yetcache.agent.regitry.CacheAgentRegistryHub;
+//import com.yetcache.agent.agent.CacheAgentRegistryHub;
 //import com.yetcache.core.codec.TypeRefRegistry;
 //import com.yetcache.core.codec.jackson.JacksonJsonValueCodec;
 //import com.yetcache.core.codec.TypeDescriptor;

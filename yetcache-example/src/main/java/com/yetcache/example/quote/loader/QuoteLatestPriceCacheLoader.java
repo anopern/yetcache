@@ -2,9 +2,9 @@ package com.yetcache.example.quote.loader;
 
 import cn.hutool.core.collection.CollUtil;
 import com.google.common.collect.Lists;
-import com.yetcache.agent.core.structure.kv.loader.AbstractKvCacheLoader;
-import com.yetcache.agent.core.structure.kv.loader.KvCacheBatchLoadCommand;
-import com.yetcache.agent.core.structure.kv.loader.KvCacheLoadCommand;
+import com.yetcache.agent.agent.kv.loader.AbstractKvCacheLoader;
+import com.yetcache.agent.agent.kv.loader.KvCacheBatchLoadCommand;
+import com.yetcache.agent.agent.kv.loader.KvCacheLoadCommand;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.ErrorInfo;

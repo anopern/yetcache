@@ -1,7 +1,7 @@
 package com.yetcache.example.cache.service;
 
-import com.yetcache.agent.core.structure.kv.BaseKvCacheAgent;
-import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.agent.agent.kv.BaseKvCacheAgent;
+import com.yetcache.core.support.CacheValueHolder;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.example.entity.User;
 import lombok.extern.slf4j.Slf4j;

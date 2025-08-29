@@ -2,8 +2,8 @@ package com.yetcache.core.cache.kv;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.yetcache.core.cache.support.CacheValueHolder;
-import com.yetcache.core.config.kv.CaffeineKVCacheConfig;
+import com.yetcache.core.support.CacheValueHolder;
+import com.yetcache.core.config.kv.CaffeineKvCacheConfig;
 import com.yetcache.core.util.TtlRandomizer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,10 +20,10 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CaffeineKVCache {
 
-    protected final CaffeineKVCacheConfig config;
+    protected final CaffeineKvCacheConfig config;
     protected final Cache<String, CacheValueHolder<?>> cache;
 
-    public CaffeineKVCache(CaffeineKVCacheConfig config) {
+    public CaffeineKVCache(CaffeineKvCacheConfig config) {
         this.config = config;
         this.cache = buildCache();
     }

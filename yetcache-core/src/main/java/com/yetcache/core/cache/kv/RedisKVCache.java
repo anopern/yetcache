@@ -1,7 +1,7 @@
 package com.yetcache.core.cache.kv;
 
 import cn.hutool.core.util.StrUtil;
-import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.support.CacheValueHolder;
 import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.codec.TypeRef;
 import com.yetcache.core.codec.TypeRefs;

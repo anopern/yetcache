@@ -1,10 +1,10 @@
 package com.yetcache.core.cache.kv;
 
 import com.yetcache.core.cache.CacheTtl;
-import com.yetcache.core.cache.command.kv.KvCacheGetCommand;
-import com.yetcache.core.cache.command.kv.KvCachePutCommand;
-import com.yetcache.core.cache.command.kv.KvCacheRemoveCommand;
-import com.yetcache.core.cache.support.CacheValueHolder;
+import com.yetcache.core.cache.kv.command.KvCacheGetCommand;
+import com.yetcache.core.cache.kv.command.KvCachePutCommand;
+import com.yetcache.core.cache.kv.command.KvCacheRemoveCommand;
+import com.yetcache.core.support.CacheValueHolder;
 import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.config.kv.KvCacheConfig;
 import com.yetcache.core.config.kv.KvCacheSpec;

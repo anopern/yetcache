@@ -1,6 +1,5 @@
 package com.yetcache.core.config;
 
-import com.yetcache.core.config.hash.HashCacheConfig;
 import com.yetcache.core.config.kv.KvCacheConfig;
 import lombok.Data;
 
@@ -11,5 +10,4 @@ import lombok.Data;
 @Data
 public class GlobalConfig {
     protected KvCacheConfig kv = KvCacheConfig.defaultConfig();
-    protected HashCacheConfig dynamicHash = HashCacheConfig.defaultConfig();
 }

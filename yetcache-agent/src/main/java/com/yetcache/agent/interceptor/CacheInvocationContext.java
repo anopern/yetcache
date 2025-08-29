@@ -1,6 +1,6 @@
 package com.yetcache.agent.interceptor;
 
-import com.yetcache.agent.core.AgentScope;
+import com.yetcache.agent.agent.AgentScope;
 import com.yetcache.core.result.CacheResult;
 import lombok.AllArgsConstructor;
 import lombok.Data;
