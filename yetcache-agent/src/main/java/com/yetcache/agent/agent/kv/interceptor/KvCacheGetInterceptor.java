@@ -53,7 +53,7 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
         String cacheAgentName = agentScope.getCacheAgentName();
         try {
             TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
-            BaseCacheResult<?> fromStore = getFromStore(bizKey, agentScope, valueTypeRef);
+            BaseCacheResult<?> fromStore = loadFromCacheStore(bizKey, agentScope, valueTypeRef);
             if (fromStore.isSuccess()) {
                 if (fromStore.hitLevelInfo().hitLevel() == HitLevel.NONE) {
                     return loadFromSource(bizKey, agentScope, valueTypeRef);
@@ -68,7 +68,7 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
         return runner.proceed(ctx);
     }
 
-    private BaseCacheResult<?> getFromStore(Object bizKey, KvCacheAgentScope agentScope, TypeRef<?> valueTypeRef) {
+    private BaseCacheResult<?> loadFromCacheStore(Object bizKey, KvCacheAgentScope agentScope, TypeRef<?> valueTypeRef) {
         KvCacheGetCommand storeGetCmd = KvCacheGetCommand.of(bizKey, valueTypeRef);
         CacheResult storeResult = agentScope.getMultiLevelCache().get(storeGetCmd);
         if (storeResult.code() == BaseResultCode.SUCCESS.code()
@@ -81,11 +81,13 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
         return BaseCacheResult.miss(agentScope.getCacheAgentName());
     }
 
+    @SuppressWarnings("unchecked")
     private BaseCacheResult<?> loadFromSource(Object bizKey, KvCacheAgentScope agentScope, TypeRef<?> valueTypeRef) {
         String cacheAgentName = agentScope.getCacheAgentName();
         try {
             lock.lock();
-            BaseCacheResult<?> storeResult = getFromStore(bizKey, agentScope, valueTypeRef);
+            // 再尝试一遍从CacheStore查询，非执行线程可能卡lock这儿了
+            BaseCacheResult<?> storeResult = loadFromCacheStore(bizKey, agentScope, valueTypeRef);
             if (storeResult.isSuccess() && storeResult.hitLevelInfo().hitLevel() != HitLevel.NONE) {
                 return storeResult;
             }
@@ -96,13 +98,13 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
                 return BaseCacheResult.fail(cacheAgentName, loadResult.errorInfo());
             }
             if (loadResult.isSuccess() && null == loadResult.value()) {
+                // 没有查询到数据，miss了
                 return BaseCacheResult.miss(cacheAgentName);
             }
-            agentScope.getCachePutPort().put(bizKey, loadResult.value());
             return BaseCacheResult.singleHit(cacheAgentName, CacheValueHolder.wrap(loadResult.value(), 0),
                     HitLevel.SOURCE);
         } catch (Exception e) {
-            log.warn("cache load failed, agent = {}, key = {}", cacheAgentName, bizKey, e);
+            log.warn("[Yetcache]cache load failed, agent = {}, key = {}", cacheAgentName, bizKey, e);
             return BaseCacheResult.fail(cacheAgentName, e);
         } finally {
             lock.unlock();

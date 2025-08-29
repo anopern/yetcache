@@ -1,13 +1,10 @@
 package com.yetcache.agent.agent.kv;
 
-import com.yetcache.agent.agent.CacheAgentPortRegistry;
+import com.yetcache.agent.agent.*;
 import com.yetcache.agent.agent.kv.port.*;
 import com.yetcache.agent.broadcast.CacheRemoveCommand;
 import com.yetcache.agent.broadcast.InstanceIdProvider;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
-import com.yetcache.agent.agent.BehaviorType;
-import com.yetcache.agent.agent.StructureBehaviorKey;
-import com.yetcache.agent.agent.StructureType;
 import com.yetcache.agent.agent.kv.interceptor.KvCacheAgentGetInvocationCommand;
 import com.yetcache.agent.agent.kv.loader.KvCacheLoader;
 import com.yetcache.agent.interceptor.*;
@@ -18,6 +15,7 @@ import com.yetcache.core.cache.kv.DefaultMultiLevelKvCache;
 import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.TypeRefRegistry;
+import com.yetcache.core.config.CacheLevel;
 import com.yetcache.core.config.kv.KvCacheConfig;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
@@ -79,26 +77,16 @@ public class BaseKvCacheAgent implements KvCacheAgent {
     }
 
     @Override
-    public <K, T> CacheResult put(K bizKey, T value) {
-        Long localLogicTtlSecs = scope.getConfig().getLocal().getLogicTtlSecs();
-        localLogicTtlSecs = TtlRandomizer.randomizeSecs(localLogicTtlSecs,
-                scope.getConfig().getLocal().getTtlRandomPct());
-        Long localPhysicalTtlSecs = scope.getConfig().getLocal().getPhysicalTtlSecs();
-        Long remoteLogicTtlSecs = scope.getConfig().getRemote().getLogicTtlSecs();
-        remoteLogicTtlSecs = TtlRandomizer.randomizeSecs(remoteLogicTtlSecs,
-                scope.getConfig().getRemote().getTtlRandomPct());
-        Long remotePhysicalTtlSecs = scope.getConfig().getRemote().getPhysicalTtlSecs();
-        remotePhysicalTtlSecs = TtlRandomizer.randomizeSecs(remotePhysicalTtlSecs,
-                scope.getConfig().getRemote().getTtlRandomPct());
-        KvCachePutCommand cmd = KvCachePutCommand.of(bizKey, value, CacheTtl.builder()
-                .localLogicSecs(localLogicTtlSecs)
-                .localPhysicalSecs(localPhysicalTtlSecs)
-                .remoteLogicSecs(remoteLogicTtlSecs)
-                .remotePhysicalSecs(remotePhysicalTtlSecs)
-                .build());
-        CacheResult putResult = scope.getMultiLevelCache().put(cmd);
-
-        CompletableFuture.runAsync(() ->{
+    public <K, T> BaseCacheResult<Void> put(K bizKey, T value) {
+        log.debug("[Yetcache]BaseKvCacheAgent put data to multiLevelCache, bizKey: {}, value: {}", bizKey, value);
+        CacheTtl ttl = CacheTtl.builder()
+                .localLogicSecs(getLocalLogicTtlSecs())
+                .remoteLogicSecs(getRemoteLogicTtlSecs())
+                .remotePhysicalSecs(getRemotePhysicalTtlSecs())
+                .build();
+        KvCachePutCommand cmd = KvCachePutCommand.of(bizKey, value, ttl);
+        BaseCacheResult<Void> putResult = scope.getMultiLevelCache().put(cmd);
+        CompletableFuture.runAsync(() -> {
             @SuppressWarnings("unchecked")
             CacheRemoveCommand removeCmd = CacheRemoveCommand.builder()
                     .structureType(StructureType.KV.name())
@@ -107,15 +95,40 @@ public class BaseKvCacheAgent implements KvCacheAgent {
                     .instanceId(InstanceIdProvider.getInstanceId())
                     .publishAt(System.currentTimeMillis())
                     .build();
+            log.debug("[Yetcache]BaseKvCacheAgent put method push remove command: {}", removeCmd);
             scope.getBroadcastPublisher().publish(removeCmd);
         });
 
         return putResult;
     }
 
+    private Long getLocalLogicTtlSecs() {
+        return TtlRandomizer.randomizeSecs(scope.getConfig().getLocal().getLogicTtlSecs(),
+                scope.getConfig().getLocal().getTtlRandomPct());
+    }
+
+    private Long getRemoteLogicTtlSecs() {
+        return TtlRandomizer.randomizeSecs(scope.getConfig().getRemote().getLogicTtlSecs(),
+                scope.getConfig().getRemote().getTtlRandomPct());
+    }
+
+    private Long getRemotePhysicalTtlSecs() {
+        return TtlRandomizer.randomizeSecs(scope.getConfig().getRemote().getPhysicalTtlSecs(),
+                scope.getConfig().getRemote().getTtlRandomPct());
+    }
+
+
     @Override
     public <K> BaseCacheResult<Void> remove(K bizKey) {
-        KvCacheRemoveCommand cmd = KvCacheRemoveCommand.of(bizKey);
+        return remove(bizKey, CacheAgentRemoveOptions.of(CacheLevel.BOTH));
+    }
+
+    @Override
+    public <K> BaseCacheResult<Void> remove(K bizKey, CacheAgentRemoveOptions opts) {
+        if (null == opts) {
+            opts = CacheAgentRemoveOptions.of(CacheLevel.BOTH);
+        }
+        KvCacheRemoveCommand cmd = KvCacheRemoveCommand.of(bizKey, opts.getCacheLevel());
         scope.getMultiLevelCache().remove(cmd);
         return BaseCacheResult.success(scope.getCacheAgentName());
     }

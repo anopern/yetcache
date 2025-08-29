@@ -3,6 +3,7 @@ package com.yetcache.agent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
+import com.yetcache.agent.agent.kv.interceptor.KvCachePutInterceptor;
 import com.yetcache.agent.broadcast.BroadcastQueueInitializer;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.broadcast.publisher.DefaultRabbitmqCacheBroadcastPublisher;
@@ -125,6 +126,14 @@ public class YetcacheAgentConfiguration {
     public KvCacheGetInterceptor kvCacheGetInterceptor(
             CacheInvocationInterceptorRegistry interceptorRegistry) {
         KvCacheGetInterceptor interceptor = new KvCacheGetInterceptor();
+        interceptorRegistry.register(interceptor);
+        return interceptor;
+    }
+
+    @Bean
+    public KvCachePutInterceptor kvCachePutInterceptor(
+            CacheInvocationInterceptorRegistry interceptorRegistry) {
+        KvCachePutInterceptor interceptor = new KvCachePutInterceptor();
         interceptorRegistry.register(interceptor);
         return interceptor;
     }

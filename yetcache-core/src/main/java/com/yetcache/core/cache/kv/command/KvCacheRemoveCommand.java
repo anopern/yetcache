@@ -16,9 +16,10 @@ public class KvCacheRemoveCommand {
     private final Object bizKey;
     private final CacheLevel cacheLevel;
 
-    public static KvCacheRemoveCommand of(final Object bizKey) {
+    public static KvCacheRemoveCommand of(final Object bizKey, final CacheLevel cacheLevel) {
         return KvCacheRemoveCommand.builder()
                 .bizKey(bizKey)
+                .cacheLevel(cacheLevel)
                 .build();
     }
 

@@ -9,7 +9,6 @@ import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.config.kv.KvCacheConfig;
 import com.yetcache.core.config.kv.KvCacheSpec;
 import com.yetcache.core.result.BaseCacheResult;
-import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.HitLevel;
 import com.yetcache.core.support.key.KeyConverter;
 import lombok.Data;
@@ -47,11 +46,14 @@ public class DefaultMultiLevelKvCache implements MultiLevelKvCache {
     }
 
     @Override
-    public <T> CacheResult get(KvCacheGetCommand cmd) {
+    @SuppressWarnings("unchecked")
+    public <T> BaseCacheResult<CacheValueHolder<T>> get(KvCacheGetCommand cmd) {
+        log.debug("[Yetcache]DefaultMultiLevelKvCache get data, cmd: {}", cmd);
         String key = keyConverter.convert(cmd.getBizKey());
         // 1. 尝试从本地缓存读取
         if (localCache != null) {
             CacheValueHolder<T> valueHolder = localCache.getIfPresent(key);
+            log.debug("[Yetcache]DefaultMultiLevelKvCache get data from local cache, key: {}, value: {}", key, valueHolder);
             if (valueHolder != null && valueHolder.isNotLogicExpired()) {
                 return BaseCacheResult.singleHit(cacheName, valueHolder, HitLevel.LOCAL);
             }
@@ -60,10 +62,13 @@ public class DefaultMultiLevelKvCache implements MultiLevelKvCache {
         // 2. 尝试从远程缓存读取
         if (remoteCache != null) {
             CacheValueHolder<T> holder = remoteCache.get(key, cmd.valueTypeRef());
+            log.debug("[Yetcache]DefaultMultiLevelKvCache get data from remote cache, key: {}, value: {}", key, holder);
             if (holder != null && holder.isNotLogicExpired()) {
                 // 回写到本地缓存
                 if (localCache != null) {
                     localCache.put(key, holder);
+                    log.debug("[Yetcache]DefaultMultiLevelKvCache got data from remote," +
+                            " and write data to local cache, key: {}, value: {}", key, holder);
                 }
                 return BaseCacheResult.singleHit(cacheName, holder, HitLevel.REMOTE);
             }
@@ -75,7 +80,8 @@ public class DefaultMultiLevelKvCache implements MultiLevelKvCache {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> CacheResult put(KvCachePutCommand cmd) {
+    public <T> BaseCacheResult<Void> put(KvCachePutCommand cmd) {
+        log.debug("[Yetcache]DefaultMultiLevelKvCache put data, cmd: {}", cmd);
         Object bizKey = cmd.getBizKey();
         Object value = cmd.getValue();
         String key = keyConverter.convert(bizKey);
@@ -86,6 +92,7 @@ public class DefaultMultiLevelKvCache implements MultiLevelKvCache {
             CacheValueHolder<T> valueHolder = (CacheValueHolder<T>) CacheValueHolder.wrap(value,
                     cacheTtl.getRemoteLogicSecs());
             remoteCache.put(key, valueHolder, cacheTtl.getRemotePhysicalSecs());
+            log.debug("[Yetcache]DefaultMultiLevelKvCache put data to remote cache, key: {}, value: {}", key, valueHolder);
         }
 
         // 写入本地缓存
@@ -93,22 +100,27 @@ public class DefaultMultiLevelKvCache implements MultiLevelKvCache {
             CacheValueHolder<T> valueHolder = (CacheValueHolder<T>) CacheValueHolder.wrap(value,
                     cacheTtl.getLocalLogicSecs());
             localCache.put(key, valueHolder);
+            log.debug("[Yetcache]DefaultMultiLevelKvCache put data to local cache, key: {}, value: {}", key, valueHolder);
         }
 
         return BaseCacheResult.success(cacheName);
     }
 
     @Override
-    public CacheResult remove(KvCacheRemoveCommand cmd) {
+    @SuppressWarnings("unchecked")
+    public BaseCacheResult<Void> remove(KvCacheRemoveCommand cmd) {
+        log.debug("[Yetcache]DefaultMultiLevelKvCache remove data, cmd: {}", cmd);
         String key = keyConverter.convert(cmd.getBizKey());
 
         // 清除本地缓存
         if (localCache != null && (null == cmd.getCacheLevel() || cmd.getCacheLevel().includesLocal())) {
+            log.debug("[Yetcache]DefaultMultiLevelKvCache remove data from local cache, key: {}", key);
             localCache.remove(key);
         }
 
         // 清除远程缓存
         if (remoteCache != null && (null == cmd.getCacheLevel() || cmd.getCacheLevel().includesRemote())) {
+            log.debug("[Yetcache]DefaultMultiLevelKvCache remove data from remote cache, key: {}", key);
             remoteCache.remove(key);
         }
 

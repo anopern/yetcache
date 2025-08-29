@@ -1,6 +1,8 @@
 package com.yetcache.agent.agent.kv;
 
 import com.yetcache.agent.agent.CacheAgent;
+import com.yetcache.agent.agent.CacheAgentPutOptions;
+import com.yetcache.agent.agent.CacheAgentRemoveOptions;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
 
@@ -11,7 +13,9 @@ import com.yetcache.core.result.CacheResult;
 public interface KvCacheAgent extends CacheAgent {
     <K, T> BaseCacheResult<T> get(K bizKey);
 
-    <K, T> CacheResult put(K bizKey, T value);
+    <K, T> BaseCacheResult<Void> put(K bizKey, T value);
 
-    <K> CacheResult remove(K bizKey);
+    <K> BaseCacheResult<Void> remove(K bizKey);
+
+    <K> BaseCacheResult<Void> remove(K bizKey, CacheAgentRemoveOptions opts);
 }
