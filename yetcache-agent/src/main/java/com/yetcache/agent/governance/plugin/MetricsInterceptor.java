@@ -37,7 +37,7 @@ public class MetricsInterceptor implements CacheInterceptor {
 
     @Override
     public int getOrder() {
-        return 1;
+        return Integer.MIN_VALUE;
     }
 
     @Override

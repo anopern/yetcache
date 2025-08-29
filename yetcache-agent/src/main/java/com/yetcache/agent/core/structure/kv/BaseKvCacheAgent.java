@@ -13,7 +13,7 @@ import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.CacheTtl;
 import com.yetcache.core.cache.command.kv.KvCachePutCommand;
 import com.yetcache.core.cache.command.kv.KvCacheRemoveCommand;
-import com.yetcache.core.cache.kv.MultiTierKvCache;
+import com.yetcache.core.cache.kv.DefaultMultiLevelKvCache;
 import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.TypeRefRegistry;
@@ -21,7 +21,7 @@ import com.yetcache.core.config.kv.KvCacheConfig;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.support.key.KeyConverter;
-import com.yetcache.core.support.util.TtlRandomizer;
+import com.yetcache.core.util.TtlRandomizer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
@@ -50,7 +50,7 @@ public class BaseKvCacheAgent implements KvCacheAgent {
                             JsonValueCodec jsonValueCodec,
                             CacheAgentPortRegistry agentPortRegistry) {
 
-        MultiTierKvCache multiLevelCache = new MultiTierKvCache(cacheAgentName, config, redissonClient, keyConverter,
+        DefaultMultiLevelKvCache multiLevelCache = new DefaultMultiLevelKvCache(cacheAgentName, config, redissonClient, keyConverter,
                 jsonValueCodec);
 
         KvCacheAgentRemovePort removePort = new DefaultKvCacheAgentRemovePort(this);

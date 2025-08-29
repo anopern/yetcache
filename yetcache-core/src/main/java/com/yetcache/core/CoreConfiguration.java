@@ -4,9 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yetcache.core.codec.JsonTypeConverter;
 import com.yetcache.core.codec.TypeRefRegistry;
 import com.yetcache.core.codec.jackson.JacksonJsonTypeConvertor;
-import com.yetcache.core.config.broadcast.ExceededAction;
-import com.yetcache.core.config.broadcast.MessageDelayPolicy;
-import com.yetcache.core.config.broadcast.MessageDelayPolicyRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,8 +23,4 @@ public class CoreConfiguration {
         return new TypeRefRegistry();
     }
 
-    @Bean
-    public MessageDelayPolicyRegistry messageDelayPolicyRegistry() {
-        return new MessageDelayPolicyRegistry(MessageDelayPolicy.ofSeconds(5, ExceededAction.REMOVE));
-    }
 }

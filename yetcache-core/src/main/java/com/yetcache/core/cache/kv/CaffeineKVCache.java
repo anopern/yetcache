@@ -4,7 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.yetcache.core.cache.support.CacheValueHolder;
 import com.yetcache.core.config.kv.CaffeineKVCacheConfig;
-import com.yetcache.core.support.util.TtlRandomizer;
+import com.yetcache.core.util.TtlRandomizer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.TimeUnit;

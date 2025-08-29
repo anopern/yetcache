@@ -4,7 +4,7 @@ import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.core.AgentScope;
 import com.yetcache.agent.core.port.KvCacheAgentPutPort;
 import com.yetcache.agent.core.port.KvCacheAgentRemovePort;
-import com.yetcache.core.cache.kv.MultiTierKvCache;
+import com.yetcache.core.cache.kv.DefaultMultiLevelKvCache;
 import com.yetcache.agent.core.structure.kv.loader.KvCacheLoader;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.config.kv.KvCacheConfig;
@@ -18,7 +18,7 @@ import lombok.Getter;
 @Getter
 public class KvCacheAgentScope implements AgentScope {
     private final String cacheAgentName;
-    private final MultiTierKvCache multiLevelCache;
+    private final DefaultMultiLevelKvCache multiLevelCache;
     private final KvCacheConfig config;
     private final KvCacheLoader<?> cacheLoader;
     private final CacheBroadcastPublisher broadcastPublisher;
@@ -28,7 +28,7 @@ public class KvCacheAgentScope implements AgentScope {
     private final KeyConverter keyConverter;
 
     public KvCacheAgentScope(String cacheAgentName,
-                             MultiTierKvCache multiLevelCache,
+                             DefaultMultiLevelKvCache multiLevelCache,
                              KvCacheConfig config,
                              KeyConverter keyConverter,
                              KvCacheLoader<?> cacheLoader,

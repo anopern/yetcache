@@ -22,18 +22,18 @@ import org.redisson.api.RedissonClient;
  */
 @Data
 @Slf4j
-public class MultiTierKvCache implements KvCache {
+public class DefaultMultiLevelKvCache implements MultiLevelKvCache {
     protected String cacheName;
     private final KvCacheConfig config;
     private CaffeineKVCache localCache;
     private RedisKVCache remoteCache;
     private KeyConverter keyConverter;
 
-    public MultiTierKvCache(String cacheName,
-                            KvCacheConfig config,
-                            RedissonClient rClient,
-                            KeyConverter keyConverter,
-                            JsonValueCodec jsonValueCodec) {
+    public DefaultMultiLevelKvCache(String cacheName,
+                                    KvCacheConfig config,
+                                    RedissonClient rClient,
+                                    KeyConverter keyConverter,
+                                    JsonValueCodec jsonValueCodec) {
         this.cacheName = cacheName;
         this.config = config;
         this.keyConverter = keyConverter;

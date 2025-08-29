@@ -1,4 +1,4 @@
-package com.yetcache.core.support.util;
+package com.yetcache.core.util;
 
 /**
  * @author walter.yan
