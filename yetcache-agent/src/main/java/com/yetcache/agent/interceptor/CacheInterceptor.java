@@ -1,6 +1,6 @@
 package com.yetcache.agent.interceptor;
 
-import com.yetcache.agent.agent.StructureBehaviorKey;
+import com.yetcache.agent.agent.ChainKey;
 import com.yetcache.core.result.CacheResult;
 
 
@@ -22,7 +22,7 @@ public interface CacheInterceptor {
 
     int getOrder();
 
-    boolean supports(InterceptorSupportCriteria criteria);
+    boolean supports(ChainKey chainKey);
 
     CacheResult invoke(CacheInvocationContext context, ChainRunner runner) throws Throwable;
 }

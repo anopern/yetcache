@@ -1,6 +1,6 @@
 package com.yetcache.agent.interceptor;
 
-import com.yetcache.agent.agent.StructureBehaviorKey;
+import com.yetcache.agent.agent.ChainKey;
 
 import java.util.*;
 
@@ -9,13 +9,13 @@ import java.util.*;
  * @since 2025/7/29
  */
 public class CacheInvocationChainRegistry {
-    private final Map<StructureBehaviorKey, CacheInvocationChain> chainMap = new HashMap<>();
+    private final Map<ChainKey, CacheInvocationChain> chainMap = new HashMap<>();
 
-    public void register(StructureBehaviorKey key, CacheInvocationChain chain) {
+    public void register(ChainKey key, CacheInvocationChain chain) {
         chainMap.put(key, chain);
     }
 
-    public CacheInvocationChain getChain(StructureBehaviorKey key) {
-        return chainMap.get(key);
+    public CacheInvocationChain getChain(ChainKey chainKey) {
+        return chainMap.get(chainKey);
     }
 }

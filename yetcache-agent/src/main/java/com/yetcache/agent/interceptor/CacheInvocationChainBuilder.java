@@ -1,6 +1,6 @@
 package com.yetcache.agent.interceptor;
 
-import com.yetcache.agent.agent.StructureBehaviorKey;
+import com.yetcache.agent.agent.ChainKey;
 
 import java.util.List;
 
@@ -15,8 +15,8 @@ public class CacheInvocationChainBuilder {
         this.interceptorRegistry = interceptorRegistry;
     }
 
-    public CacheInvocationChain build(InterceptorSupportCriteria criteria) {
-        List<CacheInterceptor> interceptors = interceptorRegistry.getChainFor(criteria);
+    public CacheInvocationChain build(ChainKey chainKey) {
+        List<CacheInterceptor> interceptors = interceptorRegistry.getChainFor(chainKey);
         return new DefaultCacheInvocationChain(interceptors);
     }
 }

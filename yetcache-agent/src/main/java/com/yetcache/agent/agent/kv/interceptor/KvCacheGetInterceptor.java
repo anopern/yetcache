@@ -1,7 +1,7 @@
 package com.yetcache.agent.agent.kv.interceptor;
 
 import com.yetcache.agent.agent.BehaviorType;
-import com.yetcache.agent.agent.StructureBehaviorKey;
+import com.yetcache.agent.agent.ChainKey;
 import com.yetcache.agent.agent.StructureType;
 import com.yetcache.agent.agent.kv.KvCacheAgentScope;
 import com.yetcache.agent.agent.kv.loader.KvCacheLoadCommand;
@@ -41,10 +41,9 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
     }
 
     @Override
-    public boolean supports(InterceptorSupportCriteria criteria) {
-        StructureBehaviorKey sbKey = criteria.getSbKey();
-        return StructureType.KV.equals(sbKey.getStructureType())
-                && BehaviorType.GET.equals(sbKey.getBehaviorType());
+    public boolean supports(ChainKey chainKey) {
+        return StructureType.KV.equals(chainKey.getStructureType())
+                && BehaviorType.GET.equals(chainKey.getBehaviorType());
     }
 
     @Override
@@ -52,25 +51,17 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
         KvCacheAgentGetInvocationCommand cmd = (KvCacheAgentGetInvocationCommand) ctx.getCommand();
         Object key = cmd.getBizKey();
         KvCacheAgentScope agentScope = (KvCacheAgentScope) ctx.getAgentScope();
-        String cacheAgentName = agentScope.getCacheAgentName();
-        try {
-            TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
-            BaseCacheResult<?> fromStore = loadFromCacheStore(key, agentScope, valueTypeRef);
-            if (fromStore.isSuccess()) {
-                if (fromStore.hitLevelInfo().hitLevel() == HitLevel.NONE) {
-                    CacheResult sourceResult = loadFromSource(key, agentScope, valueTypeRef);
-                    log.debug("[Yetcache]load data from source, key:{}, result:{}", key, sourceResult);
-                    return sourceResult;
-                } else {
-                    return BaseCacheResult.singleHit(cacheAgentName, fromStore.value(), fromStore.hitLevelInfo());
-                }
-            } else {
-                return BaseCacheResult.fail(cacheAgentName, fromStore.errorInfo());
+        TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
+        BaseCacheResult<?> loadFromCacheStore = loadFromCacheStore(key, agentScope, valueTypeRef);
+        if (loadFromCacheStore.isSuccess()) {
+            if (loadFromCacheStore.hitLevelInfo().hitLevel() == HitLevel.NONE) {
+                CacheResult sourceResult = loadFromSource(key, agentScope, valueTypeRef);
+                log.debug("[Yetcache]load data from source, key:{}, result:{}", key, sourceResult);
+                return sourceResult;
             }
-        } catch (Exception e) {
-            log.warn("cache load failed, agent = {}, key = {}", cacheAgentName, key, e);
-            return BaseCacheResult.fail(cacheAgentName, e);
+            return runner.proceed(ctx);
         }
+        return runner.proceed(ctx);
     }
 
     private BaseCacheResult<?> loadFromCacheStore(Object bizKey, KvCacheAgentScope agentScope, TypeRef<?> valueTypeRef) {

@@ -10,9 +10,11 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class ErrorInfo {
+    private ErrorDomain domain;
+    private ErrorReason reason;
     private Throwable throwable;
 
-    public static ErrorInfo of(Throwable throwable) {
-        return new ErrorInfo(throwable);
+    public static ErrorInfo of(ErrorDomain domain, ErrorReason reason, Throwable throwable) {
+        return new ErrorInfo(domain, reason, throwable);
     }
 }

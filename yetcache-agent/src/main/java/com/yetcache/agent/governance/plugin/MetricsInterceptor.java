@@ -1,7 +1,7 @@
 package com.yetcache.agent.governance.plugin;
 
 import com.yetcache.agent.agent.BehaviorType;
-import com.yetcache.agent.agent.StructureBehaviorKey;
+import com.yetcache.agent.agent.ChainKey;
 import com.yetcache.agent.agent.StructureType;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.result.CacheResult;
@@ -41,12 +41,10 @@ public class MetricsInterceptor implements CacheInterceptor {
     }
 
     @Override
-    public boolean supports(InterceptorSupportCriteria criteria) {
-        StructureBehaviorKey sbKey = criteria.getSbKey();
-        return sbKey.getStructureType() == StructureType.KV
-                && sbKey.getBehaviorType() == BehaviorType.GET;
+    public boolean supports(ChainKey chainKey) {
+        return StructureType.KV.equals(chainKey.getStructureType())
+                && BehaviorType.GET.equals(chainKey.getBehaviorType());
     }
-
     @Override
     public CacheResult invoke(CacheInvocationContext context, ChainRunner runner) throws Throwable {
         long startNs = System.nanoTime();
@@ -54,13 +52,13 @@ public class MetricsInterceptor implements CacheInterceptor {
         long costNs = System.nanoTime() - startNs;
 
         CacheInvocationCommand cmd = context.getCommand();
-        BehaviorType behaviorType = cmd.sbKey().getBehaviorType();
+        BehaviorType behaviorType = cmd.chainKey().getBehaviorType();
         String method = behaviorType.name();
         String outcome = String.valueOf(result.code());
         if (behaviorType == BehaviorType.GET) {
             /* ---------- Counter ---------- */
             Counter.builder("yetcache.access.count")
-                    .tag("cache", cmd.cacheAgentName())
+                    .tag("cache", cmd.chainKey().getCacheAgentName())
                     .tag("method", method)
                     .tag("outcome", outcome)
                     .tag("hit-tier", Optional.ofNullable(result.hitLevelInfo().hitLevel())
@@ -71,7 +69,7 @@ public class MetricsInterceptor implements CacheInterceptor {
             /* ---------- Timer (微秒级) ---------- */
             Timer.builder("yetcache.access.latency")
                     .publishPercentileHistogram(true)
-                    .tag("cache", cmd.cacheAgentName())
+                    .tag("cache", cmd.chainKey().getCacheAgentName())
                     .tag("method", method)
                     .tag("outcome", outcome)
                     .tag("hit-tier", Optional.ofNullable(result.hitLevelInfo().hitLevel())

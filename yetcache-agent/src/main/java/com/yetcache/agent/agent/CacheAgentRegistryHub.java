@@ -26,6 +26,10 @@ public class CacheAgentRegistryHub {
         return Optional.empty();
     }
 
+    public List<CacheAgent> allKvAgents() {
+        return new ArrayList<>(kvRegistry.listAgents());
+    }
+
     public List<CacheAgent> allAgents() {
         return new ArrayList<>(kvRegistry.listAgents());
     }

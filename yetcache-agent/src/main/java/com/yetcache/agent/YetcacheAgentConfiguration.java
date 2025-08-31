@@ -1,8 +1,13 @@
 package com.yetcache.agent;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
+import com.yetcache.agent.agent.*;
 import com.yetcache.agent.agent.kv.interceptor.KvCachePutInterceptor;
 import com.yetcache.agent.broadcast.BroadcastQueueInitializer;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
@@ -11,14 +16,9 @@ import com.yetcache.agent.broadcast.receiver.CacheBroadcastReceiver;
 import com.yetcache.agent.broadcast.receiver.RabbitMqCacheBroadcastReceiver;
 import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
 import com.yetcache.agent.broadcast.receiver.handler.KvCacheAgentRemoveLocalHandler;
-import com.yetcache.agent.agent.BehaviorType;
-import com.yetcache.agent.agent.StructureBehaviorKey;
-import com.yetcache.agent.agent.StructureType;
-import com.yetcache.agent.agent.CacheAgentPortRegistry;
 import com.yetcache.agent.agent.kv.interceptor.KvCacheGetInterceptor;
 import com.yetcache.agent.governance.plugin.MetricsInterceptor;
 import com.yetcache.agent.interceptor.*;
-import com.yetcache.agent.agent.CacheAgentRegistryHub;
 import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.codec.jackson.JacksonJsonValueCodec;
@@ -139,19 +139,26 @@ public class YetcacheAgentConfiguration {
     }
 
     @Bean
-    public JsonValueCodec jsonValueCodec(ObjectMapper objectMapper) {
+    public JsonValueCodec jsonValueCodec() {
+        ObjectMapper objectMapper = new ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+                .setVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE)
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL);
         return new JacksonJsonValueCodec(objectMapper);
     }
 
     @Bean
-    public ApplicationRunner registerDefaultChains(CacheInvocationChainRegistry registry,
-                                                   CacheInvocationChainBuilder chainBuilder) {
+    public ApplicationRunner registerDefaultChains(
+            CacheAgentRegistryHub agentRegistryHub,
+            CacheInvocationChainRegistry registry,
+            CacheInvocationChainBuilder chainBuilder) {
         return args -> {
-
-            StructureBehaviorKey kvGetSb = StructureBehaviorKey.of(StructureType.KV, BehaviorType.GET);
-            InterceptorSupportCriteria supportCriteria = InterceptorSupportCriteria.of(kvGetSb, null);
-            CacheInvocationChain kvGetChain = chainBuilder.build(supportCriteria);
-            registry.register(kvGetSb, kvGetChain);
+            for (CacheAgent agent : agentRegistryHub.allKvAgents()) {
+                ChainKey kvGetChainKey = ChainKey.of(StructureType.KV, BehaviorType.GET, agent.cacheAgentName());
+                CacheInvocationChain kvGetChain = chainBuilder.build(kvGetChainKey);
+                registry.register(kvGetChainKey, kvGetChain);
+            }
         };
     }
 }

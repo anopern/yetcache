@@ -11,12 +11,15 @@ import com.yetcache.core.result.ErrorInfo;
 import com.yetcache.example.domain.entity.QuoteSimpleQuoteList;
 import com.yetcache.example.domain.entity.QuoteSimpleQuoteRespVO;
 import com.yetcache.example.quote.key.QuoteLatestPriceCacheKey;
+import com.yetcache.example.quote.mocker.QuoteLatestPriceMocker;
 import com.yetcache.example.quote.source.QuoteSimpleQuoteReqDTO;
 import com.yetcache.example.quote.source.QuotesDataService;
 import com.yetcache.example.quote.vo.QuoteLatestPriceVO;
 import com.yetcache.example.result.R;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Random;
 
 /**
  * @author walter.yan
@@ -34,43 +37,51 @@ public class QuoteLatestPriceCacheLoader extends AbstractKvCacheLoader<QuoteLate
 
     @Override
     public CacheResult load(KvCacheLoadCommand<QuoteLatestPriceCacheKey> cmd) {
-        QuoteLatestPriceCacheKey bizKey = cmd.getBizKey();
-        QuoteSimpleQuoteReqDTO.Id id = QuoteSimpleQuoteReqDTO.Id.builder()
-                .market(bizKey.getMarket())
-                .symbol(bizKey.getSymbol())
-                .greyMarket(2)
-                .build();
-        QuoteSimpleQuoteReqDTO req = QuoteSimpleQuoteReqDTO.builder()
-                .ids(Lists.newArrayList(id))
-                .level(cmd.getBizKey().getLevel())
-                .session(cmd.getBizKey().getSession())
-                .build();
-
+        QuoteLatestPriceVO mock = QuoteLatestPriceMocker.mock(cmd.getBizKey());
         try {
-            R<QuoteSimpleQuoteList> resp = quotesDataService.querySimpleQuote(req);
-            if (resp.getCode() == 0) {
-                QuoteSimpleQuoteList respVOList = resp.getData();
-                if (null == respVOList || CollUtil.isEmpty(respVOList.getList())) {
-                    return BaseCacheResult.success(getLoaderName(), null);
-                }
-                QuoteSimpleQuoteRespVO respVO = respVOList.getList().get(0);
-                QuoteLatestPriceVO priceVO = QuoteLatestPriceVO.builder()
-                        .exchangeType(respVO.getId().getGreyMarket())
-                        .code(respVO.getId().getSymbol())
-                        .market(respVO.getId().getMarket())
-                        .symbol(respVO.getId().getSymbol())
-                        .preClose(respVO.getQuoteData().getPreClose())
-                        .latestPrice(respVO.getQuoteData().getLatestPrice())
-                        .build();
-                return BaseCacheResult.success(getLoaderName(), priceVO);
-            } else {
-                log.error("请求行情查询最新价异常，请求参数：{}，服务器回复：{}", req, resp);
-                return BaseCacheResult.fail(getLoaderName(), ErrorInfo.of(null));
-            }
-        } catch (Exception e) {
-            log.error("请求行情查询最新价异常，请求参数：{}", req, e);
-            return BaseCacheResult.fail(getLoaderName(), ErrorInfo.of(e));
+            Thread.sleep(new Random().nextInt(1000));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
+        return BaseCacheResult.success(getLoaderName(), mock);
+//
+//        QuoteLatestPriceCacheKey bizKey = cmd.getBizKey();
+//        QuoteSimpleQuoteReqDTO.Id id = QuoteSimpleQuoteReqDTO.Id.builder()
+//                .market(bizKey.getMarket())
+//                .symbol(bizKey.getSymbol())
+//                .greyMarket(2)
+//                .build();
+//        QuoteSimpleQuoteReqDTO req = QuoteSimpleQuoteReqDTO.builder()
+//                .ids(Lists.newArrayList(id))
+//                .level(cmd.getBizKey().getLevel())
+//                .session(cmd.getBizKey().getSession())
+//                .build();
+//
+//        try {
+//            R<QuoteSimpleQuoteList> resp = quotesDataService.querySimpleQuote(req);
+//            if (resp.getCode() == 0) {
+//                QuoteSimpleQuoteList respVOList = resp.getData();
+//                if (null == respVOList || CollUtil.isEmpty(respVOList.getList())) {
+//                    return BaseCacheResult.success(getLoaderName(), null);
+//                }
+//                QuoteSimpleQuoteRespVO respVO = respVOList.getList().get(0);
+//                QuoteLatestPriceVO priceVO = QuoteLatestPriceVO.builder()
+//                        .exchangeType(respVO.getId().getGreyMarket())
+//                        .code(respVO.getId().getSymbol())
+//                        .market(respVO.getId().getMarket())
+//                        .symbol(respVO.getId().getSymbol())
+//                        .preClose(respVO.getQuoteData().getPreClose())
+//                        .latestPrice(respVO.getQuoteData().getLatestPrice())
+//                        .build();
+//                return BaseCacheResult.success(getLoaderName(), priceVO);
+//            } else {
+//                log.error("请求行情查询最新价异常，请求参数：{}，服务器回复：{}", req, resp);
+//                return BaseCacheResult.fail(getLoaderName(), ErrorInfo.of(null));
+//            }
+//        } catch (Exception e) {
+//            log.error("请求行情查询最新价异常，请求参数：{}", req, e);
+//            return BaseCacheResult.fail(getLoaderName(), ErrorInfo.of(e));
+//        }
     }
 
     @Override

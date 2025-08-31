@@ -1,5 +1,6 @@
 package com.yetcache.example.quote;
 
+import com.yetcache.agent.agent.CacheAgentRegistryHub;
 import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
 import com.yetcache.agent.agent.CacheAgentPortRegistry;
 import com.yetcache.agent.agent.kv.BaseKvCacheAgent;
@@ -38,11 +39,12 @@ public class QuoteConfiguration {
             CacheInvocationChainRegistry chainRegistry,
             TypeRefRegistry typeRefRegistry,
             JsonValueCodec jsonValueCodec,
-            CacheAgentPortRegistry agentPortRegistry) {
+            CacheAgentPortRegistry agentPortRegistry,
+            CacheAgentRegistryHub agentRegistryHub) {
         final String cacheAgentName = CacheAgentNames.QUOTE_LATEST_PRICE_CACHE_AGENT;
         TypeDescriptor typeDescriptor = TypeDescriptor.of(new TypeRef<QuoteLatestPriceVO>() {
         });
-        return new BaseKvCacheAgent(
+        BaseKvCacheAgent agent = new BaseKvCacheAgent(
                 cacheAgentName,
                 configResolver.resolveKv(cacheAgentName),
                 redissonClient,
@@ -55,6 +57,8 @@ public class QuoteConfiguration {
                 jsonValueCodec,
                 agentPortRegistry
         );
+        agentRegistryHub.register(agent);
+        return agent;
     }
 
     @Qualifier("quoteLatestPriceKeyConvertor")

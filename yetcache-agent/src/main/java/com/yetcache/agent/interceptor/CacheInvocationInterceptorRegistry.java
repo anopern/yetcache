@@ -1,6 +1,6 @@
 package com.yetcache.agent.interceptor;
 
-import com.yetcache.agent.agent.StructureBehaviorKey;
+import com.yetcache.agent.agent.ChainKey;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -18,9 +18,9 @@ public class CacheInvocationInterceptorRegistry {
         all.add(interceptor);
     }
 
-    public List<CacheInterceptor> getChainFor(InterceptorSupportCriteria criteria) {
+    public List<CacheInterceptor> getChainFor(ChainKey chainKey) {
         return all.stream()
-                .filter(it -> it.supports(criteria))
+                .filter(it -> it.supports(chainKey))
                 .sorted(Comparator.comparingInt(CacheInterceptor::getOrder))
                 .collect(Collectors.toList());
     }

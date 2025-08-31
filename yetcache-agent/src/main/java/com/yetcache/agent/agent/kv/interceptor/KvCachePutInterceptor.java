@@ -1,13 +1,12 @@
 package com.yetcache.agent.agent.kv.interceptor;
 
 import com.yetcache.agent.agent.BehaviorType;
-import com.yetcache.agent.agent.StructureBehaviorKey;
+import com.yetcache.agent.agent.ChainKey;
 import com.yetcache.agent.agent.StructureType;
 import com.yetcache.agent.agent.kv.KvCacheAgentScope;
 import com.yetcache.agent.interceptor.CacheInterceptor;
 import com.yetcache.agent.interceptor.CacheInvocationContext;
 import com.yetcache.agent.interceptor.ChainRunner;
-import com.yetcache.agent.interceptor.InterceptorSupportCriteria;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.HitLevel;
 import com.yetcache.core.support.CacheValueHolder;
@@ -35,10 +34,9 @@ public class KvCachePutInterceptor implements CacheInterceptor {
     }
 
     @Override
-    public boolean supports(InterceptorSupportCriteria criteria) {
-        StructureBehaviorKey sbKey = criteria.getSbKey();
-        return StructureType.KV.equals(sbKey.getStructureType())
-                && BehaviorType.GET.equals(sbKey.getBehaviorType());
+    public boolean supports(ChainKey chainKey) {
+        return StructureType.KV.equals(chainKey.getStructureType())
+                && BehaviorType.GET.equals(chainKey.getBehaviorType());
     }
 
     @Override

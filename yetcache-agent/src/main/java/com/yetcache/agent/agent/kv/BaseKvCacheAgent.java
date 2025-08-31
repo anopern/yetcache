@@ -71,9 +71,9 @@ public class BaseKvCacheAgent implements KvCacheAgent {
     @Override
     @SuppressWarnings("unchecked")
     public <K, T> BaseCacheResult<T> get(K bizKey) {
-        StructureBehaviorKey structureBehaviorKey = StructureBehaviorKey.of(StructureType.KV, BehaviorType.GET);
+        ChainKey chainKey = ChainKey.of(StructureType.KV, BehaviorType.GET, scope.getCacheAgentName());
         CacheInvocationCommand cmd = KvCacheAgentGetInvocationCommand.of(scope.getCacheAgentName(), bizKey);
-        return (BaseCacheResult<T>) singleInvoke(structureBehaviorKey, cmd);
+        return (BaseCacheResult<T>) singleInvoke(chainKey, cmd);
     }
 
     @Override
@@ -139,24 +139,13 @@ public class BaseKvCacheAgent implements KvCacheAgent {
         return BaseCacheResult.success(scope.getCacheAgentName());
     }
 
-    private CacheResult singleInvoke(StructureBehaviorKey sbKey, CacheInvocationCommand command) {
+    private CacheResult singleInvoke(ChainKey chainKey, CacheInvocationCommand command) {
         CacheInvocationContext ctx = new CacheInvocationContext(command, scope);
         try {
-            CacheInvocationChain chain = chainRegistry.getChain(sbKey);
+            CacheInvocationChain chain = chainRegistry.getChain(chainKey);
             CacheResult rawResult = chain.proceed(ctx);
             return BaseCacheResult.singleHit(scope.getCacheAgentName(), rawResult.value(),
                     rawResult.hitLevelInfo().hitLevel());
-        } catch (Throwable e) {
-            return BaseCacheResult.fail(scope.getCacheAgentName(), e);
-        }
-    }
-
-    private CacheResult batchInvoke(StructureBehaviorKey structureBehaviorKey, CacheInvocationCommand command) {
-        CacheInvocationContext ctx = new CacheInvocationContext(command, scope);
-        try {
-            CacheInvocationChain chain = chainRegistry.getChain(structureBehaviorKey);
-            CacheResult rawResult = chain.proceed(ctx);
-            return BaseCacheResult.batchHit(scope.getCacheAgentName(), rawResult.value(), rawResult.hitLevelInfo());
         } catch (Throwable e) {
             return BaseCacheResult.fail(scope.getCacheAgentName(), e);
         }

@@ -3,7 +3,7 @@ package com.yetcache.agent.agent.kv.interceptor;
 import com.yetcache.agent.agent.StructureType;
 import com.yetcache.agent.agent.BehaviorType;
 import com.yetcache.agent.interceptor.CacheInvocationCommand;
-import com.yetcache.agent.agent.StructureBehaviorKey;
+import com.yetcache.agent.agent.ChainKey;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,12 +29,7 @@ public class KvCacheAgentGetInvocationCommand implements CacheInvocationCommand 
     }
 
     @Override
-    public String cacheAgentName() {
-        return this.cacheAgentName;
-    }
-
-    @Override
-    public StructureBehaviorKey sbKey() {
-        return StructureBehaviorKey.of(StructureType.HASH, BehaviorType.GET);
+    public ChainKey chainKey() {
+        return ChainKey.of(StructureType.KV, BehaviorType.GET, cacheAgentName);
     }
 }

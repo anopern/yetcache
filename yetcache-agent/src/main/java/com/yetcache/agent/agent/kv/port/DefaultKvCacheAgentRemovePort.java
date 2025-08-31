@@ -3,7 +3,7 @@ package com.yetcache.agent.agent.kv.port;
 import com.yetcache.agent.agent.StructureType;
 import com.yetcache.agent.agent.kv.KvCacheAgent;
 import com.yetcache.agent.agent.BehaviorType;
-import com.yetcache.agent.agent.StructureBehaviorKey;
+import com.yetcache.agent.agent.ChainKey;
 import com.yetcache.core.result.CacheResult;
 import lombok.AllArgsConstructor;
 
@@ -16,7 +16,7 @@ public class DefaultKvCacheAgentRemovePort implements KvCacheAgentRemovePort {
     private final KvCacheAgent kvCacheAgent;
 
     @Override
-    public boolean support(StructureBehaviorKey sbKey) {
+    public boolean support(ChainKey sbKey) {
         return StructureType.KV.equals(sbKey.getStructureType())
                 && BehaviorType.REMOVE.equals(sbKey.getBehaviorType());
     }

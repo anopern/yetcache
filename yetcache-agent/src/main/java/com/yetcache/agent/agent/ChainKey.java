@@ -3,6 +3,7 @@ package com.yetcache.agent.agent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
 import java.util.Objects;
 
 /**
@@ -12,19 +13,21 @@ import java.util.Objects;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public final class StructureBehaviorKey {
+public final class ChainKey {
     private StructureType structureType;
     private BehaviorType behaviorType;
+    private String cacheAgentName;
     private int hash;
 
-    private StructureBehaviorKey(StructureType structureType, BehaviorType behaviorType) {
+    private ChainKey(StructureType structureType, BehaviorType behaviorType, String cacheAgentName) {
         this.structureType = Objects.requireNonNull(structureType);
         this.behaviorType = Objects.requireNonNull(behaviorType);
-        this.hash = Objects.hash(structureType, behaviorType);
+        this.cacheAgentName = cacheAgentName;
+        this.hash = Objects.hash(structureType, behaviorType, cacheAgentName);
     }
 
-    public static StructureBehaviorKey of(StructureType structureType, BehaviorType behaviorType) {
-        return new StructureBehaviorKey(structureType, behaviorType);
+    public static ChainKey of(StructureType structureType, BehaviorType behaviorType, String cacheAgentName) {
+        return new ChainKey(structureType, behaviorType, cacheAgentName);
     }
 
     public StructureType getStructureType() {
@@ -38,9 +41,11 @@ public final class StructureBehaviorKey {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof StructureBehaviorKey)) return false;
-        StructureBehaviorKey that = (StructureBehaviorKey) obj;
-        return this.structureType == that.structureType && this.behaviorType == that.behaviorType;
+        if (!(obj instanceof ChainKey)) return false;
+        ChainKey that = (ChainKey) obj;
+        return this.structureType == that.structureType
+                && this.behaviorType == that.behaviorType
+                && Objects.equals(this.cacheAgentName, that.cacheAgentName);
     }
 
     @Override
@@ -50,7 +55,7 @@ public final class StructureBehaviorKey {
 
     @Override
     public String toString() {
-        return structureType + "::" + behaviorType;
+        return structureType + "::" + behaviorType + "::" + cacheAgentName;
     }
 }
 

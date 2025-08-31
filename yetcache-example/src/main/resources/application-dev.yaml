@@ -57,4 +57,8 @@ yetcache:
         spec:
           cache-name: 'quote-latest-price-cache'
           key-prefix: 'com:quote:latest'
-
+          cache-level: BOTH
+        local:
+          logic-ttl-secs: 5
+        remote:
+          logic-ttl-secs: 120

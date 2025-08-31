@@ -95,7 +95,12 @@ public class BaseCacheResult<T> implements CacheResult {
     }
 
     public static <T> BaseCacheResult<T> fail(String componentName, Throwable e) {
-        ErrorInfo errorInfo = new ErrorInfo(e);
+        ErrorInfo errorInfo = ErrorInfo.of(ErrorDomain.UNKNOWN, ErrorReason.UNKNOWN, e);
+        return new BaseCacheResult<>(componentName, BaseResultCode.FAIL, null, null, errorInfo, null);
+    }
+
+    public static <T> BaseCacheResult<T> fail(String componentName, ErrorDomain domain, ErrorReason reason, Throwable e) {
+        ErrorInfo errorInfo = ErrorInfo.of(domain, reason, e);
         return new BaseCacheResult<>(componentName, BaseResultCode.FAIL, null, null, errorInfo, null);
     }
 

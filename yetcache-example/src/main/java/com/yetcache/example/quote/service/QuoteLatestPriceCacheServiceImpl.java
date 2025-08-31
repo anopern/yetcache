@@ -36,7 +36,10 @@ public class QuoteLatestPriceCacheServiceImpl implements QuoteLatestPriceCacheSe
         BaseCacheResult<CacheValueHolder<QuoteLatestPriceVO>> result = cacheAgent.get(bizKey);
         if (result.isSuccess() && result.value() != null) {
             CacheValueHolder<QuoteLatestPriceVO> valueHolder = result.value();
-            return BaseCacheResult.success(result.getComponentName(), valueHolder.getValue());
+            QuoteLatestPriceVO priceVO = valueHolder.getValue();
+            priceVO.setExchangeType(query.getExchangeType());
+            priceVO.setCode(query.getCode());
+            return BaseCacheResult.success(result.getComponentName(), priceVO);
         }
         return BaseCacheResult.fail(result.getComponentName(), result.errorInfo());
     }

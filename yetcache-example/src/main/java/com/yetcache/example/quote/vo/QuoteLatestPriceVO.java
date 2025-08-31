@@ -21,6 +21,8 @@ public class QuoteLatestPriceVO {
     private String market;
     private String symbol;
 
+    private Integer level;
+
     private BigDecimal preClose;
     private BigDecimal latestPrice;
 }
