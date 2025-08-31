@@ -1,7 +1,6 @@
 package com.yetcache.example.quote.service;
 
 import com.yetcache.agent.agent.kv.BaseKvCacheAgent;
-import com.yetcache.core.support.CacheValueHolder;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.example.quote.QuoteLatestPriceQuery;
 import com.yetcache.example.quote.QuoteLatestPriceQueryContext;
