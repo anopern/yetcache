@@ -15,9 +15,9 @@ public interface CacheResult {
 
     HitLevelInfo hitLevelInfo();
 
-    ErrorInfo errorInfo();
+    FreshnessInfo freshnessInfo();
 
-    Metadata metadata();
+    ErrorInfo errorInfo();
 
     boolean isSuccess();
 }

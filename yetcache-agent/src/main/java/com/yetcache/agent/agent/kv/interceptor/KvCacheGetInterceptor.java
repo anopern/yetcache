@@ -7,12 +7,9 @@ import com.yetcache.agent.agent.kv.KvCacheAgentScope;
 import com.yetcache.agent.agent.kv.loader.KvCacheLoadCommand;
 import com.yetcache.agent.interceptor.*;
 import com.yetcache.core.cache.kv.command.KvCacheGetCommand;
+import com.yetcache.core.result.*;
 import com.yetcache.core.support.CacheValueHolder;
 import com.yetcache.core.codec.TypeRef;
-import com.yetcache.core.result.BaseCacheResult;
-import com.yetcache.core.result.BaseResultCode;
-import com.yetcache.core.result.CacheResult;
-import com.yetcache.core.result.HitLevel;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -53,26 +50,22 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
         KvCacheAgentScope agentScope = (KvCacheAgentScope) ctx.getAgentScope();
         TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
         BaseCacheResult<?> loadFromCacheStore = loadFromCacheStore(key, agentScope, valueTypeRef);
-        if (loadFromCacheStore.isSuccess()) {
-            if (loadFromCacheStore.hitLevelInfo().hitLevel() == HitLevel.NONE) {
-                CacheResult sourceResult = loadFromSource(key, agentScope, valueTypeRef);
-                log.debug("[Yetcache]load data from source, key:{}, result:{}", key, sourceResult);
-                return sourceResult;
-            }
-            return runner.proceed(ctx);
+        if (loadFromCacheStore.code() != BaseResultCode.SUCCESS.code()
+                || loadFromCacheStore.hitLevelInfo().hitLevel() != HitLevel.NONE) {
+            return loadFromCacheStore;
         }
-        return runner.proceed(ctx);
+        CacheResult sourceResult = loadFromSource(key, agentScope, valueTypeRef);
+        log.debug("[Yetcache]load data from source, key:{}, result:{}", key, sourceResult);
+        return sourceResult;
     }
 
     private BaseCacheResult<?> loadFromCacheStore(Object bizKey, KvCacheAgentScope agentScope, TypeRef<?> valueTypeRef) {
         KvCacheGetCommand storeGetCmd = KvCacheGetCommand.of(bizKey, valueTypeRef);
-        CacheResult storeResult = agentScope.getMultiLevelCache().get(storeGetCmd);
+        BaseCacheResult<?> storeResult = agentScope.getMultiLevelCache().get(storeGetCmd);
         if (storeResult.code() == BaseResultCode.SUCCESS.code()
-                && HitLevel.NONE != storeResult.hitLevelInfo().hitLevel()) {
-            CacheValueHolder<?> holder = (CacheValueHolder<?>) storeResult.value();
-            if (holder.isNotLogicExpired()) {
-                return BaseCacheResult.singleHit(agentScope.getCacheAgentName(), holder, storeResult.hitLevelInfo());
-            }
+                && HitLevel.NONE != storeResult.hitLevelInfo().hitLevel()
+                && Freshness.FRESH == storeResult.freshnessInfo().getFreshness()) {
+            return storeResult;
         }
         return BaseCacheResult.miss(agentScope.getCacheAgentName());
     }
@@ -89,19 +82,7 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
             }
             KvCacheLoadCommand loadCmd = new KvCacheLoadCommand<>(bizKey);
             // 回源加载数据
-            CacheResult loadResult = agentScope.getCacheLoader().load(loadCmd);
-            if (!loadResult.isSuccess()) {
-                return BaseCacheResult.fail(cacheAgentName, loadResult.errorInfo());
-            }
-            if (loadResult.isSuccess() && null == loadResult.value()) {
-                // 没有查询到数据，miss了
-                return BaseCacheResult.miss(cacheAgentName);
-            }
-            return BaseCacheResult.singleHit(cacheAgentName, CacheValueHolder.wrap(loadResult.value(), 0),
-                    HitLevel.SOURCE);
-        } catch (Exception e) {
-            log.warn("[Yetcache]cache load failed, agent = {}, key = {}", cacheAgentName, bizKey, e);
-            return BaseCacheResult.fail(cacheAgentName, e);
+            return agentScope.getCacheLoader().load(loadCmd);
         } finally {
             lock.unlock();
         }

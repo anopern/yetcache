@@ -1,21 +1,12 @@
 package com.yetcache.example.quote.loader;
 
-import cn.hutool.core.collection.CollUtil;
-import com.google.common.collect.Lists;
 import com.yetcache.agent.agent.kv.loader.AbstractKvCacheLoader;
-import com.yetcache.agent.agent.kv.loader.KvCacheBatchLoadCommand;
 import com.yetcache.agent.agent.kv.loader.KvCacheLoadCommand;
 import com.yetcache.core.result.BaseCacheResult;
-import com.yetcache.core.result.CacheResult;
-import com.yetcache.core.result.ErrorInfo;
-import com.yetcache.example.domain.entity.QuoteSimpleQuoteList;
-import com.yetcache.example.domain.entity.QuoteSimpleQuoteRespVO;
 import com.yetcache.example.quote.key.QuoteLatestPriceCacheKey;
 import com.yetcache.example.quote.mocker.QuoteLatestPriceMocker;
-import com.yetcache.example.quote.source.QuoteSimpleQuoteReqDTO;
 import com.yetcache.example.quote.source.QuotesDataService;
 import com.yetcache.example.quote.vo.QuoteLatestPriceVO;
-import com.yetcache.example.result.R;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,7 +18,7 @@ import java.util.Random;
  */
 @AllArgsConstructor
 @Slf4j
-public class QuoteLatestPriceCacheLoader extends AbstractKvCacheLoader<QuoteLatestPriceCacheKey> {
+public class QuoteLatestPriceCacheLoader extends AbstractKvCacheLoader<QuoteLatestPriceCacheKey, QuoteLatestPriceVO> {
     private final QuotesDataService quotesDataService;
 
     @Override
@@ -36,7 +27,7 @@ public class QuoteLatestPriceCacheLoader extends AbstractKvCacheLoader<QuoteLate
     }
 
     @Override
-    public CacheResult load(KvCacheLoadCommand<QuoteLatestPriceCacheKey> cmd) {
+    public BaseCacheResult<QuoteLatestPriceVO> load(KvCacheLoadCommand<QuoteLatestPriceCacheKey> cmd) {
         QuoteLatestPriceVO mock = QuoteLatestPriceMocker.mock(cmd.getBizKey());
         try {
             Thread.sleep(new Random().nextInt(1000));
@@ -44,6 +35,11 @@ public class QuoteLatestPriceCacheLoader extends AbstractKvCacheLoader<QuoteLate
             throw new RuntimeException(e);
         }
         return BaseCacheResult.success(getLoaderName(), mock);
+    }
+
+    //    @Override
+//    public BaseCacheResult<QuoteLatestPriceVO> load(KvCacheLoadCommand<QuoteLatestPriceCacheKey> cmd) {
+
 //
 //        QuoteLatestPriceCacheKey bizKey = cmd.getBizKey();
 //        QuoteSimpleQuoteReqDTO.Id id = QuoteSimpleQuoteReqDTO.Id.builder()
@@ -82,10 +78,6 @@ public class QuoteLatestPriceCacheLoader extends AbstractKvCacheLoader<QuoteLate
 //            log.error("请求行情查询最新价异常，请求参数：{}", req, e);
 //            return BaseCacheResult.fail(getLoaderName(), ErrorInfo.of(e));
 //        }
-    }
+//    }
 
-    @Override
-    public CacheResult batchLoad(KvCacheBatchLoadCommand<QuoteLatestPriceCacheKey> cmd) {
-        return null;
-    }
 }

@@ -41,7 +41,7 @@ public class BaseKvCacheAgent implements KvCacheAgent {
                             KvCacheConfig config,
                             RedissonClient redissonClient,
                             KeyConverter keyConverter,
-                            KvCacheLoader<?> cacheLoader,
+                            KvCacheLoader cacheLoader,
                             CacheBroadcastPublisher broadcastPublisher,
                             CacheInvocationChainRegistry chainRegistry,
                             TypeRefRegistry typeRefRegistry,
@@ -143,9 +143,7 @@ public class BaseKvCacheAgent implements KvCacheAgent {
         CacheInvocationContext ctx = new CacheInvocationContext(command, scope);
         try {
             CacheInvocationChain chain = chainRegistry.getChain(chainKey);
-            CacheResult rawResult = chain.proceed(ctx);
-            return BaseCacheResult.singleHit(scope.getCacheAgentName(), rawResult.value(),
-                    rawResult.hitLevelInfo().hitLevel());
+            return chain.proceed(ctx);
         } catch (Throwable e) {
             return BaseCacheResult.fail(scope.getCacheAgentName(), e);
         }

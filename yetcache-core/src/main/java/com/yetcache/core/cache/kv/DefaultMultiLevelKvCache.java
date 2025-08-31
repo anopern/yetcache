@@ -4,6 +4,7 @@ import com.yetcache.core.cache.CacheTtl;
 import com.yetcache.core.cache.kv.command.KvCacheGetCommand;
 import com.yetcache.core.cache.kv.command.KvCachePutCommand;
 import com.yetcache.core.cache.kv.command.KvCacheRemoveCommand;
+import com.yetcache.core.result.FreshnessInfo;
 import com.yetcache.core.support.CacheValueHolder;
 import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.config.kv.KvCacheConfig;
@@ -54,23 +55,27 @@ public class DefaultMultiLevelKvCache implements MultiLevelKvCache {
         if (localCache != null) {
             CacheValueHolder<T> valueHolder = localCache.getIfPresent(key);
             log.debug("[Yetcache]DefaultMultiLevelKvCache get data from local cache, key: {}, value: {}", key, valueHolder);
-            if (valueHolder != null && valueHolder.isNotLogicExpired()) {
-                return BaseCacheResult.singleHit(cacheName, valueHolder, HitLevel.LOCAL);
+            if (valueHolder != null) {
+                FreshnessInfo freshnessInfo = valueHolder.isNotLogicExpired() ? FreshnessInfo.fresh()
+                        : FreshnessInfo.stale();
+                return BaseCacheResult.singleHit(cacheName, valueHolder, HitLevel.LOCAL, freshnessInfo);
             }
         }
 
         // 2. 尝试从远程缓存读取
         if (remoteCache != null) {
-            CacheValueHolder<T> holder = remoteCache.get(key, cmd.valueTypeRef());
-            log.debug("[Yetcache]DefaultMultiLevelKvCache get data from remote cache, key: {}, value: {}", key, holder);
-            if (holder != null && holder.isNotLogicExpired()) {
+            CacheValueHolder<T> valueHolder = remoteCache.get(key, cmd.valueTypeRef());
+            log.debug("[Yetcache]DefaultMultiLevelKvCache get data from remote cache, key: {}, value: {}", key, valueHolder);
+            if (valueHolder != null) {
                 // 回写到本地缓存
-                if (localCache != null) {
-                    localCache.put(key, holder);
+                if (valueHolder.isNotLogicExpired() && localCache != null) {
+                    localCache.put(key, valueHolder);
                     log.debug("[Yetcache]DefaultMultiLevelKvCache got data from remote," +
-                            " and write data to local cache, key: {}, value: {}", key, holder);
+                            " and write data to local cache, key: {}, value: {}", key, valueHolder);
                 }
-                return BaseCacheResult.singleHit(cacheName, holder, HitLevel.REMOTE);
+                FreshnessInfo freshnessInfo = valueHolder.isNotLogicExpired() ? FreshnessInfo.fresh()
+                        : FreshnessInfo.stale();
+                return BaseCacheResult.singleHit(cacheName, valueHolder, HitLevel.REMOTE, freshnessInfo);
             }
         }
 

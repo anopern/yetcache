@@ -1,7 +1,6 @@
 package com.yetcache.example.service.loader;
 
 import com.yetcache.agent.agent.kv.loader.AbstractKvCacheLoader;
-import com.yetcache.agent.agent.kv.loader.KvCacheBatchLoadCommand;
 import com.yetcache.agent.agent.kv.loader.KvCacheLoadCommand;
 import com.yetcache.core.result.*;
 import com.yetcache.example.domain.entity.User;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class IdKeyUserCacheLoader extends AbstractKvCacheLoader<Long> {
+public class IdKeyUserCacheLoader extends AbstractKvCacheLoader<Long, User> {
     @Autowired
     private IUserService userService;
 
@@ -26,19 +25,9 @@ public class IdKeyUserCacheLoader extends AbstractKvCacheLoader<Long> {
     }
 
     @Override
-    public CacheResult load(KvCacheLoadCommand<Long> cmd) {
+    public BaseCacheResult<User> load(KvCacheLoadCommand<Long> cmd) {
         Long userId = cmd.getBizKey();
         User user = userService.getById(userId);
-        return BaseCacheResult.singleHit(getLoaderName(), user, DefaultHitLevelInfo.of(HitLevel.SOURCE));
-    }
-
-    @Override
-    public CacheResult batchLoad(KvCacheBatchLoadCommand<Long> cmd) {
-        //        List<User> users = userService.list(bizKeys);
-//        if (CollUtil.isEmpty(users)) {
-//            return new HashMap<>();
-//        }
-//        return users.stream().collect(HashMap::new, (m, v) -> m.put(v.getId(), v), HashMap::putAll);
-        return null;
+        return BaseCacheResult.singleHit(getLoaderName(), user, HitLevel.SOURCE, FreshnessInfo.fresh());
     }
 }
