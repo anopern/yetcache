@@ -113,6 +113,20 @@ public class BaseCacheResult<T> implements CacheResult {
         return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitLevelInfo1, freshnessInfo);
     }
 
+    public static <T> BaseCacheResult<T> singleHit(String componentName,
+                                                   T value,
+                                                   HitLevel hitLevel) {
+        DefaultHitLevelInfo hitLevelInfo = new DefaultHitLevelInfo(hitLevel);
+        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitLevelInfo, null);
+    }
+
+    public static <T> BaseCacheResult<T> singleHit(String componentName,
+                                                   T value,
+                                                   HitLevelInfo hitLevelInfo,
+                                                   FreshnessInfo freshnessInfo) {
+        return new BaseCacheResult<>(componentName, BaseResultCode.SUCCESS, value, hitLevelInfo, freshnessInfo);
+    }
+
     public static <T> BaseCacheResult<T> fail(String componentName,
                                               ErrorInfo errorInfo) {
         return new BaseCacheResult<>(componentName, BaseResultCode.FAIL, null, null, null,

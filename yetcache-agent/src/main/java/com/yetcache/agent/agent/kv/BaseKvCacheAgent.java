@@ -145,6 +145,7 @@ public class BaseKvCacheAgent implements KvCacheAgent {
             CacheInvocationChain chain = chainRegistry.getChain(chainKey);
             return chain.proceed(ctx);
         } catch (Throwable e) {
+            log.error("[Yetcache]BaseKvCacheAgent singleInvoke failed", e);
             return BaseCacheResult.fail(scope.getCacheAgentName(), e);
         }
     }

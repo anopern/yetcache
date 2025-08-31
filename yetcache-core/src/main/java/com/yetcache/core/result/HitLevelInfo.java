@@ -6,4 +6,6 @@ package com.yetcache.core.result;
  */
 public interface HitLevelInfo {
     HitLevel hitLevel();
+
+    boolean hit();
 }

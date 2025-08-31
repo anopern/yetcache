@@ -21,6 +21,12 @@ public class DefaultHitLevelInfo implements HitLevelInfo {
         return this.hitLevel;
     }
 
+    @Override
+    public boolean hit() {
+        return null != hitLevel
+                && (hitLevel == HitLevel.LOCAL || hitLevel == HitLevel.REMOTE || hitLevel == HitLevel.SOURCE);
+    }
+
     public static DefaultHitLevelInfo of(HitLevel hitLevel) {
         return new DefaultHitLevelInfo(hitLevel);
     }

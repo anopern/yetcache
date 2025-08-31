@@ -12,6 +12,10 @@ import lombok.Data;
 public class FreshnessInfo {
     private Freshness freshness;
 
+    public boolean isFresh() {
+        return freshness == Freshness.FRESH;
+    }
+
     public static FreshnessInfo fresh() {
         return new FreshnessInfo(Freshness.FRESH);
     }

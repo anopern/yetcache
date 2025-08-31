@@ -33,10 +33,9 @@ public class QuoteLatestPriceCacheServiceImpl implements QuoteLatestPriceCacheSe
                 .level(context.getLevel())
                 .session(context.getSession())
                 .build();
-        BaseCacheResult<CacheValueHolder<QuoteLatestPriceVO>> result = cacheAgent.get(bizKey);
+        BaseCacheResult<QuoteLatestPriceVO> result = cacheAgent.get(bizKey);
         if (result.isSuccess() && result.value() != null) {
-            CacheValueHolder<QuoteLatestPriceVO> valueHolder = result.value();
-            QuoteLatestPriceVO priceVO = valueHolder.getValue();
+            QuoteLatestPriceVO priceVO = result.getValue();
             priceVO.setExchangeType(query.getExchangeType());
             priceVO.setCode(query.getCode());
             return BaseCacheResult.success(result.getComponentName(), priceVO);
