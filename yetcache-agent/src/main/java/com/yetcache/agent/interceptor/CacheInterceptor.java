@@ -22,7 +22,7 @@ public interface CacheInterceptor {
 
     int getOrder();
 
-    boolean supports(StructureBehaviorKey sbKey);
+    boolean supports(InterceptorSupportCriteria criteria);
 
     CacheResult invoke(CacheInvocationContext context, ChainRunner runner) throws Throwable;
 }

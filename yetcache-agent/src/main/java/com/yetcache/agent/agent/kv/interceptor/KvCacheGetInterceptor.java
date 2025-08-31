@@ -14,6 +14,7 @@ import com.yetcache.core.result.BaseResultCode;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.core.result.HitLevel;
 import lombok.extern.slf4j.Slf4j;
+
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -40,7 +41,8 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
     }
 
     @Override
-    public boolean supports(StructureBehaviorKey sbKey) {
+    public boolean supports(InterceptorSupportCriteria criteria) {
+        StructureBehaviorKey sbKey = criteria.getSbKey();
         return StructureType.KV.equals(sbKey.getStructureType())
                 && BehaviorType.GET.equals(sbKey.getBehaviorType());
     }
@@ -48,24 +50,27 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
     @Override
     public CacheResult invoke(CacheInvocationContext ctx, ChainRunner runner) throws Throwable {
         KvCacheAgentGetInvocationCommand cmd = (KvCacheAgentGetInvocationCommand) ctx.getCommand();
-        Object bizKey = cmd.getBizKey();
+        Object key = cmd.getBizKey();
         KvCacheAgentScope agentScope = (KvCacheAgentScope) ctx.getAgentScope();
         String cacheAgentName = agentScope.getCacheAgentName();
         try {
             TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
-            BaseCacheResult<?> fromStore = loadFromCacheStore(bizKey, agentScope, valueTypeRef);
+            BaseCacheResult<?> fromStore = loadFromCacheStore(key, agentScope, valueTypeRef);
             if (fromStore.isSuccess()) {
                 if (fromStore.hitLevelInfo().hitLevel() == HitLevel.NONE) {
-                    return loadFromSource(bizKey, agentScope, valueTypeRef);
+                    CacheResult sourceResult = loadFromSource(key, agentScope, valueTypeRef);
+                    log.debug("[Yetcache]load data from source, key:{}, result:{}", key, sourceResult);
+                    return sourceResult;
                 } else {
                     return BaseCacheResult.singleHit(cacheAgentName, fromStore.value(), fromStore.hitLevelInfo());
                 }
+            } else {
+                return BaseCacheResult.fail(cacheAgentName, fromStore.errorInfo());
             }
         } catch (Exception e) {
-            log.warn("cache load failed, agent = {}, key = {}", cacheAgentName, bizKey, e);
+            log.warn("cache load failed, agent = {}, key = {}", cacheAgentName, key, e);
             return BaseCacheResult.fail(cacheAgentName, e);
         }
-        return runner.proceed(ctx);
     }
 
     private BaseCacheResult<?> loadFromCacheStore(Object bizKey, KvCacheAgentScope agentScope, TypeRef<?> valueTypeRef) {

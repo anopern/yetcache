@@ -18,9 +18,9 @@ public class CacheInvocationInterceptorRegistry {
         all.add(interceptor);
     }
 
-    public List<CacheInterceptor> getChainFor(StructureBehaviorKey sbKey) {
+    public List<CacheInterceptor> getChainFor(InterceptorSupportCriteria criteria) {
         return all.stream()
-                .filter(it -> it.supports(sbKey))
+                .filter(it -> it.supports(criteria))
                 .sorted(Comparator.comparingInt(CacheInterceptor::getOrder))
                 .collect(Collectors.toList());
     }

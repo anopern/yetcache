@@ -2,6 +2,7 @@ package com.yetcache.core.result;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  * @author walter.yan
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @NoArgsConstructor
+@ToString
 public class BaseCacheResult<T> implements CacheResult {
     private String componentName;
     private Integer code;
@@ -57,12 +59,12 @@ public class BaseCacheResult<T> implements CacheResult {
 
     @Override
     public ErrorInfo errorInfo() {
-        return null;
+        return this.errorInfo;
     }
 
     @Override
     public Metadata metadata() {
-        return null;
+        return this.metadata;
     }
 
     @Override

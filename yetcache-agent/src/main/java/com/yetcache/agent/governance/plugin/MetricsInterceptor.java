@@ -41,7 +41,8 @@ public class MetricsInterceptor implements CacheInterceptor {
     }
 
     @Override
-    public boolean supports(StructureBehaviorKey sbKey) {
+    public boolean supports(InterceptorSupportCriteria criteria) {
+        StructureBehaviorKey sbKey = criteria.getSbKey();
         return sbKey.getStructureType() == StructureType.KV
                 && sbKey.getBehaviorType() == BehaviorType.GET;
     }

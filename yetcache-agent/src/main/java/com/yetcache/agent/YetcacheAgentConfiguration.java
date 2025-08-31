@@ -147,15 +147,10 @@ public class YetcacheAgentConfiguration {
     public ApplicationRunner registerDefaultChains(CacheInvocationChainRegistry registry,
                                                    CacheInvocationChainBuilder chainBuilder) {
         return args -> {
-            StructureBehaviorKey dhGetSb = StructureBehaviorKey.of(StructureType.HASH, BehaviorType.GET);
-            StructureBehaviorKey dhBatchGetSb = StructureBehaviorKey.of(StructureType.HASH, BehaviorType.BATCH_GET);
-            CacheInvocationChain dhGetChain = chainBuilder.build(dhGetSb);
-            CacheInvocationChain dhBatchGetChain = chainBuilder.build(dhBatchGetSb);
-            registry.register(dhGetSb, dhGetChain);
-            registry.register(dhBatchGetSb, dhBatchGetChain);
 
             StructureBehaviorKey kvGetSb = StructureBehaviorKey.of(StructureType.KV, BehaviorType.GET);
-            CacheInvocationChain kvGetChain = chainBuilder.build(kvGetSb);
+            InterceptorSupportCriteria supportCriteria = InterceptorSupportCriteria.of(kvGetSb, null);
+            CacheInvocationChain kvGetChain = chainBuilder.build(supportCriteria);
             registry.register(kvGetSb, kvGetChain);
         };
     }

@@ -8,6 +8,7 @@ import com.yetcache.agent.agent.kv.interceptor.KvCacheAgentGetInvocationCommand;
 import com.yetcache.agent.interceptor.CacheInterceptor;
 import com.yetcache.agent.interceptor.CacheInvocationContext;
 import com.yetcache.agent.interceptor.ChainRunner;
+import com.yetcache.agent.interceptor.InterceptorSupportCriteria;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.CacheResult;
 import com.yetcache.example.quote.vo.QuoteLatestPriceVO;
@@ -33,7 +34,8 @@ public class QuoteLatestPriceCanonicalKeyInterceptor implements CacheInterceptor
     }
 
     @Override
-    public boolean supports(StructureBehaviorKey sbKey) {
+    public boolean supports(InterceptorSupportCriteria criteria) {
+        StructureBehaviorKey sbKey = criteria.getSbKey();
         return sbKey.getStructureType() == StructureType.KV
                 && sbKey.getBehaviorType() == BehaviorType.GET;
     }

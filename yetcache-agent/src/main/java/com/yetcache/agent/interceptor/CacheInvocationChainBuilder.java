@@ -15,8 +15,8 @@ public class CacheInvocationChainBuilder {
         this.interceptorRegistry = interceptorRegistry;
     }
 
-    public CacheInvocationChain build(StructureBehaviorKey sbKey) {
-        List<CacheInterceptor> interceptors = interceptorRegistry.getChainFor(sbKey);
+    public CacheInvocationChain build(InterceptorSupportCriteria criteria) {
+        List<CacheInterceptor> interceptors = interceptorRegistry.getChainFor(criteria);
         return new DefaultCacheInvocationChain(interceptors);
     }
 }

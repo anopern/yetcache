@@ -8,7 +8,7 @@ import lombok.Getter;
  */
 public enum BaseResultCode implements ResultCode {
     SUCCESS(0, "操作成功"),
-    FAIL(-1, "操作成功"),
+    FAIL(-1, "操作失败"),
 
     ;
 
