@@ -1,4 +1,4 @@
-package com.yetcache.example.controller;
+package com.yetcache.example.domain.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -2,7 +2,7 @@
 //
 //import cn.hutool.core.collection.CollUtil;
 //import com.yetcache.agent.core.structure.config.FlatHashCacheLoader;
-//import com.yetcache.example.entity.ConfigCommonInfo;
+//import com.yetcache.example.domain.entity.ConfigCommonInfo;
 //import com.yetcache.example.service.IConfigCommonInfoService;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.stereotype.Component;

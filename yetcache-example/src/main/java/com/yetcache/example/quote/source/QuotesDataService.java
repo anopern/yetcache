@@ -1,14 +1,10 @@
 package com.yetcache.example.quote.source;
 
-import com.yetcache.example.entity.QuoteSimpleQuoteList;
-import com.yetcache.example.entity.QuoteSimpleQuoteRespVO;
-import com.yetcache.example.quote.source.QuoteSimpleQuoteReqDTO;
+import com.yetcache.example.domain.entity.QuoteSimpleQuoteList;
 import com.yetcache.example.result.R;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.List;
 
 /**
  * @author walter.yan

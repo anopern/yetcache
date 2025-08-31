@@ -1,17 +1,13 @@
 package com.yetcache.example.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.yetcache.example.entity.ConfigCommonInfo;
+import com.yetcache.example.domain.entity.ConfigCommonInfo;
 import com.yetcache.example.mapper.ConfigCommonInfoMapper;
 import com.yetcache.example.service.IConfigCommonInfoService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**

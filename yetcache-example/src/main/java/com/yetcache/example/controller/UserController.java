@@ -1,7 +1,7 @@
 package com.yetcache.example.controller;
 
 import com.yetcache.example.cache.service.IdKeyUserCacheService;
-import com.yetcache.example.entity.User;
+import com.yetcache.example.domain.entity.User;
 import com.yetcache.example.result.R;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

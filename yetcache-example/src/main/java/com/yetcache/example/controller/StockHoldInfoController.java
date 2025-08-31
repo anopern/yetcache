@@ -1,7 +1,7 @@
 //package com.yetcache.example.controller;
 //
 //import com.yetcache.example.cache.service.StockHoldInfoCacheService;
-//import com.yetcache.example.entity.StockHoldInfo;
+//import com.yetcache.example.domain.entity.StockHoldInfo;
 //import lombok.extern.slf4j.Slf4j;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.web.bind.annotation.PostMapping;

@@ -1,7 +1,7 @@
 package com.yetcache.example.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.yetcache.example.entity.User;
+import com.yetcache.example.domain.entity.User;
 
 import java.util.List;
 

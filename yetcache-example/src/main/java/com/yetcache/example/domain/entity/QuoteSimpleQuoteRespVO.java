@@ -1,4 +1,4 @@
-package com.yetcache.example.entity;
+package com.yetcache.example.domain.entity;
 
 import lombok.Data;
 import java.math.BigDecimal;

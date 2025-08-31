@@ -6,7 +6,7 @@
 //import com.yetcache.agent.core.structure.hash.HashCacheLoadCommand;
 //import com.yetcache.core.result.BaseCacheResult;
 //import com.yetcache.core.result.CacheResult;
-//import com.yetcache.example.entity.StockHoldInfo;
+//import com.yetcache.example.domain.entity.StockHoldInfo;
 //import com.yetcache.example.service.IStockHoldInfoService;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.stereotype.Component;

@@ -2,7 +2,7 @@ package com.yetcache.example.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.yetcache.example.entity.User;
+import com.yetcache.example.domain.entity.User;
 import com.yetcache.example.mapper.UserMapper;
 import com.yetcache.example.service.IUserService;
 import org.springframework.stereotype.Service;

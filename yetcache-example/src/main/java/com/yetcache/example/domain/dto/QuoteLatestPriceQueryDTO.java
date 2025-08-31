@@ -1,4 +1,4 @@
-package com.yetcache.example.controller;
+package com.yetcache.example.domain.dto;
 
 import com.yetcache.example.quote.QuoteLatestPriceQuery;
 import com.yetcache.example.quote.QuoteLatestPriceQueryContext;

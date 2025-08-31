@@ -4,7 +4,7 @@ import com.yetcache.agent.agent.kv.loader.AbstractKvCacheLoader;
 import com.yetcache.agent.agent.kv.loader.KvCacheBatchLoadCommand;
 import com.yetcache.agent.agent.kv.loader.KvCacheLoadCommand;
 import com.yetcache.core.result.*;
-import com.yetcache.example.entity.User;
+import com.yetcache.example.domain.entity.User;
 import com.yetcache.example.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

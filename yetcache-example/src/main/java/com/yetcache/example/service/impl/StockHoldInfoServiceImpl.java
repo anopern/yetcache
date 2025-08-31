@@ -2,7 +2,7 @@ package com.yetcache.example.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.yetcache.example.entity.StockHoldInfo;
+import com.yetcache.example.domain.entity.StockHoldInfo;
 import com.yetcache.example.mapper.StockHoldInfoMapper;
 import com.yetcache.example.service.IStockHoldInfoService;
 import lombok.extern.slf4j.Slf4j;

@@ -4,7 +4,7 @@
 //import com.yetcache.core.support.CacheValueHolder;
 //import com.yetcache.core.result.BaseCacheResult;
 //import com.yetcache.core.result.HitLevel;
-//import com.yetcache.example.entity.StockHoldInfo;
+//import com.yetcache.example.domain.entity.StockHoldInfo;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.stereotype.Component;
 //

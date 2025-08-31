@@ -1,4 +1,4 @@
-package com.yetcache.example.entity;
+package com.yetcache.example.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

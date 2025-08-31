@@ -18,7 +18,7 @@
 //import com.yetcache.core.config.hash.HashCacheConfig;
 //import com.yetcache.core.support.field.TypeFieldConverter;
 //import com.yetcache.core.support.key.LongKeyConverter;
-//import com.yetcache.example.entity.StockHoldInfo;
+//import com.yetcache.example.domain.entity.StockHoldInfo;
 //import com.yetcache.example.enums.EnumCaches;
 //import org.redisson.api.RedissonClient;
 //import org.springframework.beans.factory.annotation.Qualifier;

@@ -3,7 +3,7 @@ package com.yetcache.example.cache.service;
 import com.yetcache.agent.agent.kv.BaseKvCacheAgent;
 import com.yetcache.core.support.CacheValueHolder;
 import com.yetcache.core.result.BaseCacheResult;
-import com.yetcache.example.entity.User;
+import com.yetcache.example.domain.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

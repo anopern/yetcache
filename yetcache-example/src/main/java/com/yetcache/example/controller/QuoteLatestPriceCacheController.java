@@ -1,6 +1,7 @@
 package com.yetcache.example.controller;
 
 import com.yetcache.core.result.BaseCacheResult;
+import com.yetcache.example.domain.dto.QuoteLatestPriceQueryDTO;
 import com.yetcache.example.quote.service.QuoteLatestPriceCacheService;
 import com.yetcache.example.quote.vo.QuoteLatestPriceVO;
 import com.yetcache.example.result.R;

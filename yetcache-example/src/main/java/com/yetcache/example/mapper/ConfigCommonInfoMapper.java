@@ -1,7 +1,7 @@
 package com.yetcache.example.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.yetcache.example.entity.ConfigCommonInfo;
+import com.yetcache.example.domain.entity.ConfigCommonInfo;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

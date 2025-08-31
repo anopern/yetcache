@@ -12,7 +12,7 @@ import com.yetcache.core.codec.TypeRefRegistry;
 import com.yetcache.core.config.kv.KvCacheConfig;
 import com.yetcache.core.support.key.LongKeyConverter;
 import com.yetcache.example.config.CacheAgentNames;
-import com.yetcache.example.entity.User;
+import com.yetcache.example.domain.entity.User;
 import com.yetcache.example.service.loader.IdKeyUserCacheLoader;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Qualifier;
