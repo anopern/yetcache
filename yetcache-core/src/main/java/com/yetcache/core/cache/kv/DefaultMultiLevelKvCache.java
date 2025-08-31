@@ -69,7 +69,12 @@ public class DefaultMultiLevelKvCache implements MultiLevelKvCache {
             if (valueHolder != null) {
                 // 回写到本地缓存
                 if (valueHolder.isNotLogicExpired() && localCache != null) {
-                    localCache.put(key, valueHolder);
+                    long localLogicExpireAt = valueHolder.getCreatedTime() / 1000 + config.getLocal().getLogicTtlSecs();
+                    if (localLogicExpireAt > valueHolder.getExpireTime()) {
+                        localLogicExpireAt = valueHolder.getExpireTime();
+                    }
+                    int localLogicTtlSecs = (int) ((localLogicExpireAt - valueHolder.getCreatedTime()) / 1000);
+                    localCache.put(key, CacheValueHolder.wrap(valueHolder.getValue(), localLogicTtlSecs));
                     log.debug("[Yetcache]DefaultMultiLevelKvCache got data from remote," +
                             " and write data to local cache, key: {}, value: {}", key, valueHolder);
                 }

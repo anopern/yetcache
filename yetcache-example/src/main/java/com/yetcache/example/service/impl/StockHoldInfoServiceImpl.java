@@ -1,41 +1,41 @@
-package com.yetcache.example.service.impl;
-
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.yetcache.example.domain.entity.StockHoldInfo;
-import com.yetcache.example.mapper.StockHoldInfoMapper;
-import com.yetcache.example.service.IStockHoldInfoService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-
-
-@Service
-@Slf4j
-public class StockHoldInfoServiceImpl extends ServiceImpl<StockHoldInfoMapper, StockHoldInfo>
-        implements IStockHoldInfoService {
-    @Override
-    public List<StockHoldInfo> listByFundAccount(String fundAccount) {
-        LambdaQueryWrapper<StockHoldInfo> queryWrapper = new LambdaQueryWrapper<StockHoldInfo>()
-                .eq(StockHoldInfo::getFundAccount, fundAccount)
-                .eq(StockHoldInfo::getDeleted, 0);
-        return list(queryWrapper);
-    }
-
-    @Override
-    public StockHoldInfo getById(Long id) {
-        LambdaQueryWrapper<StockHoldInfo> queryWrapper = new LambdaQueryWrapper<StockHoldInfo>()
-                .eq(StockHoldInfo::getId, id)
-                .eq(StockHoldInfo::getDeleted, 0);
-        return getOne(queryWrapper);
-    }
-
-    @Override
-    public List<StockHoldInfo> listByIds(List<Long> ids) {
-        LambdaQueryWrapper<StockHoldInfo> queryWrapper = new LambdaQueryWrapper<StockHoldInfo>()
-                .in(StockHoldInfo::getId, ids)
-                .eq(StockHoldInfo::getDeleted, 0);
-        return list(queryWrapper);
-    }
-}
+//package com.yetcache.example.service.impl;
+//
+//import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+//import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+//import com.yetcache.example.domain.entity.StockHoldInfo;
+//import com.yetcache.example.mapper.StockHoldInfoMapper;
+//import com.yetcache.example.service.IStockHoldInfoService;
+//import lombok.extern.slf4j.Slf4j;
+//import org.springframework.stereotype.Service;
+//
+//import java.util.List;
+//
+//
+//@Service
+//@Slf4j
+//public class StockHoldInfoServiceImpl extends ServiceImpl<StockHoldInfoMapper, StockHoldInfo>
+//        implements IStockHoldInfoService {
+//    @Override
+//    public List<StockHoldInfo> listByFundAccount(String fundAccount) {
+//        LambdaQueryWrapper<StockHoldInfo> queryWrapper = new LambdaQueryWrapper<StockHoldInfo>()
+//                .eq(StockHoldInfo::getFundAccount, fundAccount)
+//                .eq(StockHoldInfo::getDeleted, 0);
+//        return list(queryWrapper);
+//    }
+//
+//    @Override
+//    public StockHoldInfo getById(Long id) {
+//        LambdaQueryWrapper<StockHoldInfo> queryWrapper = new LambdaQueryWrapper<StockHoldInfo>()
+//                .eq(StockHoldInfo::getId, id)
+//                .eq(StockHoldInfo::getDeleted, 0);
+//        return getOne(queryWrapper);
+//    }
+//
+//    @Override
+//    public List<StockHoldInfo> listByIds(List<Long> ids) {
+//        LambdaQueryWrapper<StockHoldInfo> queryWrapper = new LambdaQueryWrapper<StockHoldInfo>()
+//                .in(StockHoldInfo::getId, ids)
+//                .eq(StockHoldInfo::getDeleted, 0);
+//        return list(queryWrapper);
+//    }
+//}

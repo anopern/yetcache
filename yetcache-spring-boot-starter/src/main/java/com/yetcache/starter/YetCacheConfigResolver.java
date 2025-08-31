@@ -1,6 +1,5 @@
-package com.yetcache.core.cache;
+package com.yetcache.starter;
 
-import com.yetcache.core.config.YetCacheProperties;
 import com.yetcache.core.config.kv.KvCacheConfig;
 import com.yetcache.core.merger.CacheConfigMerger;
 

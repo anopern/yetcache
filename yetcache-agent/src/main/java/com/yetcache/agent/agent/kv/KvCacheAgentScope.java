@@ -1,6 +1,6 @@
 package com.yetcache.agent.agent.kv;
 
-import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
+import com.yetcache.agent.broadcast.publisher.CacheInvalidateMessagePublisher;
 import com.yetcache.agent.agent.AgentScope;
 import com.yetcache.agent.agent.kv.port.KvCacheAgentPutPort;
 import com.yetcache.agent.agent.kv.port.KvCacheAgentRemovePort;
@@ -21,7 +21,7 @@ public class KvCacheAgentScope implements AgentScope {
     private final DefaultMultiLevelKvCache multiLevelCache;
     private final KvCacheConfig config;
     private final KvCacheLoader cacheLoader;
-    private final CacheBroadcastPublisher broadcastPublisher;
+    private final CacheInvalidateMessagePublisher broadcastPublisher;
     private final KvCacheAgentRemovePort cacheRemovePort;
     private final KvCacheAgentPutPort cachePutPort;
     private final TypeDescriptor typeDescriptor;
@@ -32,7 +32,7 @@ public class KvCacheAgentScope implements AgentScope {
                              KvCacheConfig config,
                              KeyConverter keyConverter,
                              KvCacheLoader cacheLoader,
-                             CacheBroadcastPublisher broadcastPublisher,
+                             CacheInvalidateMessagePublisher broadcastPublisher,
                              KvCacheAgentRemovePort cacheRemovePort,
                              KvCacheAgentPutPort cachePutPort,
                              TypeDescriptor typeDescriptor) {

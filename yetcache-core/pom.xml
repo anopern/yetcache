@@ -11,39 +11,35 @@
 
     <artifactId>yetcache-core</artifactId>
     <description>YetCache 核心模块</description>
-    <url>https://github.com/anopern/yetcache</url>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <redisson.version>3.16.4</redisson.version>
+        <redisson.version>3.33.0</redisson.version>
         <fastjson2.version>2.0.20</fastjson2.version>
         <caffeine.version>2.9.2</caffeine.version>
+        <guava.version>31.1-jre</guava.version>
+        <lombok.version>1.18.32</lombok.version>
+        <commons.lang3.version>3.18.0</commons.lang3.version>
     </properties>
 
     <dependencies>
-        <!-- Bean Validation API -->
         <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>2.0.1.Final</version>
-        </dependency>
-        <!-- Hibernate Validator 是最常用的实现 -->
-        <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>6.0.20.Final</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons.lang3.version}</version>
         </dependency>
         <dependency>
             <groupId>org.redisson</groupId>
-            <artifactId>redisson-spring-boot-starter</artifactId>
-            <version>${redisson.version}</version>
+            <artifactId>redisson</artifactId>
+             <version>${redisson.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
@@ -53,58 +49,8 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>27.0.1-jre</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct</artifactId>
-            <version>1.6.3</version>
-        </dependency>
-        <!-- 核心依赖：Spring Boot Actuator + Micrometer -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
-        </dependency>
-
-        <!-- 可选：Prometheus 集成支持 -->
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-prometheus</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.fastjson2</groupId>
-            <artifactId>fastjson2</artifactId>
+            <version>${guava.version}</version>
         </dependency>
     </dependencies>
-
-    <licenses>
-        <license>
-            <name>Apache License Version 2.0</name>
-            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
-        </license>
-    </licenses>
-
-    <developers>
-        <developer>
-            <id>walter.yan</id>
-            <name>Walter Yan</name>
-        </developer>
-    </developers>
-
-    <scm>
-        <url>https://github.com/anopern/yetcache</url>
-        <connection>scm:git:git://github.com/anopern/yetcache.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:anopern/yetcache.git</developerConnection>
-    </scm>
 
 </project>

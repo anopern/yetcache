@@ -1,11 +1,10 @@
 package com.yetcache.example.quote;
 
 import com.yetcache.agent.agent.CacheAgentRegistryHub;
-import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
+import com.yetcache.agent.broadcast.publisher.CacheInvalidateMessagePublisher;
 import com.yetcache.agent.agent.CacheAgentPortRegistry;
 import com.yetcache.agent.agent.kv.BaseKvCacheAgent;
 import com.yetcache.agent.interceptor.CacheInvocationChainRegistry;
-import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.TypeRef;
@@ -16,6 +15,7 @@ import com.yetcache.example.quote.loader.QuoteLatestPriceCacheLoader;
 import com.yetcache.example.quote.source.QuotesDataService;
 import com.yetcache.example.quote.support.QuoteLatestPriceKeyConvertor;
 import com.yetcache.example.quote.vo.QuoteLatestPriceVO;
+import com.yetcache.starter.YetCacheConfigResolver;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +35,7 @@ public class QuoteConfiguration {
             QuoteLatestPriceCacheLoader quoteLatestPriceCacheLoader,
             RedissonClient redissonClient,
             QuoteLatestPriceKeyConvertor quoteLatestPriceKeyConvertor,
-            CacheBroadcastPublisher broadcastPublisher,
+            CacheInvalidateMessagePublisher broadcastPublisher,
             CacheInvocationChainRegistry chainRegistry,
             TypeRefRegistry typeRefRegistry,
             JsonValueCodec jsonValueCodec,

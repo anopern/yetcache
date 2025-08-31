@@ -15,7 +15,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CacheRemoveCommand {
+public class CacheInvalidateCommand {
     private String structureType;
     protected String cacheAgentName;
     protected String key;

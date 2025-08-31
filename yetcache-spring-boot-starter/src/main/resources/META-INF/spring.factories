@@ -1,0 +1,6 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.yetcache.starter.YetCacheAutoConfiguration,\
+com.yetcache.starter.YetcachePubSubAutoConfiguration
+
+
+

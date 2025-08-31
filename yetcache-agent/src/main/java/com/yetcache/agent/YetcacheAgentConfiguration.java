@@ -1,164 +1,164 @@
-package com.yetcache.agent;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.yetcache.agent.agent.*;
-import com.yetcache.agent.agent.kv.interceptor.KvCachePutInterceptor;
-import com.yetcache.agent.broadcast.BroadcastQueueInitializer;
-import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
-import com.yetcache.agent.broadcast.publisher.DefaultRabbitmqCacheBroadcastPublisher;
-import com.yetcache.agent.broadcast.receiver.CacheBroadcastReceiver;
-import com.yetcache.agent.broadcast.receiver.RabbitMqCacheBroadcastReceiver;
-import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
-import com.yetcache.agent.broadcast.receiver.handler.KvCacheAgentRemoveLocalHandler;
-import com.yetcache.agent.agent.kv.interceptor.KvCacheGetInterceptor;
-import com.yetcache.agent.governance.plugin.MetricsInterceptor;
-import com.yetcache.agent.interceptor.*;
-import com.yetcache.core.cache.YetCacheConfigResolver;
-import com.yetcache.core.codec.JsonValueCodec;
-import com.yetcache.core.codec.jackson.JacksonJsonValueCodec;
-import com.yetcache.core.config.YetCacheProperties;
-import com.yetcache.core.config.broadcast.RabbitMqConfig;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import java.io.IOException;
-
-/**
- * @author walter.yan
- * @since 2025/8/7
- */
-@Configuration
-@EnableConfigurationProperties(YetCacheProperties.class)
-public class YetcacheAgentConfiguration {
-    @Bean
-    public CacheAgentRegistryHub cacheAgentRegistryHub() {
-        return new CacheAgentRegistryHub();
-    }
-
-    @Bean
-    public CacheAgentPortRegistry cacheAgentPortRegistry() {
-        return new CacheAgentPortRegistry();
-    }
-
-    @Bean
-    public YetCacheConfigResolver yetCacheConfigResolver(YetCacheProperties props) {
-        return new YetCacheConfigResolver(props);
-    }
-
-    @Bean
-    public String broadcastQueueName(YetCacheProperties yetCacheProperties,
-                                     ConnectionFactory springConnectionFactory) throws IOException {
-        RabbitMqConfig config = yetCacheProperties.getBroadcast().getRabbitmq();
-
-        // 获取底层 RabbitMQ Connection
-        Connection rabbitConnection = springConnectionFactory.createConnection().getDelegate();
-        assert rabbitConnection != null;
-        Channel channel = rabbitConnection.createChannel();
-        return BroadcastQueueInitializer.init(channel, config);
-    }
-
-    @Bean
-    public CacheBroadcastHandlerRegistry cacheBroadcastHandlerRegistry() {
-        return new CacheBroadcastHandlerRegistry();
-    }
-
-    @Bean
-    public CacheBroadcastPublisher cacheBroadcastSender(RabbitTemplate rabbitTemplate,
-                                                        YetCacheProperties yetCacheProperties) {
-        RabbitMqConfig config = yetCacheProperties.getBroadcast().getRabbitmq();
-        return new DefaultRabbitmqCacheBroadcastPublisher(config, rabbitTemplate);
-    }
-
-    @Bean
-    public CacheBroadcastReceiver cacheBroadcastReceiver(
-            JsonValueCodec jsonValueCodec,
-            CacheBroadcastHandlerRegistry handlerRegistry) {
-        return new RabbitMqCacheBroadcastReceiver(jsonValueCodec, handlerRegistry);
-    }
-
-    @Bean
-    public KvCacheAgentRemoveLocalHandler kvCacheAgentRemoveLocalHandler(
-            CacheBroadcastHandlerRegistry handlerRegistry,
-            CacheAgentPortRegistry cacheAgentPortRegistry) {
-
-        KvCacheAgentRemoveLocalHandler handler = new KvCacheAgentRemoveLocalHandler(cacheAgentPortRegistry);
-        handlerRegistry.register(handler);
-        return handler;
-    }
-
-    @Bean
-    public CacheInvocationInterceptorRegistry cacheInvocationInterceptorRegistry() {
-        return new CacheInvocationInterceptorRegistry();
-    }
-
-    @Bean
-    public CacheInvocationChainBuilder cacheInvocationChainBuilder(CacheInvocationInterceptorRegistry interceptorRegistry) {
-        return new CacheInvocationChainBuilder(interceptorRegistry);
-    }
-
-    @Bean
-    public CacheInvocationChainRegistry cacheInvocationChainRegistry() {
-        return new CacheInvocationChainRegistry();
-    }
-
-
-    @Bean
-    public MetricsInterceptor metricsInterceptor(
-            CacheInvocationInterceptorRegistry interceptorRegistry,
-            MeterRegistry registry) {
-        MetricsInterceptor interceptor = new MetricsInterceptor(registry);
-        interceptorRegistry.register(interceptor);
-        return interceptor;
-    }
-
-    @Bean
-    public KvCacheGetInterceptor kvCacheGetInterceptor(
-            CacheInvocationInterceptorRegistry interceptorRegistry) {
-        KvCacheGetInterceptor interceptor = new KvCacheGetInterceptor();
-        interceptorRegistry.register(interceptor);
-        return interceptor;
-    }
-
-    @Bean
-    public KvCachePutInterceptor kvCachePutInterceptor(
-            CacheInvocationInterceptorRegistry interceptorRegistry) {
-        KvCachePutInterceptor interceptor = new KvCachePutInterceptor();
-        interceptorRegistry.register(interceptor);
-        return interceptor;
-    }
-
-    @Bean
-    public JsonValueCodec jsonValueCodec() {
-        ObjectMapper objectMapper = new ObjectMapper()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
-                .setVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE)
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        return new JacksonJsonValueCodec(objectMapper);
-    }
-
-    @Bean
-    public ApplicationRunner registerDefaultChains(
-            CacheAgentRegistryHub agentRegistryHub,
-            CacheInvocationChainRegistry registry,
-            CacheInvocationChainBuilder chainBuilder) {
-        return args -> {
-            for (CacheAgent agent : agentRegistryHub.allKvAgents()) {
-                ChainKey kvGetChainKey = ChainKey.of(StructureType.KV, BehaviorType.GET, agent.cacheAgentName());
-                CacheInvocationChain kvGetChain = chainBuilder.build(kvGetChainKey);
-                registry.register(kvGetChainKey, kvGetChain);
-            }
-        };
-    }
-}
+//package com.yetcache.agent;
+//
+//import com.fasterxml.jackson.annotation.JsonAutoDetect;
+//import com.fasterxml.jackson.annotation.JsonInclude;
+//import com.fasterxml.jackson.annotation.PropertyAccessor;
+//import com.fasterxml.jackson.databind.DeserializationFeature;
+//import com.fasterxml.jackson.databind.ObjectMapper;
+//import com.rabbitmq.client.Channel;
+//import com.rabbitmq.client.Connection;
+//import com.yetcache.agent.agent.*;
+//import com.yetcache.agent.agent.kv.interceptor.KvCachePutInterceptor;
+//import com.yetcache.agent.broadcast.BroadcastQueueInitializer;
+//import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
+//import com.yetcache.agent.broadcast.publisher.DefaultRabbitmqCacheBroadcastPublisher;
+//import com.yetcache.agent.broadcast.receiver.CacheBroadcastReceiver;
+//import com.yetcache.agent.broadcast.receiver.RabbitMqCacheBroadcastReceiver;
+//import com.yetcache.agent.broadcast.receiver.handler.CacheBroadcastHandlerRegistry;
+//import com.yetcache.agent.broadcast.receiver.handler.KvCacheAgentRemoveLocalHandler;
+//import com.yetcache.agent.agent.kv.interceptor.KvCacheGetInterceptor;
+//import com.yetcache.agent.governance.plugin.MetricsInterceptor;
+//import com.yetcache.agent.interceptor.*;
+//import com.yetcache.core.cache.YetCacheConfigResolver;
+//import com.yetcache.core.codec.JsonValueCodec;
+//import com.yetcache.core.codec.jackson.JacksonJsonValueCodec;
+//import com.yetcache.core.config.YetCacheProperties;
+//import com.yetcache.core.config.broadcast.RabbitMqConfig;
+//import io.micrometer.core.instrument.MeterRegistry;
+//import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+//import org.springframework.amqp.rabbit.core.RabbitTemplate;
+//import org.springframework.boot.ApplicationRunner;
+//import org.springframework.boot.context.properties.EnableConfigurationProperties;
+//import org.springframework.context.annotation.Bean;
+//import org.springframework.context.annotation.Configuration;
+//
+//import java.io.IOException;
+//
+///**
+// * @author walter.yan
+// * @since 2025/8/7
+// */
+//@Configuration
+//@EnableConfigurationProperties(YetCacheProperties.class)
+//public class YetcacheAgentConfiguration {
+//    @Bean
+//    public CacheAgentRegistryHub cacheAgentRegistryHub() {
+//        return new CacheAgentRegistryHub();
+//    }
+//
+//    @Bean
+//    public CacheAgentPortRegistry cacheAgentPortRegistry() {
+//        return new CacheAgentPortRegistry();
+//    }
+//
+//    @Bean
+//    public YetCacheConfigResolver yetCacheConfigResolver(YetCacheProperties props) {
+//        return new YetCacheConfigResolver(props);
+//    }
+//
+//    @Bean
+//    public String broadcastQueueName(YetCacheProperties yetCacheProperties,
+//                                     ConnectionFactory springConnectionFactory) throws IOException {
+//        RabbitMqConfig config = yetCacheProperties.getBroadcast().getRabbitmq();
+//
+//        // 获取底层 RabbitMQ Connection
+//        Connection rabbitConnection = springConnectionFactory.createConnection().getDelegate();
+//        assert rabbitConnection != null;
+//        Channel channel = rabbitConnection.createChannel();
+//        return BroadcastQueueInitializer.init(channel, config);
+//    }
+//
+//    @Bean
+//    public CacheBroadcastHandlerRegistry cacheBroadcastHandlerRegistry() {
+//        return new CacheBroadcastHandlerRegistry();
+//    }
+//
+//    @Bean
+//    public CacheBroadcastPublisher cacheBroadcastSender(RabbitTemplate rabbitTemplate,
+//                                                        YetCacheProperties yetCacheProperties) {
+//        RabbitMqConfig config = yetCacheProperties.getBroadcast().getRabbitmq();
+//        return new DefaultRabbitmqCacheBroadcastPublisher(config, rabbitTemplate);
+//    }
+//
+//    @Bean
+//    public CacheBroadcastReceiver cacheBroadcastReceiver(
+//            JsonValueCodec jsonValueCodec,
+//            CacheBroadcastHandlerRegistry handlerRegistry) {
+//        return new RabbitMqCacheBroadcastReceiver(jsonValueCodec, handlerRegistry);
+//    }
+//
+//    @Bean
+//    public KvCacheAgentRemoveLocalHandler kvCacheAgentRemoveLocalHandler(
+//            CacheBroadcastHandlerRegistry handlerRegistry,
+//            CacheAgentPortRegistry cacheAgentPortRegistry) {
+//
+//        KvCacheAgentRemoveLocalHandler handler = new KvCacheAgentRemoveLocalHandler(cacheAgentPortRegistry);
+//        handlerRegistry.register(handler);
+//        return handler;
+//    }
+//
+//    @Bean
+//    public CacheInvocationInterceptorRegistry cacheInvocationInterceptorRegistry() {
+//        return new CacheInvocationInterceptorRegistry();
+//    }
+//
+//    @Bean
+//    public CacheInvocationChainBuilder cacheInvocationChainBuilder(CacheInvocationInterceptorRegistry interceptorRegistry) {
+//        return new CacheInvocationChainBuilder(interceptorRegistry);
+//    }
+//
+//    @Bean
+//    public CacheInvocationChainRegistry cacheInvocationChainRegistry() {
+//        return new CacheInvocationChainRegistry();
+//    }
+//
+//
+//    @Bean
+//    public MetricsInterceptor metricsInterceptor(
+//            CacheInvocationInterceptorRegistry interceptorRegistry,
+//            MeterRegistry registry) {
+//        MetricsInterceptor interceptor = new MetricsInterceptor(registry);
+//        interceptorRegistry.register(interceptor);
+//        return interceptor;
+//    }
+//
+//    @Bean
+//    public KvCacheGetInterceptor kvCacheGetInterceptor(
+//            CacheInvocationInterceptorRegistry interceptorRegistry) {
+//        KvCacheGetInterceptor interceptor = new KvCacheGetInterceptor();
+//        interceptorRegistry.register(interceptor);
+//        return interceptor;
+//    }
+//
+//    @Bean
+//    public KvCachePutInterceptor kvCachePutInterceptor(
+//            CacheInvocationInterceptorRegistry interceptorRegistry) {
+//        KvCachePutInterceptor interceptor = new KvCachePutInterceptor();
+//        interceptorRegistry.register(interceptor);
+//        return interceptor;
+//    }
+//
+//    @Bean
+//    public JsonValueCodec jsonValueCodec() {
+//        ObjectMapper objectMapper = new ObjectMapper()
+//                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+//                .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+//                .setVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE)
+//                .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+//        return new JacksonJsonValueCodec(objectMapper);
+//    }
+//
+//    @Bean
+//    public ApplicationRunner registerDefaultChains(
+//            CacheAgentRegistryHub agentRegistryHub,
+//            CacheInvocationChainRegistry registry,
+//            CacheInvocationChainBuilder chainBuilder) {
+//        return args -> {
+//            for (CacheAgent agent : agentRegistryHub.allKvAgents()) {
+//                ChainKey kvGetChainKey = ChainKey.of(StructureType.KV, BehaviorType.GET, agent.cacheAgentName());
+//                CacheInvocationChain kvGetChain = chainBuilder.build(kvGetChainKey);
+//                registry.register(kvGetChainKey, kvGetChain);
+//            }
+//        };
+//    }
+//}

@@ -2,9 +2,9 @@ package com.yetcache.agent.agent.kv;
 
 import com.yetcache.agent.agent.*;
 import com.yetcache.agent.agent.kv.port.*;
-import com.yetcache.agent.broadcast.CacheRemoveCommand;
+import com.yetcache.agent.broadcast.CacheInvalidateCommand;
 import com.yetcache.agent.broadcast.InstanceIdProvider;
-import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
+import com.yetcache.agent.broadcast.publisher.CacheInvalidateMessagePublisher;
 import com.yetcache.agent.agent.kv.interceptor.KvCacheAgentGetInvocationCommand;
 import com.yetcache.agent.agent.kv.loader.KvCacheLoader;
 import com.yetcache.agent.interceptor.*;
@@ -42,7 +42,7 @@ public class BaseKvCacheAgent implements KvCacheAgent {
                             RedissonClient redissonClient,
                             KeyConverter keyConverter,
                             KvCacheLoader cacheLoader,
-                            CacheBroadcastPublisher broadcastPublisher,
+                            CacheInvalidateMessagePublisher broadcastPublisher,
                             CacheInvocationChainRegistry chainRegistry,
                             TypeRefRegistry typeRefRegistry,
                             TypeDescriptor typeDescriptor,
@@ -88,7 +88,7 @@ public class BaseKvCacheAgent implements KvCacheAgent {
         BaseCacheResult<Void> putResult = scope.getMultiLevelCache().put(cmd);
         CompletableFuture.runAsync(() -> {
             @SuppressWarnings("unchecked")
-            CacheRemoveCommand removeCmd = CacheRemoveCommand.builder()
+            CacheInvalidateCommand removeCmd = CacheInvalidateCommand.builder()
                     .structureType(StructureType.KV.name())
                     .cacheAgentName(scope.getCacheAgentName())
                     .key(scope.getKeyConverter().convert(cmd.getBizKey()))

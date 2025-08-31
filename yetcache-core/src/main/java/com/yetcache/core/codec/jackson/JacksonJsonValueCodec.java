@@ -1,11 +1,11 @@
 package com.yetcache.core.codec.jackson;
 
-import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yetcache.core.codec.JsonValueCodec;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
 
@@ -25,7 +25,7 @@ public class JacksonJsonValueCodec implements JsonValueCodec {
 
     @Override
     public Object decode(String json, Type valueType) throws Exception {
-        if (StrUtil.isNotBlank(json)) {
+        if (StringUtils.isNotBlank(json)) {
             JavaType javaType = objectMapper.getTypeFactory().constructType(valueType);
             return objectMapper.readValue(json, javaType);
         }

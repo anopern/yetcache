@@ -1,10 +1,9 @@
 package com.yetcache.example.cache.cnfig;
 
-import com.yetcache.agent.broadcast.publisher.CacheBroadcastPublisher;
+import com.yetcache.agent.broadcast.publisher.CacheInvalidateMessagePublisher;
 import com.yetcache.agent.agent.CacheAgentPortRegistry;
 import com.yetcache.agent.agent.kv.BaseKvCacheAgent;
 import com.yetcache.agent.interceptor.CacheInvocationChainRegistry;
-import com.yetcache.core.cache.YetCacheConfigResolver;
 import com.yetcache.core.codec.JsonValueCodec;
 import com.yetcache.core.codec.TypeDescriptor;
 import com.yetcache.core.codec.TypeRef;
@@ -14,6 +13,7 @@ import com.yetcache.core.support.key.LongKeyConverter;
 import com.yetcache.example.config.CacheAgentNames;
 import com.yetcache.example.domain.entity.User;
 import com.yetcache.example.service.loader.IdKeyUserCacheLoader;
+import com.yetcache.starter.YetCacheConfigResolver;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -39,7 +39,7 @@ public class UserCacheAgentConfiguration {
                                                 IdKeyUserCacheLoader cacheLoader,
                                                 RedissonClient redissonClient,
                                                 LongKeyConverter keyConverter,
-                                                CacheBroadcastPublisher broadcastPublisher,
+                                                CacheInvalidateMessagePublisher broadcastPublisher,
                                                 CacheInvocationChainRegistry chainRegistry,
                                                 TypeRefRegistry typeRefRegistry,
                                                 JsonValueCodec jsonValueCodec,

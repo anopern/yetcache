@@ -61,4 +61,5 @@ yetcache:
         local:
           logic-ttl-secs: 5
         remote:
-          logic-ttl-secs: 120
+          logic-ttl-secs: 10
+          physical-ttl-secs: 120
