@@ -2,7 +2,6 @@ package com.yetcache.example.cache.service;
 
 import com.yetcache.agent.agent.kv.BaseKvCacheAgent;
 import com.yetcache.core.result.BaseCacheResult;
-import com.yetcache.core.support.CacheValueHolder;
 import com.yetcache.example.domain.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +20,9 @@ public class IdKeyUserCacheService {
     private BaseKvCacheAgent idKeyUserCacheAgent;
 
     public User get(Long id) {
-        BaseCacheResult<CacheValueHolder<User>> result = idKeyUserCacheAgent.get(id);
-        if (null != result && result.isSuccess() && result.value() != null) {
-            CacheValueHolder<User> valueHolder = result.value();
-            return valueHolder.getValue();
+        BaseCacheResult<User> result = idKeyUserCacheAgent.get(id);
+        if (null != result && result.isSuccess()) {
+            return result.value();
         }
         return null;
     }

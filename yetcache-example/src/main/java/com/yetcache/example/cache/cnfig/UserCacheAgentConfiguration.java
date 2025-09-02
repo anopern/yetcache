@@ -1,5 +1,6 @@
 package com.yetcache.example.cache.cnfig;
 
+import com.yetcache.agent.agent.CacheAgentRegistryHub;
 import com.yetcache.agent.broadcast.publisher.CacheInvalidateMessagePublisher;
 import com.yetcache.agent.agent.CacheAgentPortRegistry;
 import com.yetcache.agent.agent.kv.BaseKvCacheAgent;
@@ -43,13 +44,14 @@ public class UserCacheAgentConfiguration {
                                                 CacheInvocationChainRegistry chainRegistry,
                                                 TypeRefRegistry typeRefRegistry,
                                                 JsonValueCodec jsonValueCodec,
-                                                CacheAgentPortRegistry agentPortRegistry) {
+                                                CacheAgentPortRegistry agentPortRegistry,
+                                                CacheAgentRegistryHub agentRegistryHub) {
         final String cacheAgentName = CacheAgentNames.ID_KEY_USER_CACHE;
         KvCacheConfig config = configResolver.resolveKv(cacheAgentName);
         TypeDescriptor typeDescriptor = TypeDescriptor.of(new TypeRef<User>() {
         });
 
-        return new BaseKvCacheAgent(
+        BaseKvCacheAgent agent = new BaseKvCacheAgent(
                 cacheAgentName,
                 config,
                 redissonClient,
@@ -62,5 +64,7 @@ public class UserCacheAgentConfiguration {
                 jsonValueCodec,
                 agentPortRegistry
         );
+        agentRegistryHub.register(agent);
+        return agent;
     }
 }
