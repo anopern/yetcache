@@ -47,40 +47,49 @@ public class DefaultMultiLevelKvCache implements MultiLevelKvCache {
         log.debug("[Yetcache]DefaultMultiLevelKvCache get data, cmd: {}", cmd);
         String key = cmd.getKey();
         // 1. 尝试从本地缓存读取
+        CacheValueHolder<T> localValueHolder = null;
         if (localCache != null) {
-            CacheValueHolder<T> valueHolder = localCache.getIfPresent(key);
-            log.debug("[Yetcache]DefaultMultiLevelKvCache get data from local cache, key: {}, value: {}", key, valueHolder);
-            if (valueHolder != null) {
-                FreshnessInfo freshnessInfo = valueHolder.isNotLogicExpired() ? FreshnessInfo.fresh()
-                        : FreshnessInfo.stale();
-                return BaseCacheResult.singleHit(cacheName, valueHolder, HitLevel.LOCAL, freshnessInfo);
+            localValueHolder = localCache.getIfPresent(key);
+            log.debug("[Yetcache]DefaultMultiLevelKvCache get data from local cache, key: {}, value: {}", key, localValueHolder);
+            if (localValueHolder != null && localValueHolder.isNotLogicExpired()) {
+                return BaseCacheResult.singleHit(cacheName, localValueHolder, HitLevel.LOCAL, FreshnessInfo.fresh());
             }
         }
 
         // 2. 尝试从远程缓存读取
+        CacheValueHolder<T> remoteValueHolder = null;
         if (remoteCache != null) {
-            CacheValueHolder<T> valueHolder = remoteCache.get(key, cmd.valueTypeRef());
-            log.debug("[Yetcache]DefaultMultiLevelKvCache get data from remote cache, key: {}, value: {}", key, valueHolder);
-            if (valueHolder != null) {
+            remoteValueHolder = remoteCache.get(key, cmd.valueTypeRef());
+            log.debug("[Yetcache]DefaultMultiLevelKvCache get data from remote cache, key: {}, value: {}", key, remoteValueHolder);
+            if (remoteValueHolder != null && remoteValueHolder.isNotLogicExpired()) {
                 // 回写到本地缓存
-                if (valueHolder.isNotLogicExpired() && localCache != null) {
-                    long localLogicExpireAt = valueHolder.getCreatedTime() / 1000 + config.getLocal().getLogicTtlSecs();
-                    if (localLogicExpireAt > valueHolder.getExpireTime()) {
-                        localLogicExpireAt = valueHolder.getExpireTime();
+                if (localCache != null) {
+                    long now = System.currentTimeMillis();
+                    long maxTtlMs = remoteValueHolder.getExpireTime() - now;
+                    long ttlMs = Math.min(config.getLocal().getLogicTtlSecs() * 1000, maxTtlMs);
+                    if (ttlMs > 0) {
+                        int ttlSecs = (int) Math.max(1L, ttlMs / 1000L);
+                        localCache.put(key, CacheValueHolder.wrap(remoteValueHolder.getValue(), ttlSecs));
+                        log.debug("[Yetcache]DefaultMultiLevelKvCache got data from remote," +
+                                " and write data to local cache, key: {}, value: {}", key, remoteValueHolder);
                     }
-                    int localLogicTtlSecs = (int) ((localLogicExpireAt - valueHolder.getCreatedTime()) / 1000);
-                    localCache.put(key, CacheValueHolder.wrap(valueHolder.getValue(), localLogicTtlSecs));
-                    log.debug("[Yetcache]DefaultMultiLevelKvCache got data from remote," +
-                            " and write data to local cache, key: {}, value: {}", key, valueHolder);
                 }
-                FreshnessInfo freshnessInfo = valueHolder.isNotLogicExpired() ? FreshnessInfo.fresh()
-                        : FreshnessInfo.stale();
-                return BaseCacheResult.singleHit(cacheName, valueHolder, HitLevel.REMOTE, freshnessInfo);
+                return BaseCacheResult.singleHit(cacheName, remoteValueHolder, HitLevel.REMOTE, FreshnessInfo.fresh());
             }
         }
 
-        // 3. 所有缓存都 miss
-        return BaseCacheResult.miss(cacheName);
+        if (localValueHolder != null && remoteValueHolder != null) {
+            CacheValueHolder<T> valueHolder = localValueHolder.getCreatedTime() >= remoteValueHolder.getCreatedTime()
+                    ? localValueHolder : remoteValueHolder;
+            HitLevel hitLevel = valueHolder == localValueHolder ? HitLevel.LOCAL : HitLevel.REMOTE;
+            return BaseCacheResult.singleHit(cacheName, valueHolder, hitLevel, FreshnessInfo.stale());
+        } else if (localValueHolder != null) {
+            return BaseCacheResult.singleHit(cacheName, localValueHolder, HitLevel.LOCAL, FreshnessInfo.stale());
+        } else if (remoteValueHolder != null) {
+            return BaseCacheResult.singleHit(cacheName, remoteValueHolder, HitLevel.REMOTE, FreshnessInfo.stale());
+        } else {
+            return BaseCacheResult.miss(cacheName);
+        }
     }
 
     @Override

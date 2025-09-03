@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class KvCacheConfig {
     private KvCacheSpec spec;
     protected CaffeineKvCacheConfig local;
-    protected RedisKVCacheConfig remote;
+    protected RedisKvCacheConfig remote;
 
     public KvCacheConfig(KvCacheConfig other) {
         this.spec = other.getSpec();
@@ -25,6 +25,6 @@ public class KvCacheConfig {
     public static KvCacheConfig defaultConfig() {
         return new KvCacheConfig(KvCacheSpec.defaultSpec(),
                 CaffeineKvCacheConfig.defaultConfig(),
-                RedisKVCacheConfig.defaultConfig());
+                RedisKvCacheConfig.defaultConfig());
     }
 }

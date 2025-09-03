@@ -9,18 +9,19 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class RedisKVCacheConfig {
+public class RedisKvCacheConfig {
     protected Long logicTtlSecs;
     protected Long physicalTtlSecs;
     protected Double ttlRandomPct;
 
-    public RedisKVCacheConfig(RedisKVCacheConfig other) {
+    public RedisKvCacheConfig(RedisKvCacheConfig other) {
         this.logicTtlSecs = other.logicTtlSecs;
         this.physicalTtlSecs = other.physicalTtlSecs;
         this.ttlRandomPct = other.ttlRandomPct;
     }
-    public static RedisKVCacheConfig defaultConfig() {
-        RedisKVCacheConfig config = new RedisKVCacheConfig();
+
+    public static RedisKvCacheConfig defaultConfig() {
+        RedisKvCacheConfig config = new RedisKvCacheConfig();
         config.setLogicTtlSecs(20 * 60L);
         config.setPhysicalTtlSecs(3 * 24 * 3600L);
         config.setTtlRandomPct(0.15);
