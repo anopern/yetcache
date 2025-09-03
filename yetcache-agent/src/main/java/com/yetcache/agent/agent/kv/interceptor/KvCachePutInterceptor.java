@@ -50,7 +50,8 @@ public class KvCachePutInterceptor implements CacheInterceptor {
             return result;
         }
         // 如果是命中级别是原数据，则需要将数据重写回到缓存中
-        if (result.hitLevelInfo().hitLevel() == HitLevel.SOURCE) {
+        if (result.hitLevelInfo().hitLevel() == HitLevel.SOURCE
+                && null != result.value()) {
             agentScope.getCachePutPort().put(bizKey, result.value());
         }
         return result;
