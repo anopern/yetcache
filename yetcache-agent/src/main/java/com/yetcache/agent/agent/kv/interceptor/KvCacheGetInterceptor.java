@@ -46,10 +46,10 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
     @Override
     public CacheResult invoke(CacheInvocationContext ctx, ChainRunner runner) throws Throwable {
         KvCacheAgentGetInvocationCommand cmd = (KvCacheAgentGetInvocationCommand) ctx.getCommand();
-        Object key = cmd.getBizKey();
+        Object bizKey = cmd.getBizKey();
         KvCacheAgentScope agentScope = (KvCacheAgentScope) ctx.getAgentScope();
         TypeRef<?> valueTypeRef = agentScope.getTypeDescriptor().getValueTypeRef();
-        BaseCacheResult<?> cacheStoreResult = loadFromCacheStore(key, agentScope, valueTypeRef);
+        BaseCacheResult<?> cacheStoreResult = loadFromCacheStore(bizKey, agentScope, valueTypeRef);
         if (cacheStoreResult.code() == BaseResultCode.SUCCESS.code()) {
             if (cacheStoreResult.hitLevelInfo().hit() && cacheStoreResult.freshnessInfo().isFresh()) {
                 CacheValueHolder<?> valueHolder = (CacheValueHolder<?>) cacheStoreResult.value();
@@ -58,7 +58,7 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
                         cacheStoreResult.hitLevelInfo(), cacheStoreResult.freshnessInfo());
             } else {
                 // 否则尝试从源加载数据
-                CacheResult sourceResult = loadFromSource(key, agentScope, valueTypeRef);
+                CacheResult sourceResult = loadFromSource(bizKey, agentScope, valueTypeRef);
                 if (sourceResult.code() == BaseResultCode.SUCCESS.code()) {
                     // 如果加载成功，则直接返回，不需要在这儿PUT
                     return BaseCacheResult.singleHit(agentScope.getCacheAgentName(), sourceResult.value(),
@@ -72,8 +72,10 @@ public class KvCacheGetInterceptor implements CacheInterceptor {
         return BaseCacheResult.fail(agentScope.getCacheAgentName(), cacheStoreResult.errorInfo());
     }
 
+    @SuppressWarnings("unchecked")
     private BaseCacheResult<?> loadFromCacheStore(Object bizKey, KvCacheAgentScope agentScope, TypeRef<?> valueTypeRef) {
-        KvCacheGetCommand storeGetCmd = KvCacheGetCommand.of(bizKey, valueTypeRef);
+        String key = agentScope.getKeyConverter().convert(bizKey);
+        KvCacheGetCommand storeGetCmd = KvCacheGetCommand.of(key, valueTypeRef);
         BaseCacheResult<?> storeResult = agentScope.getMultiLevelCache().get(storeGetCmd);
         if (storeResult.code() == BaseResultCode.SUCCESS.code()
                 && HitLevel.NONE != storeResult.hitLevelInfo().hitLevel()

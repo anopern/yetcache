@@ -15,11 +15,11 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 public class KvCacheGetCommand {
-    private Object bizKey;
+    private String key;
     private TypeRef<?> valueTypeRef;
 
-    public static <T> KvCacheGetCommand of(Object bizKey, TypeRef<T> ref) {
-        return new KvCacheGetCommand(bizKey, ref);
+    public static <T> KvCacheGetCommand of(String key, TypeRef<T> ref) {
+        return new KvCacheGetCommand(key, ref);
     }
 
     // ✅ 泛型访问器：在使用点把 <?> 进化回 <T>

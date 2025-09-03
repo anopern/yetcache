@@ -33,7 +33,7 @@ public class RedisCacheInvalidateMessageSubscriber implements CacheInvalidateMes
                         cmd.getCacheAgentName(), BehaviorType.REMOVE);
                 port.removeLocal(cmd.getKey());
             } catch (Exception e) {
-                log.error("[YetCache]Invalid message: {}", msg);
+                log.error("[YetCache]Invalid message: {}", msg, e);
             }
         });
     }

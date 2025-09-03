@@ -6,6 +6,6 @@ package com.yetcache.core.result;
  */
 public enum ErrorReason {
     TIMEOUT,
-    HTTP_5XX,
+    SERVER_ERROR,
     UNKNOWN
 }

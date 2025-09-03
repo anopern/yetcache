@@ -11,7 +11,6 @@ import com.yetcache.core.config.kv.KvCacheConfig;
 import com.yetcache.core.config.kv.KvCacheSpec;
 import com.yetcache.core.result.BaseCacheResult;
 import com.yetcache.core.result.HitLevel;
-import com.yetcache.core.support.key.KeyConverter;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
@@ -27,16 +26,13 @@ public class DefaultMultiLevelKvCache implements MultiLevelKvCache {
     private final KvCacheConfig config;
     private CaffeineKVCache localCache;
     private RedisKVCache remoteCache;
-    private KeyConverter keyConverter;
 
     public DefaultMultiLevelKvCache(String cacheName,
                                     KvCacheConfig config,
                                     RedissonClient rClient,
-                                    KeyConverter keyConverter,
                                     JsonValueCodec jsonValueCodec) {
         this.cacheName = cacheName;
         this.config = config;
-        this.keyConverter = keyConverter;
         KvCacheSpec spec = config.getSpec();
         if (spec.getCacheLevel().includesLocal()) {
             this.localCache = new CaffeineKVCache(config.getLocal());
@@ -47,10 +43,9 @@ public class DefaultMultiLevelKvCache implements MultiLevelKvCache {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> BaseCacheResult<CacheValueHolder<T>> get(KvCacheGetCommand cmd) {
         log.debug("[Yetcache]DefaultMultiLevelKvCache get data, cmd: {}", cmd);
-        String key = keyConverter.convert(cmd.getBizKey());
+        String key = cmd.getKey();
         // 1. 尝试从本地缓存读取
         if (localCache != null) {
             CacheValueHolder<T> valueHolder = localCache.getIfPresent(key);
@@ -92,9 +87,8 @@ public class DefaultMultiLevelKvCache implements MultiLevelKvCache {
     @SuppressWarnings("unchecked")
     public <T> BaseCacheResult<Void> put(KvCachePutCommand cmd) {
         log.debug("[Yetcache]DefaultMultiLevelKvCache put data, cmd: {}", cmd);
-        Object bizKey = cmd.getBizKey();
+        String key = cmd.getKey();
         Object value = cmd.getValue();
-        String key = keyConverter.convert(bizKey);
         CacheTtl cacheTtl = cmd.getTtl();
 
         // 写入远程缓存
@@ -117,10 +111,9 @@ public class DefaultMultiLevelKvCache implements MultiLevelKvCache {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public BaseCacheResult<Void> remove(KvCacheRemoveCommand cmd) {
         log.debug("[Yetcache]DefaultMultiLevelKvCache remove data, cmd: {}", cmd);
-        String key = keyConverter.convert(cmd.getBizKey());
+        String key = cmd.getKey();
 
         // 清除本地缓存
         if (localCache != null && (null == cmd.getCacheLevel() || cmd.getCacheLevel().includesLocal())) {

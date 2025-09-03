@@ -9,5 +9,5 @@ import com.yetcache.core.result.CacheResult;
  * @since 2025/8/11
  */
 public interface KvCacheAgentRemovePort extends CacheAgentPort {
-    CacheResult removeLocal(Object bizKey);
+    CacheResult removeLocal(String key);
 }

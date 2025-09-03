@@ -1,9 +1,11 @@
 package com.yetcache.agent.agent.kv.port;
 
+import com.yetcache.agent.agent.CacheAgentRemoveOptions;
 import com.yetcache.agent.agent.StructureType;
 import com.yetcache.agent.agent.kv.KvCacheAgent;
 import com.yetcache.agent.agent.BehaviorType;
 import com.yetcache.agent.agent.ChainKey;
+import com.yetcache.core.config.CacheLevel;
 import com.yetcache.core.result.CacheResult;
 import lombok.AllArgsConstructor;
 
@@ -22,7 +24,7 @@ public class DefaultKvCacheAgentRemovePort implements KvCacheAgentRemovePort {
     }
 
     @Override
-    public CacheResult removeLocal(Object bizKey) {
-        return kvCacheAgent.remove(bizKey);
+    public CacheResult removeLocal(String key) {
+        return kvCacheAgent.removeLocal(key);
     }
 }

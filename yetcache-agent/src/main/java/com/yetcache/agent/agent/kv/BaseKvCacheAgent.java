@@ -23,6 +23,7 @@ import com.yetcache.core.support.key.KeyConverter;
 import com.yetcache.core.util.TtlRandomizer;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RedissonClient;
 
 import java.util.concurrent.CompletableFuture;
@@ -49,7 +50,7 @@ public class BaseKvCacheAgent implements KvCacheAgent {
                             JsonValueCodec jsonValueCodec,
                             CacheAgentPortRegistry agentPortRegistry) {
 
-        DefaultMultiLevelKvCache multiLevelCache = new DefaultMultiLevelKvCache(cacheAgentName, config, redissonClient, keyConverter,
+        DefaultMultiLevelKvCache multiLevelCache = new DefaultMultiLevelKvCache(cacheAgentName, config, redissonClient,
                 jsonValueCodec);
 
         KvCacheAgentRemovePort removePort = new DefaultKvCacheAgentRemovePort(this);
@@ -77,6 +78,7 @@ public class BaseKvCacheAgent implements KvCacheAgent {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <K, T> BaseCacheResult<Void> put(K bizKey, T value) {
         log.debug("[Yetcache]BaseKvCacheAgent put data to multiLevelCache, bizKey: {}, value: {}", bizKey, value);
         CacheTtl ttl = CacheTtl.builder()
@@ -84,14 +86,15 @@ public class BaseKvCacheAgent implements KvCacheAgent {
                 .remoteLogicSecs(getRemoteLogicTtlSecs())
                 .remotePhysicalSecs(getRemotePhysicalTtlSecs())
                 .build();
-        KvCachePutCommand cmd = KvCachePutCommand.of(bizKey, value, ttl);
+        String key = scope.getKeyConverter().convert(bizKey);
+        KvCachePutCommand cmd = KvCachePutCommand.of(key, value, ttl);
         BaseCacheResult<Void> putResult = scope.getMultiLevelCache().put(cmd);
         CompletableFuture.runAsync(() -> {
             @SuppressWarnings("unchecked")
             CacheInvalidateCommand removeCmd = CacheInvalidateCommand.builder()
                     .structureType(StructureType.KV.name())
                     .cacheAgentName(scope.getCacheAgentName())
-                    .key(scope.getKeyConverter().convert(cmd.getBizKey()))
+                    .key(scope.getKeyConverter().convert(cmd.getKey()))
                     .instanceId(InstanceIdProvider.getInstanceId())
                     .publishAt(System.currentTimeMillis())
                     .build();
@@ -124,17 +127,24 @@ public class BaseKvCacheAgent implements KvCacheAgent {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <K> BaseCacheResult<Void> remove(K bizKey, CacheAgentRemoveOptions opts) {
         if (null == opts) {
             opts = CacheAgentRemoveOptions.of(CacheLevel.BOTH);
         }
-        KvCacheRemoveCommand cmd = KvCacheRemoveCommand.of(bizKey, opts.getCacheLevel());
+        String key = scope.getKeyConverter().convert(bizKey);
+        KvCacheRemoveCommand cmd = KvCacheRemoveCommand.of(key, opts.getCacheLevel());
         scope.getMultiLevelCache().remove(cmd);
         return BaseCacheResult.success(scope.getCacheAgentName());
     }
 
-    protected <K> BaseCacheResult<Void> removeLocal(K bizKey) {
-        KvCacheRemoveCommand cmd = KvCacheRemoveCommand.ofLocal(bizKey);
+    @Override
+    public BaseCacheResult<Void> removeLocal(String key) {
+        if (StringUtils.isEmpty(key)) {
+            log.warn("[Yetcache]BaseKvCacheAgent removeLocal failed, key is empty");
+            return BaseCacheResult.success(scope.getCacheAgentName());
+        }
+        KvCacheRemoveCommand cmd = KvCacheRemoveCommand.ofLocal(key);
         scope.getMultiLevelCache().remove(cmd);
         return BaseCacheResult.success(scope.getCacheAgentName());
     }
