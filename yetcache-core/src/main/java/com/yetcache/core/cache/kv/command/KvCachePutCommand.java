@@ -14,11 +14,11 @@ import lombok.Data;
 @Data
 @Builder
 public class KvCachePutCommand {
-    private final Object bizKey;
+    private final String key;
     private final Object value;
     private final CacheTtl ttl;
 
-    public static   KvCachePutCommand of (final Object bizKey, final Object value, final CacheTtl ttl) {
-        return new KvCachePutCommand(bizKey, value, ttl);
+    public static KvCachePutCommand of(final String key, final Object value, final CacheTtl ttl) {
+        return new KvCachePutCommand(key, value, ttl);
     }
 }

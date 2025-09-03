@@ -13,19 +13,19 @@ import lombok.Data;
 @Data
 @Builder
 public class KvCacheRemoveCommand {
-    private final Object bizKey;
+    private final String key;
     private final CacheLevel cacheLevel;
 
-    public static KvCacheRemoveCommand of(final Object bizKey, final CacheLevel cacheLevel) {
+    public static KvCacheRemoveCommand of(final String bizKey, final CacheLevel cacheLevel) {
         return KvCacheRemoveCommand.builder()
-                .bizKey(bizKey)
+                .key(bizKey)
                 .cacheLevel(cacheLevel)
                 .build();
     }
 
-    public static KvCacheRemoveCommand ofLocal(final Object bizKey) {
+    public static KvCacheRemoveCommand ofLocal(final String key) {
         return KvCacheRemoveCommand.builder()
-                .bizKey(bizKey)
+                .key(key)
                 .cacheLevel(CacheLevel.LOCAL)
                 .build();
     }

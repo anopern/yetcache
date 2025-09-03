@@ -17,5 +17,7 @@ public interface KvCacheAgent extends CacheAgent {
 
     <K> BaseCacheResult<Void> remove(K bizKey);
 
+  BaseCacheResult<Void> removeLocal(String key);
+
     <K> BaseCacheResult<Void> remove(K bizKey, CacheAgentRemoveOptions opts);
 }
