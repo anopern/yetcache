@@ -37,3 +37,4 @@ build/
 target/
 application-fins.yaml
 logs/
+*.log
